@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 
 import 'cw_builder.dart';
 import 'cw_image.dart';
+import 'cw_toolkit.dart';
 
 class SelectorActionWidget extends StatefulWidget {
   const SelectorActionWidget({super.key});
@@ -45,7 +46,9 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
 // ignore: must_be_immutable
 class SelectorWidget extends StatefulWidget {
-  SelectorWidget({super.key, required this.child, required this.ctx});
+  SelectorWidget({super.key, required this.child, required this.ctx}) {
+    print("NEWNEWNEWNEWNEWNEW");
+  }
 
   final GlobalKey widgetKey = GlobalKey();
   final Widget child;
@@ -53,8 +56,10 @@ class SelectorWidget extends StatefulWidget {
 
   static String hoverPath = '';
   // ignore: library_private_types_in_public_api
-  static _SelectorWidgetState? last;
+  static _SelectorWidgetState? lastStateOver;
+
   static String lastclick = '';
+  static _SelectorWidgetState? lastStateClick;
 
   @override
   State<SelectorWidget> createState() => _SelectorWidgetState();
@@ -74,12 +79,17 @@ class _SelectorWidgetState extends State<SelectorWidget> {
   // // to save image bytes of widget
   // Uint8List? bytes;
 
+  bool menuIsOpen = false;
+  final GlobalKey InkWellKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
+    return InkWell(
+        key: InkWellKey,
+
         //height: 100, //there should be outline/dimensions for the box.
         //Otherway, You can use positioned widget
-        duration: const Duration(milliseconds: 200),
+        //duration: const Duration(milliseconds: 200),
         // margin: EdgeInsets.only(
         //     right: isHover ? 2 : 0.0,
         //     left: isHover ? 2 : 0,
@@ -97,80 +107,18 @@ class _SelectorWidgetState extends State<SelectorWidget> {
           //  Material(
           //     color: Colors.transparent,
           child: MouseRegion(
-              onHover: (PointerHoverEvent e) {
-                final bool isParent =
-                    SelectorWidget.hoverPath != widget.ctx.path &&
-                        SelectorWidget.hoverPath.startsWith(widget.ctx.path);
-
-                if (!isParent &&
-                    !isHover &&
-                    SelectorWidget.lastclick != widget.ctx.path) {
-                  debugPrint(
-                      'onHover ${widget.ctx.path} ${SelectorWidget.hoverPath} $isParent =>');
-
-                  final _SelectorWidgetState? current = SelectorWidget.last;
-
-                  final bool remove = SelectorWidget.last != null &&
-                      SelectorWidget.hoverPath != widget.ctx.path &&
-                      SelectorWidget.last!.mounted;
-
-                  setState(() {
-                    isHover = true;
-                    SelectorWidget.last = this;
-                    SelectorWidget.hoverPath = widget.ctx.path;
-                  });
-
-                  if (remove) {
-                    current?.setState(() {
-                      current.isHover = false;
-                    });
-                  }
-                }
-              },
-              onExit: (PointerExitEvent e) {
-                debugPrint('onExit ${widget.ctx.path} =>$e');
-                if (SelectorWidget.lastclick == widget.ctx.path) {
-                  SelectorWidget.lastclick = '';
-                }
-
-                if (isHover) {
-                  setState(() {
-                    if (SelectorWidget.hoverPath == widget.ctx.path) {
-                      SelectorWidget.hoverPath = '';
-                      SelectorWidget.last = null;
-                    }
-                    isHover = false;
-                  });
-                }
-              },
+              onHover: onHover,
+              onExit: onExit,
               child: Listener(
                 key: widget.widgetKey,
                 behavior: HitTestBehavior.opaque,
-                onPointerDown: (PointerDownEvent d) async {
+                onPointerDown: (PointerDownEvent d) {
+                  if (menuIsOpen) return;
+
                   // final Size size = box.size;
 
-                  // ignore: cast_nullable_to_non_nullable
-                  final SelectorActionWidgetState st = SelectorActionWidget
-                      .actionPanKey.currentState as SelectorActionWidgetState;
-
                   if (isHover) {
-                    st.setState(() {
-                      // ignore: cast_nullable_to_non_nullable
-                      final RenderBox box = widget.widgetKey.currentContext!
-                          .findRenderObject() as RenderBox;
-
-                      // ignore: cast_nullable_to_non_nullable
-                      final RenderBox boxDesigner = SelectorActionWidget
-                          .designerKey.currentContext!
-                          .findRenderObject() as RenderBox;
-
-                      final Offset position = box.localToGlobal(Offset.zero,
-                          ancestor: boxDesigner); //this is global position
-
-                      st.left = position.dx;
-                      st.top = position.dy + box.size.height;
-                      st._visible = true;
-                    });
+                    showActionWidget();
                   }
 
                   if (isHover) {
@@ -186,30 +134,36 @@ class _SelectorWidgetState extends State<SelectorWidget> {
                     debugPrint(
                         'Clicked gesture ${widget.ctx.path} ${d.buttons} ${widget.ctx.xid} $prop');
 
-                    if (d.buttons == 2) {
-                      // ignore: cast_nullable_to_non_nullable
-                      final RenderBox box = widget.widgetKey.currentContext!
-                          .findRenderObject() as RenderBox;
-
-                      // ignore: cast_nullable_to_non_nullable
-                      final RenderBox rootBox = SelectorActionWidget
-                          .rootKey.currentContext!
-                          .findRenderObject() as RenderBox;
-
-                      final Offset position = box.localToGlobal(Offset.zero,
-                          ancestor: rootBox); //this is global position
-
-                      _showPopupMenu(Offset(position.dx + d.localPosition.dx,
-                          position.dy + d.localPosition.dy));
-                    }
-                    setState(() {
-                      //isHover = false;
-                      if (SelectorWidget.lastclick == widget.ctx.path) {
-                        // HoveringWidget.lastclick = '';
-                      } else {
+                    if (SelectorWidget.lastclick != widget.ctx.path) {
+                      setState(() {
+                        print("setlection ${widget.ctx.path}");
+                        
                         SelectorWidget.lastclick = widget.ctx.path;
-                      }
-                    });
+
+                        if (SelectorWidget.lastStateClick!=null && SelectorWidget.lastStateClick!.mounted)
+                        {
+                          SelectorWidget.lastStateClick?.setState(() {
+                            
+                          });
+                        }
+
+                        SelectorWidget.lastStateClick = this;
+                      });
+                    }
+
+                    if (d.buttons == 2) {
+                      final Offset position = CwToolkit.getPosition(
+                          widget.widgetKey, SelectorActionWidget.rootKey);
+
+                      menuIsOpen = true;
+                      Future.delayed(const Duration(milliseconds: 200), () {
+                        menuIsOpen = false;
+                      });
+
+                      _showPopupMenu(Offset(
+                          position.dx + d.localPosition.dx + 10,
+                          position.dy + d.localPosition.dy + 10));
+                    }
                   }
                 },
                 child: RepaintBoundary(key: paintKey, child: getChild()),
@@ -217,8 +171,91 @@ class _SelectorWidgetState extends State<SelectorWidget> {
         ));
   }
 
+  void onExit(PointerExitEvent e) {
+    if (menuIsOpen) return;
+
+    // if (SelectorWidget.lastclick == widget.ctx.path) {
+    //   SelectorWidget.lastclick = '';
+    // }
+
+    if (isHover) {
+      setState(() {
+        if (SelectorWidget.hoverPath == widget.ctx.path) {
+          debugPrint('onExit hover ${widget.ctx.path} =>$e');
+          SelectorWidget.hoverPath = '';
+          SelectorWidget.lastStateOver = null;
+        }
+        isHover = false;
+      });
+    }
+  }
+
+  void onHover(PointerHoverEvent e) {
+    final bool isParent = SelectorWidget.hoverPath != widget.ctx.path &&
+        SelectorWidget.hoverPath.startsWith(widget.ctx.path);
+
+    if (!isParent &&
+        !isHover /* && SelectorWidget.lastclick != widget.ctx.path*/) {
+      debugPrint(
+          'onHover ${widget.ctx.path} ${SelectorWidget.hoverPath} $isParent =>');
+
+      removeLastOver();
+
+      setState(() {
+        isHover = true;
+        SelectorWidget.lastStateOver = this;
+        SelectorWidget.hoverPath = widget.ctx.path;
+      });
+    }
+  }
+
+  void removeLastClick() {
+    final _SelectorWidgetState? current = SelectorWidget.lastStateClick;
+
+    final bool remove = SelectorWidget.lastStateClick != null &&
+        SelectorWidget.lastclick != widget.ctx.path &&
+        SelectorWidget.lastStateClick!.mounted;
+
+    if (remove) {
+      current?.setState(() {
+      });
+    }
+  }
+
+  void removeLastOver() {
+    final _SelectorWidgetState? current = SelectorWidget.lastStateOver;
+
+    final bool remove = SelectorWidget.lastStateOver != null &&
+        SelectorWidget.hoverPath != widget.ctx.path &&
+        SelectorWidget.lastStateOver!.mounted;
+
+    if (remove) {
+      current?.setState(() {
+        current.isHover = false;
+      });
+    }
+  }
+
+  void showActionWidget() {
+    // ignore: cast_nullable_to_non_nullable
+    final SelectorActionWidgetState st = SelectorActionWidget
+        .actionPanKey.currentState as SelectorActionWidgetState;
+    st.setState(() {
+      final Offset position = CwToolkit.getPosition(
+          widget.widgetKey, SelectorActionWidget.designerKey);
+
+      // ignore: cast_nullable_to_non_nullable
+      final RenderBox box =
+          widget.widgetKey.currentContext!.findRenderObject() as RenderBox;
+
+      st.left = position.dx;
+      st.top = position.dy + box.size.height;
+      st._visible = true;
+    });
+  }
+
   Widget getChild() {
-    if (isHover && SelectorWidget.lastclick == widget.ctx.path) {
+    if (SelectorWidget.lastclick == widget.ctx.path) {
       return DottedBorder(
           color: Colors.blue,
           dashPattern: const <double>[8, 8],
@@ -229,17 +266,28 @@ class _SelectorWidgetState extends State<SelectorWidget> {
     }
   }
 
-  void _showPopupMenu(Offset offset) {
+  void _showPopupMenu(Offset offset) async {
     final double left = offset.dx;
     final double top = offset.dy;
 
-    _capturePng();
+    // showDialog(
+    //     context: ctx,
+    //     builder: (BuildContext c1) => PopupMenuButton(
+    //           child: Center(child: Text('click here')),
+    //           itemBuilder: (c2) {
+    //             return List.generate(5, (index) {
+    //               return PopupMenuItem(
+    //                 child: Text('button no $index'),
+    //               );
+    //             });
+    //           },
+    //         ));
 
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(left, top, left, 100),
       items: [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: 1,
           child: Text('capture Image'),
         ),
@@ -256,13 +304,12 @@ class _SelectorWidgetState extends State<SelectorWidget> {
     ).then((int? value) {
       // NOTE: even you didnt select item this method will be called with null of value so you should call your call back with checking if value is not null , value is the value given in PopupMenuItem
       if (value != null) {
-        debugPrint('+++++++++++++++++++++++++ $value');
+        debugPrint('kkkkkkkkkkkkkk click $value');
       }
     });
   }
 
   _capturePng() async {
-    debugPrint('inside');
     RenderRepaintBoundary? boundary =
         paintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
 
