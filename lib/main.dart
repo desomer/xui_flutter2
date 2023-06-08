@@ -329,8 +329,8 @@ class _MyAppState extends State<MyApp> {
               ),
               LayoutBuilder(builder:
                   (BuildContext context, BoxConstraints viewportConstraints) {
-                print(context);
-                print(viewportConstraints);
+                debugPrint(context.toString());
+                debugPrint(viewportConstraints.toString());
                 return SingleChildScrollView(
                     child: SizedBox(
                       key: _widgetKey,
@@ -398,7 +398,7 @@ class WidgetSizeRenderObject extends RenderProxyBox {
         });
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 }

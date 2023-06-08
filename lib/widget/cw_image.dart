@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CwImage extends StatefulWidget {
-  CwImage({super.key});
+  const CwImage({super.key});
 
   @override
   CwImageState createState() => CwImageState();
@@ -12,6 +12,6 @@ class CwImageState extends State<CwImage> {
 
   @override
   Widget build(BuildContext context) {
-    return wi ?? Text('vide');
+    return wi ?? const Text('vide');
   }
 }

@@ -20,7 +20,7 @@ class _CoreDesignerState extends State<CoreDesigner> {
   @override
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
-    nav.tab = [getDesignerColumnDesign(), Container(child: CwImage(key:CoreDesigner.imageKey))];
+    nav.tab = [getDesignerColumnDesign(), CwImage(key:CoreDesigner.imageKey)];
 
     return MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -70,7 +70,7 @@ class _CoreDesignerState extends State<CoreDesigner> {
   Widget getDesignerColumnDesign() {
     return Row(children: [
       Expanded(child: getDesignerBody()),
-      Container(
+      SizedBox(
           //  margin: new EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
           width: 300,
           child: getTabProperties())
@@ -94,12 +94,12 @@ class _CoreDesignerState extends State<CoreDesigner> {
 
   Widget getTabProperties() {
     final List<Widget> listTab = <Widget>[];
-    listTab.add(Tab(
+    listTab.add(const Tab(
       height: 30,
       icon: Icon(Icons.edit_note),
     ));
 
-    listTab.add(Tab(
+    listTab.add(const Tab(
       // height: 30,
       icon: Icon(Icons.access_time),
     ));

@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:flutter/material.dart';
 import 'package:json_patch/json_patch.dart';
 
 import 'core_event.dart';
@@ -169,12 +170,12 @@ class CoreDataEntity {
   CoreDataEntity prepareChange(CoreDataCollection collection) {
     if (original == null) {
       original = <String, dynamic>{};
-      print('add patch vide');
+      debugPrint('add patch vide');
     } else {
       patch ??= <Iterable<Map<String, dynamic>>>[];
       final List<Map<String, dynamic>> ops = JsonPatch.diff(value, original);
       patch!.add(ops);
-      print('add patch$ops');
+      debugPrint('add patch$ops');
       original = <String, dynamic>{};
     }
 
@@ -188,7 +189,7 @@ class CoreDataEntity {
   }
 
   void doTrace(String str) {
-    print('>>> $str');
+    debugPrint('>>> $str');
   }
 
   void browse(CoreDataCollection collection, CoreDataCtx ctx) {
@@ -487,6 +488,7 @@ class CoreDataCtx {
   }
 }
 
+// ignore: constant_identifier_names
 enum CDAttributType { CDtext, CDint, CDdec, CDdate, CDone, CDmany }
 
 enum CDPriority { min, moy, norm, mid, max }

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:dotted_border/dotted_border.dart';
@@ -106,7 +105,7 @@ class _SelectorWidgetState extends State<SelectorWidget> {
                 if (!isParent &&
                     !isHover &&
                     SelectorWidget.lastclick != widget.ctx.path) {
-                  print(
+                  debugPrint(
                       'onHover ${widget.ctx.path} ${SelectorWidget.hoverPath} $isParent =>');
 
                   final _SelectorWidgetState? current = SelectorWidget.last;
@@ -129,7 +128,7 @@ class _SelectorWidgetState extends State<SelectorWidget> {
                 }
               },
               onExit: (PointerExitEvent e) {
-                print('onExit ${widget.ctx.path} =>$e');
+                debugPrint('onExit ${widget.ctx.path} =>$e');
                 if (SelectorWidget.lastclick == widget.ctx.path) {
                   SelectorWidget.lastclick = '';
                 }
@@ -184,8 +183,8 @@ class _SelectorWidgetState extends State<SelectorWidget> {
 
                     _capturePng();
 
-                    print(
-                        'Clicked gesture ${widget.ctx.path} ${d.buttons} ${widget.ctx.xid} ${prop}');
+                    debugPrint(
+                        'Clicked gesture ${widget.ctx.path} ${d.buttons} ${widget.ctx.xid} $prop');
 
                     if (d.buttons == 2) {
                       // ignore: cast_nullable_to_non_nullable
@@ -240,7 +239,7 @@ class _SelectorWidgetState extends State<SelectorWidget> {
       context: context,
       position: RelativeRect.fromLTRB(left, top, left, 100),
       items: [
-        PopupMenuItem(
+        const PopupMenuItem(
           value: 1,
           child: Text('capture Image'),
         ),
@@ -257,26 +256,26 @@ class _SelectorWidgetState extends State<SelectorWidget> {
     ).then((int? value) {
       // NOTE: even you didnt select item this method will be called with null of value so you should call your call back with checking if value is not null , value is the value given in PopupMenuItem
       if (value != null) {
-        print('+++++++++++++++++++++++++ $value');
+        debugPrint('+++++++++++++++++++++++++ $value');
       }
     });
   }
 
-  Future<Uint8List?> _capturePng() async {
-    print('inside');
+  _capturePng() async {
+    debugPrint('inside');
     RenderRepaintBoundary? boundary =
         paintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
 
     /// convert boundary to image
     final image = await boundary!.toImage(pixelRatio: 0.5);
-    final byteData = await image?.toByteData(format: ImageByteFormat.png);
+    final byteData = await image.toByteData(format: ImageByteFormat.png);
     final imageBytes = byteData?.buffer.asUint8List();
 
     Widget wi = Image.memory(imageBytes!);
 
     CwImageState.wi = wi;
 
-    print(
-        '+++++++++++++++++++++++ ${image.toString()} ${imageBytes?.length ?? 0}');
+    debugPrint(
+        '+++++++++++++++++++++++ ${image.toString()} ${imageBytes.length}');
   }
 }

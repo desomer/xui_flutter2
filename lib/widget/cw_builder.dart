@@ -116,7 +116,7 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
     if (ctx.event!.action.startsWith('browserObjectEnd')) {
       final String id = ctx.getPathId();
       final String idParent = ctx.getParentPathId();
-      print(
+      debugPrint(
           'id=<$id> p=<$idParent> t=${ctx.event!.builder.name}  o=${ctx.event!.entity}');
 
       if (ctx.event!.builder.name == 'CWChild') {
@@ -127,7 +127,7 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
         final CoreDataObjectBuilder wid = collection.getClass(implement)!;
         final CWWidget r = wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
         mapWidget[xid] = r;
-        print(' $xid >>>>>>>>>>>>>>> ${mapWidget[xid]!}');
+        debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidget[xid]!}');
       }
       if (ctx.event!.builder.name == 'CWDesign') {
         final String xid = ctx.event!.entity.getString('xid', '');
@@ -140,7 +140,7 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
             ctx.event!.entity.getOneEntity(collection, 'child');
         if (child != null) {
           mapChild[xid] = child.getString('xid', '');
-          print('$xid ==== ${mapChild[xid]}');
+          debugPrint('$xid ==== ${mapChild[xid]}');
         }
       }
     }

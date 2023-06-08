@@ -23,7 +23,7 @@ class _CWSlotState extends State<CWSlot> {
     }
     if (w is CWWidget) {
       w.ctx.path = widget.ctx.path;
-      print(
+      debugPrint(
           'path <${widget.ctx.path}> id=${widget.ctx.xid} design=${w.entity?.type ?? 'no'}');
     }
 
