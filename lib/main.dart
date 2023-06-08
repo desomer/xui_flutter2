@@ -24,6 +24,7 @@ class FavoriteWidget extends StatefulWidget {
 
   @override
   State<FavoriteWidget> createState() {
+    // ignore: no_logic_in_create_state
     return st;
   }
 }
@@ -43,7 +44,7 @@ class FavoriteWidgetState extends State<FavoriteWidget> {
     st.addAttribut('color', CDAttributType.CDtext);
     st.addAttribut('fontSize', CDAttributType.CDdec);
 
-    final CoreDataObjectBuilder wid = collection.addObject('Widget');
+    collection.addObject('Widget');
 
     final CoreDataObjectBuilder col = collection.addObject('Column');
     col.addAttribut('children', CDAttributType.CDmany, tname: 'Widget');
@@ -62,7 +63,7 @@ class FavoriteWidgetState extends State<FavoriteWidget> {
         .createEntity()
         .setAttr(collection, 'color', 'ffff00ff');
 
-    final CoreDataEntity aTxt2 = collection
+    collection
         .getClass('Text')!
         .createEntity()
         .setAttr(collection, 'data', 'toto');
