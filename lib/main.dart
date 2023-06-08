@@ -226,7 +226,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Mouse Region',
+        title: 'Elisys XUI',
         home: Scaffold(
           appBar: AppBar(
             title: const Text('Flutter FlatButton Example'),
