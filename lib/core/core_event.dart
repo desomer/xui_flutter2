@@ -4,10 +4,10 @@ class CoreEventHandler {
   void process(CoreDataCtx ctx) {
     if (ctx.event!.action.startsWith('browserObject')) {
       doTrace(
-          '${ctx.event!.action} [${ctx.event!.builder.name}] ${ctx.getPathId()} = ${ctx.event!.src}');
+          '${ctx.event!.action} [${ctx.event!.builder.name}] ${ctx.getPathData()} = ${ctx.event!.src}');
     } else if (ctx.event!.action == 'browserAttr') {
       doTrace(
-          '${ctx.event!.action} [${ctx.event!.builder.name}] ${ctx.getPathId()}.${ctx.event!.attr.name} = ${ctx.event!.value}');
+          '${ctx.event!.action} [${ctx.event!.builder.name}] ${ctx.getPathData()}.${ctx.event!.attr.name} = ${ctx.event!.value}');
     }
   }
 

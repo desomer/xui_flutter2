@@ -4,11 +4,12 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:xui_flutter/core/core_data_selector.dart';
 //import 'package:defer_pointer/defer_pointer.dart';
 
-import 'cw_builder.dart';
 import 'cw_image.dart';
 import 'cw_toolkit.dart';
+import 'cw_core_widget.dart';
 
 class SelectorActionWidget extends StatefulWidget {
   const SelectorActionWidget({super.key});
@@ -46,9 +47,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
 // ignore: must_be_immutable
 class SelectorWidget extends StatefulWidget {
-  SelectorWidget({super.key, required this.child, required this.ctx}) {
-    print("NEWNEWNEWNEWNEWNEW");
-  }
+  SelectorWidget({super.key, required this.child, required this.ctx});
 
   final GlobalKey widgetKey = GlobalKey();
   final Widget child;
@@ -56,16 +55,16 @@ class SelectorWidget extends StatefulWidget {
 
   static String hoverPath = '';
   // ignore: library_private_types_in_public_api
-  static _SelectorWidgetState? lastStateOver;
+  static SelectorWidgetState? lastStateOver;
 
-  static String lastclick = '';
-  static _SelectorWidgetState? lastStateClick;
+  static String lastClickPath = '';
+  static SelectorWidgetState? lastStateClick;
 
   @override
-  State<SelectorWidget> createState() => _SelectorWidgetState();
+  State<SelectorWidget> createState() => SelectorWidgetState();
 }
 
-class _SelectorWidgetState extends State<SelectorWidget> {
+class SelectorWidgetState extends State<SelectorWidget> {
   bool isHover = false;
 
   Offset dragAnchorStrategy(
@@ -80,12 +79,22 @@ class _SelectorWidgetState extends State<SelectorWidget> {
   // Uint8List? bytes;
 
   bool menuIsOpen = false;
-  final GlobalKey InkWellKey = GlobalKey();
+
+  Widget getChild() {
+    if (SelectorWidget.lastClickPath == widget.ctx.pathWidget) {
+      return DottedBorder(
+          color: Colors.blue,
+          dashPattern: const <double>[8, 8],
+          strokeWidth: 4,
+          child: widget.child);
+    } else {
+      return widget.child;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-        key: InkWellKey,
+    return Container(
 
         //height: 100, //there should be outline/dimensions for the box.
         //Otherway, You can use positioned widget
@@ -96,92 +105,77 @@ class _SelectorWidgetState extends State<SelectorWidget> {
         //     top: isHover ? 2 : 0.0,
         //     bottom: isHover ? 2 : 0),
         child: Draggable<String>(
-          dragAnchorStrategy: dragAnchorStrategy,
-          data: 'ok',
-          feedback: const SizedBox(
-            height: 50.0,
-            width: 50.0,
-            child: Icon(Icons.circle),
-          ),
-          //child:
-          //  Material(
-          //     color: Colors.transparent,
-          child: MouseRegion(
-              onHover: onHover,
-              onExit: onExit,
-              child: Listener(
-                key: widget.widgetKey,
-                behavior: HitTestBehavior.opaque,
-                onPointerDown: (PointerDownEvent d) {
-                  if (menuIsOpen) return;
+      dragAnchorStrategy: dragAnchorStrategy,
+      data: 'ok',
+      feedback: const SizedBox(
+        height: 50.0,
+        width: 50.0,
+        child: Icon(Icons.circle),
+      ),
+      child: MouseRegion(
+          onHover: onHover,
+          onExit: onExit,
+          child: Listener(
+            key: widget.widgetKey,
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (PointerDownEvent d) {
+              if (menuIsOpen) return;
 
-                  // final Size size = box.size;
+              if (isHover) {
+                showActionWidget();
+              }
 
-                  if (isHover) {
-                    showActionWidget();
-                  }
+              if (isHover) {
+                CoreDataSelector().setWidgetPath(widget, d.buttons);
 
-                  if (isHover) {
-                    String prop = 'no CWWidget';
+                _capturePng();
 
-                    CWWidget? w = widget.ctx.factory.mapWidget[widget.ctx.xid];
-                    if (w != null) {
-                      prop = w.entity?.value.toString() ?? 'no prop';
-                    }
+                doSelection();
 
-                    _capturePng();
+                if (d.buttons == 2) {
+                  final Offset position = CwToolkit.getPosition(
+                      widget.widgetKey, SelectorActionWidget.rootKey);
 
-                    debugPrint(
-                        'Clicked gesture ${widget.ctx.path} ${d.buttons} ${widget.ctx.xid} $prop');
+                  menuIsOpen = true;
+                  Future.delayed(const Duration(milliseconds: 200), () {
+                    menuIsOpen = false;
+                  });
 
-                    if (SelectorWidget.lastclick != widget.ctx.path) {
-                      setState(() {
-                        print("setlection ${widget.ctx.path}");
-                        
-                        SelectorWidget.lastclick = widget.ctx.path;
+                  _showPopupMenu(Offset(position.dx + d.localPosition.dx + 10,
+                      position.dy + d.localPosition.dy + 10));
+                }
+              }
+            },
+            child: RepaintBoundary(key: paintKey, child: getChild()),
+          )),
+    ));
+  }
 
-                        if (SelectorWidget.lastStateClick!=null && SelectorWidget.lastStateClick!.mounted)
-                        {
-                          SelectorWidget.lastStateClick?.setState(() {
-                            
-                          });
-                        }
+  void doSelection() {
+    if (SelectorWidget.lastClickPath != widget.ctx.pathWidget) {
+      SelectorWidget.lastClickPath = widget.ctx.pathWidget;
 
-                        SelectorWidget.lastStateClick = this;
-                      });
-                    }
+      if (SelectorWidget.lastStateClick != null &&
+          SelectorWidget.lastStateClick!.mounted) {
+        SelectorWidget.lastStateClick?.setState(() {});
+        debugPrint(
+            "deselection ${SelectorWidget.lastStateClick!.widget.ctx.pathWidget}");
+      }
 
-                    if (d.buttons == 2) {
-                      final Offset position = CwToolkit.getPosition(
-                          widget.widgetKey, SelectorActionWidget.rootKey);
-
-                      menuIsOpen = true;
-                      Future.delayed(const Duration(milliseconds: 200), () {
-                        menuIsOpen = false;
-                      });
-
-                      _showPopupMenu(Offset(
-                          position.dx + d.localPosition.dx + 10,
-                          position.dy + d.localPosition.dy + 10));
-                    }
-                  }
-                },
-                child: RepaintBoundary(key: paintKey, child: getChild()),
-              )),
-        ));
+      setState(() {
+        debugPrint("selection ${widget.ctx.pathWidget}");
+        SelectorWidget.lastStateClick = this;
+      });
+    }
   }
 
   void onExit(PointerExitEvent e) {
-    if (menuIsOpen) return;
-
-    // if (SelectorWidget.lastclick == widget.ctx.path) {
-    //   SelectorWidget.lastclick = '';
-    // }
+    if (menuIsOpen) return; // ouverture du menu ne ferme pas le hover
 
     if (isHover) {
       setState(() {
-        if (SelectorWidget.hoverPath == widget.ctx.path) {
-          debugPrint('onExit hover ${widget.ctx.path} =>$e');
+        if (SelectorWidget.hoverPath == widget.ctx.pathWidget) {
+          debugPrint('onExit hover ${widget.ctx.pathWidget} =>$e');
           SelectorWidget.hoverPath = '';
           SelectorWidget.lastStateOver = null;
         }
@@ -191,42 +185,40 @@ class _SelectorWidgetState extends State<SelectorWidget> {
   }
 
   void onHover(PointerHoverEvent e) {
-    final bool isParent = SelectorWidget.hoverPath != widget.ctx.path &&
-        SelectorWidget.hoverPath.startsWith(widget.ctx.path);
+    final bool isParent = SelectorWidget.hoverPath != widget.ctx.pathWidget &&
+        SelectorWidget.hoverPath.startsWith(widget.ctx.pathWidget);
 
-    if (!isParent &&
-        !isHover /* && SelectorWidget.lastclick != widget.ctx.path*/) {
+    if (!isParent && !isHover) {
       debugPrint(
-          'onHover ${widget.ctx.path} ${SelectorWidget.hoverPath} $isParent =>');
+          'onHover ${widget.ctx.pathWidget} ${SelectorWidget.hoverPath}');
 
       removeLastOver();
 
       setState(() {
         isHover = true;
         SelectorWidget.lastStateOver = this;
-        SelectorWidget.hoverPath = widget.ctx.path;
+        SelectorWidget.hoverPath = widget.ctx.pathWidget;
       });
     }
   }
 
-  void removeLastClick() {
-    final _SelectorWidgetState? current = SelectorWidget.lastStateClick;
+  // void removeLastClick() {
+  //   final SelectorWidgetState? current = SelectorWidget.lastStateClick;
 
-    final bool remove = SelectorWidget.lastStateClick != null &&
-        SelectorWidget.lastclick != widget.ctx.path &&
-        SelectorWidget.lastStateClick!.mounted;
+  //   final bool remove = SelectorWidget.lastStateClick != null &&
+  //       SelectorWidget.lastClickPath != widget.ctx.pathWidget &&
+  //       SelectorWidget.lastStateClick!.mounted;
 
-    if (remove) {
-      current?.setState(() {
-      });
-    }
-  }
+  //   if (remove) {
+  //     current?.setState(() {});
+  //   }
+  // }
 
   void removeLastOver() {
-    final _SelectorWidgetState? current = SelectorWidget.lastStateOver;
+    final SelectorWidgetState? current = SelectorWidget.lastStateOver;
 
     final bool remove = SelectorWidget.lastStateOver != null &&
-        SelectorWidget.hoverPath != widget.ctx.path &&
+        SelectorWidget.hoverPath != widget.ctx.pathWidget &&
         SelectorWidget.lastStateOver!.mounted;
 
     if (remove) {
@@ -254,18 +246,6 @@ class _SelectorWidgetState extends State<SelectorWidget> {
     });
   }
 
-  Widget getChild() {
-    if (SelectorWidget.lastclick == widget.ctx.path) {
-      return DottedBorder(
-          color: Colors.blue,
-          dashPattern: const <double>[8, 8],
-          strokeWidth: 4,
-          child: widget.child);
-    } else {
-      return widget.child;
-    }
-  }
-
   void _showPopupMenu(Offset offset) async {
     final double left = offset.dx;
     final double top = offset.dy;
@@ -287,7 +267,7 @@ class _SelectorWidgetState extends State<SelectorWidget> {
       context: context,
       position: RelativeRect.fromLTRB(left, top, left, 100),
       items: [
-        PopupMenuItem(
+        const PopupMenuItem(
           value: 1,
           child: Text('capture Image'),
         ),
@@ -304,7 +284,7 @@ class _SelectorWidgetState extends State<SelectorWidget> {
     ).then((int? value) {
       // NOTE: even you didnt select item this method will be called with null of value so you should call your call back with checking if value is not null , value is the value given in PopupMenuItem
       if (value != null) {
-        debugPrint('kkkkkkkkkkkkkk click $value');
+        debugPrint('popup click $value');
       }
     });
   }
@@ -323,6 +303,6 @@ class _SelectorWidgetState extends State<SelectorWidget> {
     CwImageState.wi = wi;
 
     debugPrint(
-        '+++++++++++++++++++++++ ${image.toString()} ${imageBytes.length}');
+        'Capture PNG ===========> ${image.toString()} ${imageBytes.length}');
   }
 }

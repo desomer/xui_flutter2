@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../core_data.dart';
-import '../core_event.dart';
+import '../core/core_data.dart';
+import '../core/core_event.dart';
 import 'cw_frame_desktop.dart';
 import 'cw_tab.dart';
+import 'cw_core_widget.dart';
 
 class CWCollection {
   CoreDataCollection getCollection() {
@@ -30,7 +31,7 @@ class CWCollection {
 
     collection
         .addObject('CWTab')
-        .addAction('BuildWidget', (CWWidgetCtx ctx) => CWTab(nb: 2, ctx: ctx))
+        .addAction('BuildWidget', (CWWidgetCtx ctx) => CWTab(ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
         .addAttr('heightTabBar', CDAttributType.CDint);
 
@@ -69,6 +70,19 @@ class CWCollection {
                 collection.createEntityByJson('CWChild',
                     <String, dynamic>{'xid': 'tab1', 'implement': 'CWTab'})));
 
+    final CoreDataEntity aTab = collection.createEntityByJson(
+        'CWTab', <String, dynamic>{'nb': 3});
+
+    aFrame.addMany(
+        collection,
+        'designs',
+        collection
+            .createEntity('CWDesign')
+            .setAttr(collection, 'xid', 'tab1')
+            .setOne(
+                collection,
+                'properties', aTab));
+
     aFrame.addMany(
         collection,
         'designs',
@@ -97,8 +111,11 @@ class CWCollection {
 
     ctx.eventHandler = handler;
     aFrame.browse(builder, ctx);
+    final root = handler.mapWidgetByXid['root']!;
+    handler.mapXidByPath['root'] = 'root';
+    root.initSlot('root');
 
-    return handler.mapWidget['root']!;
+    return root;
   }
 }
 
@@ -106,59 +123,46 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
   WidgetFactoryEventHandler(this.collection);
 
   CoreDataCollection collection;
-  Map<String, CWWidget> mapWidget = <String, CWWidget>{};
-  Map<String, String> mapChild = <String, String>{};
+  Map<String, CWWidget> mapWidgetByXid = <String, CWWidget>{};
+  Map<String, String> mapChildXidByXid = <String, String>{};
+  Map<String, String> mapXidByPath = <String, String>{};
 
   @override
   void process(CoreDataCtx ctx) {
     // super.process(ctx);
 
     if (ctx.event!.action.startsWith('browserObjectEnd')) {
-      final String id = ctx.getPathId();
-      final String idParent = ctx.getParentPathId();
+      final String id = ctx.getPathData();
+      final String idParent = ctx.getParentPathData();
       debugPrint(
-          'id=<$id> p=<$idParent> t=${ctx.event!.builder.name}  o=${ctx.event!.entity}');
+          'WidgetFactoryEventHandler id=<$id> p=<$idParent> t=${ctx.event!.builder.name}  o=${ctx.event!.entity}');
 
       if (ctx.event!.builder.name == 'CWChild') {
         final String xid = ctx.event!.entity.getString('xid', '');
         final String implement = ctx.event!.entity.getString('implement', '');
-        final CWWidgetCtx ctxW = CWWidgetCtx(xid, this, xid, ctx);
+        final CWWidgetCtx ctxW = CWWidgetCtx(xid, this, xid);
         ctx.payload = ctxW;
         final CoreDataObjectBuilder wid = collection.getClass(implement)!;
         final CWWidget r = wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
-        mapWidget[xid] = r;
-        debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidget[xid]!}');
+        mapWidgetByXid[xid] = r;
+        r.ctx.pathDataCreate = ctx.getPathData();
+        debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidgetByXid[xid]!}');
       }
       if (ctx.event!.builder.name == 'CWDesign') {
         final String xid = ctx.event!.entity.getString('xid', '');
+        mapWidgetByXid[xid]?.ctx.pathDataDesign = ctx.getPathData();
         final CoreDataEntity? prop =
             ctx.event!.entity.getOneEntity(collection, 'properties');
         if (prop != null) {
-          mapWidget[xid]?.entity = prop;
+          mapWidgetByXid[xid]?.ctx.entity = prop;
         }
         final CoreDataEntity? child =
             ctx.event!.entity.getOneEntity(collection, 'child');
         if (child != null) {
-          mapChild[xid] = child.getString('xid', '');
-          debugPrint('$xid ==== ${mapChild[xid]}');
+          mapChildXidByXid[xid] = child.getString('xid', '');
+          debugPrint('$xid ==== ${mapChildXidByXid[xid]}');
         }
       }
     }
   }
-}
-
-// ignore: must_be_immutable
-abstract class CWWidget extends StatefulWidget {
-  CWWidget({super.key, required this.ctx});
-  CWWidgetCtx ctx;
-  CoreDataEntity? entity;
-  late String childId;
-}
-
-class CWWidgetCtx {
-  CWWidgetCtx(this.xid, this.factory, this.path, this.ctxData);
-  String xid;
-  String path;
-  WidgetFactoryEventHandler factory;
-  CoreDataCtx ctxData;
 }

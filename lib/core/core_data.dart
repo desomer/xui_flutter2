@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:json_patch/json_patch.dart';
@@ -167,6 +168,15 @@ class CoreDataEntity {
     }
   }
 
+  int getInt(String attr, int def) {
+    final dynamic v = value[attr];
+    if (v == null) {
+      return def;
+    } else {
+      return v as int;
+    }
+  }  
+
   CoreDataEntity prepareChange(CoreDataCollection collection) {
     if (original == null) {
       original = <String, dynamic>{};
@@ -212,7 +222,7 @@ class CoreDataEntity {
     for (final CoreDataAttribut attr in builder.attributs) {
       if (attr.type == CDAttributType.CDone) {
         if (src[attr.name] != null) {
-          ctx.path.add(attr);
+          ctx.pathData.add(attr);
           // un one
           final Map<String, dynamic> o = src[attr.name] as Map<String, dynamic>;
           // ignore: avoid_dynamic_calls
@@ -220,16 +230,19 @@ class CoreDataEntity {
           final CoreDataObjectBuilder builderOne = collection.getClass(tOne)!;
           final CoreDataEntity child = builderOne.getEntityModel();
           child._browse(ctx, collection, attr, o, '');
-          ctx.path.removeLast();
+          ctx.pathData.removeLast();
         }
       } else if (attr.type == CDAttributType.CDmany) {
         // un many
         if (src[attr.name] != null) {
           final List<dynamic> arr = src[attr.name] as List<dynamic>;
           browseAttr(ctx, collection, builder, attr, src);
-          ctx.path.add(attr);
-          // ignore: always_specify_types
-          for (final element in arr) {
+          ctx.pathData.add(attr);
+          for (var i = 0; i < arr.length; i++) {
+            final element = arr[i];
+            final idxPath = CoreDataAttributItemIdx('[$i]');
+            idxPath.idxInArray = i;
+            ctx.pathData.add(idxPath);
             final Map<String, dynamic> o = element as Map<String, dynamic>;
             // print("r =" + o.toString());
             // ignore: avoid_dynamic_calls
@@ -237,8 +250,9 @@ class CoreDataEntity {
                 collection.getClass(getType(attr, o))!;
             final CoreDataEntity child = builderOne.getEntityModel();
             child._browse(ctx, collection, attr, o, 'Item');
+            ctx.pathData.removeLast();
           }
-          ctx.path.removeLast();
+          ctx.pathData.removeLast();
         }
       } else {
         // un attribut
@@ -440,6 +454,11 @@ class CoreDataAttribut {
   }
 }
 
+class CoreDataAttributItemIdx extends CoreDataAttribut {
+  CoreDataAttributItemIdx(super.name);
+  int idxInArray = 0;
+}
+
 class CoreDataValidator {}
 
 abstract class CoreDataAction {
@@ -458,16 +477,16 @@ class CoreDataActionGetter extends CoreDataAction {
 }
 
 class CoreDataCtx {
-  ListQueue<CoreDataAttribut> path = ListQueue<CoreDataAttribut>();
+  ListQueue<CoreDataAttribut> pathData = ListQueue<CoreDataAttribut>();
   late CoreEventHandler eventHandler;
 
   CoreDataEvent? event;
-  dynamic payload;
+  dynamic payload;  
 
-  String getPathId() {
+  String getPathData() {
     final StringBuffer buffer = StringBuffer();
-    for (final CoreDataAttribut element in path) {
-      if (buffer.length > 0) {
+    for (final CoreDataAttribut element in pathData) {
+      if (buffer.length > 0 && element is! CoreDataAttributItemIdx) {
         buffer.write('.');
       }
       buffer.write(element.name);
@@ -475,8 +494,8 @@ class CoreDataCtx {
     return buffer.toString();
   }
 
-  String getParentPathId() {
-    final String id = getPathId();
+  String getParentPathData() {
+    final String id = getPathData();
     String idParent = '';
     if (id.isNotEmpty) {
       final int idx = id.lastIndexOf('.');
@@ -489,7 +508,7 @@ class CoreDataCtx {
 }
 
 // ignore: constant_identifier_names
-enum CDAttributType { CDtext, CDint, CDdec, CDdate, CDone, CDmany }
+enum CDAttributType { CDtext, CDint, CDdec, CDdate, CDone, CDmany, CDPathIdx }
 
 enum CDPriority { min, moy, norm, mid, max }
 

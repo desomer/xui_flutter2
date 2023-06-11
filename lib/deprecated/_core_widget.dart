@@ -2,8 +2,8 @@
 import 'package:convert/convert.dart';
 import 'package:flutter/widgets.dart';
 
-import 'core_data.dart';
-import 'core_event.dart';
+import '../core/core_data.dart';
+import '../core/core_event.dart';
 
 ///-------------------------------------------------------------------------
 class WidgetColumn extends CoreWidgetFactory {
@@ -53,7 +53,7 @@ class CoreWidgetFactory {
 
     // init les one 2 many
     if (ctx.event!.attr.type == CDAttributType.CDmany) {
-      if (ctx.event!.attr.typeName=='Widget') {
+      if (ctx.event!.attr.typeName == 'Widget') {
         ctxW.current!.param[ctx.event!.attr.name] = <Widget>[];
       }
     }
@@ -113,7 +113,8 @@ class CoreWidgetFactoryEventHandler extends CoreEventHandler {
   }
 
   Widget? root;
-  Map<String, CoreWidgetFactory> dictionaryWidgets = <String, CoreWidgetFactory>{};
+  Map<String, CoreWidgetFactory> dictionaryWidgets =
+      <String, CoreWidgetFactory>{};
   Map<String, CoreWidget> tree = <String, CoreWidget>{};
 
   void trace(String str) {
@@ -124,7 +125,7 @@ class CoreWidgetFactoryEventHandler extends CoreEventHandler {
   void process(CoreDataCtx ctx) {
     super.process(ctx);
 
-    final String id = ctx.getPathId();
+    final String id = ctx.getPathData();
     String idParent = '';
     if (id.isNotEmpty) {
       final int idx = id.lastIndexOf('.');
@@ -136,8 +137,9 @@ class CoreWidgetFactoryEventHandler extends CoreEventHandler {
     if (ctx.event!.action == 'browserObject') {
       trace('---> start object ${ctx.event!.builder.name} id=$id');
 
-      final CoreWidget? widgetHandle = dictionaryWidgets[ctx.event!.builder.name]
-          ?.processInitWidget(ctx, CoreWidgetCtx(null, tree[idParent]));
+      final CoreWidget? widgetHandle =
+          dictionaryWidgets[ctx.event!.builder.name]
+              ?.processInitWidget(ctx, CoreWidgetCtx(null, tree[idParent]));
 
       if (widgetHandle != null) {
         tree[id] = widgetHandle;
@@ -148,9 +150,9 @@ class CoreWidgetFactoryEventHandler extends CoreEventHandler {
       trace('---> end object ${ctx.event!.builder.name} on $id pa=$idParent');
       final CoreWidget? widgetHandle = tree[id];
       if (widgetHandle != null) {
-        dictionaryWidgets[ctx.event!.builder.name]?.processWidget(
-            ctx, CoreWidgetCtx(widgetHandle, tree[idParent]));
-        if (ctx.path.isEmpty) {
+        dictionaryWidgets[ctx.event!.builder.name]
+            ?.processWidget(ctx, CoreWidgetCtx(widgetHandle, tree[idParent]));
+        if (ctx.pathData.isEmpty) {
           root = widgetHandle.widgetValue as Widget;
         } else {
           if (widgetHandle.widgetValue != null) {
@@ -173,8 +175,8 @@ class CoreWidgetFactoryEventHandler extends CoreEventHandler {
       trace('---> end Item ${ctx.event!.builder.name} on $id pa=$idParent');
       final CoreWidget? widgetHandle = tree[id];
       if (widgetHandle != null) {
-        dictionaryWidgets[ctx.event!.builder.name]?.processWidget(
-            ctx, CoreWidgetCtx(widgetHandle, tree[idParent]));
+        dictionaryWidgets[ctx.event!.builder.name]
+            ?.processWidget(ctx, CoreWidgetCtx(widgetHandle, tree[idParent]));
         final List<dynamic> array =
             (tree[idParent]!.param[id]) as List<dynamic>;
         trace('array=$array > ${widgetHandle.widgetValue}');
@@ -183,7 +185,7 @@ class CoreWidgetFactoryEventHandler extends CoreEventHandler {
     }
 
     if (ctx.event!.action == 'browserAttr') {
-      final String id = ctx.getPathId();
+      final String id = ctx.getPathData();
       trace('---> browserAttr <$id> ${ctx.event!.attr.type}');
       if (ctx.event!.attr.type == CDAttributType.CDmany) {
         dictionaryWidgets[ctx.event!.builder.name]

@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
 
-import 'core_data.dart';
-import 'core_widget.dart';
+import 'core/core_data.dart';
+import 'deprecated/_core_widget.dart';
 import 'designer.dart';
 
 void main() {
