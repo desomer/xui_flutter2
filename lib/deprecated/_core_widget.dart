@@ -2,8 +2,8 @@
 import 'package:convert/convert.dart';
 import 'package:flutter/widgets.dart';
 
-import '../core/core_data.dart';
-import '../core/core_event.dart';
+import '../core/data/core_data.dart';
+import '../core/data/core_event.dart';
 
 ///-------------------------------------------------------------------------
 class WidgetColumn extends CoreWidgetFactory {

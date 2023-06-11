@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'cw_core_slot.dart';
-import 'cw_core_widget.dart';
+import '../core/widget/cw_core_slot.dart';
+import '../core/widget/cw_core_widget.dart';
 
 // ignore: must_be_immutable
 class CWFrameDesktop extends CWWidget {

@@ -4,11 +4,10 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:xui_flutter/core/core_data_selector.dart';
-//import 'package:defer_pointer/defer_pointer.dart';
+import 'package:xui_flutter/core/data/core_data_selector.dart';
 
-import 'cw_image.dart';
-import 'cw_toolkit.dart';
+import '../../widget/cw_image.dart';
+import '../../widget/cw_toolkit.dart';
 import 'cw_core_widget.dart';
 
 class SelectorActionWidget extends StatefulWidget {
@@ -73,18 +72,26 @@ class SelectorWidgetState extends State<SelectorWidget> {
   }
 
   final GlobalKey paintKey = GlobalKey();
-
-  // WidgetsToImageController controller = WidgetsToImageController();
-  // // to save image bytes of widget
-  // Uint8List? bytes;
-
   bool menuIsOpen = false;
 
   Widget getChild() {
-    if (SelectorWidget.lastClickPath == widget.ctx.pathWidget) {
+    /*if (isHover) {
       return DottedBorder(
           color: Colors.blue,
           dashPattern: const <double>[8, 8],
+          strokeWidth: 4,
+          child: widget.child);
+    } else*/
+    if (isHover && SelectorWidget.lastClickPath == widget.ctx.pathWidget) {
+      return DottedBorder(
+          color: Colors.blue,
+          dashPattern: const <double>[2, 2],
+          strokeWidth: 4,
+          child: widget.child);
+    } else if (SelectorWidget.lastClickPath == widget.ctx.pathWidget) {
+      return DottedBorder(
+          color: Colors.blue,
+          dashPattern: const <double>[4, 4],
           strokeWidth: 4,
           child: widget.child);
     } else {
@@ -94,61 +101,63 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-
-        //height: 100, //there should be outline/dimensions for the box.
-        //Otherway, You can use positioned widget
-        //duration: const Duration(milliseconds: 200),
+    return AnimatedContainer(
         // margin: EdgeInsets.only(
         //     right: isHover ? 2 : 0.0,
         //     left: isHover ? 2 : 0,
         //     top: isHover ? 2 : 0.0,
         //     bottom: isHover ? 2 : 0),
+        duration: const Duration(milliseconds: 200),
         child: Draggable<String>(
-      dragAnchorStrategy: dragAnchorStrategy,
-      data: 'ok',
-      feedback: const SizedBox(
-        height: 50.0,
-        width: 50.0,
-        child: Icon(Icons.circle),
-      ),
-      child: MouseRegion(
-          onHover: onHover,
-          onExit: onExit,
-          child: Listener(
-            key: widget.widgetKey,
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: (PointerDownEvent d) {
-              if (menuIsOpen) return;
+          dragAnchorStrategy: dragAnchorStrategy,
+          data: 'ok',
+          feedback: const SizedBox(
+            height: 50.0,
+            width: 50.0,
+            child: Icon(Icons.circle),
+          ),
+          child: MouseRegion(
+              onHover: onHover,
+              onExit: onExit,
+              child: Listener(
+                key: widget.widgetKey,
+                behavior: HitTestBehavior.opaque,
+                onPointerDown: onPointerDown,
+                child: RepaintBoundary(key: paintKey, child: getChild()),
+              )),
+        ));
+  }
 
-              if (isHover) {
-                showActionWidget();
-              }
+  void onPointerDown(PointerDownEvent d) {
+    if (menuIsOpen) return;
 
-              if (isHover) {
-                CoreDataSelector().setWidgetPath(widget, d.buttons);
+    if (isHover) {
+      showActionWidget();
+    }
 
-                _capturePng();
+    if (isHover) {
+      CoreDataSelector().doSelectWidget(widget, d.buttons);
 
-                doSelection();
+      _capturePng();
+      doSelection();
 
-                if (d.buttons == 2) {
-                  final Offset position = CwToolkit.getPosition(
-                      widget.widgetKey, SelectorActionWidget.rootKey);
+      if (d.buttons == 2) {
+        doRightSelection(d);
+      }
+    }
+  }
 
-                  menuIsOpen = true;
-                  Future.delayed(const Duration(milliseconds: 200), () {
-                    menuIsOpen = false;
-                  });
+  void doRightSelection(PointerDownEvent d) {
+    final Offset position =
+        CwToolkit.getPosition(widget.widgetKey, SelectorActionWidget.rootKey);
 
-                  _showPopupMenu(Offset(position.dx + d.localPosition.dx + 10,
-                      position.dy + d.localPosition.dy + 10));
-                }
-              }
-            },
-            child: RepaintBoundary(key: paintKey, child: getChild()),
-          )),
-    ));
+    menuIsOpen = true;
+    Future.delayed(const Duration(milliseconds: 200), () {
+      menuIsOpen = false;
+    });
+
+    _showPopupMenu(Offset(position.dx + d.localPosition.dx + 10,
+        position.dy + d.localPosition.dy + 10));
   }
 
   void doSelection() {
@@ -175,7 +184,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
     if (isHover) {
       setState(() {
         if (SelectorWidget.hoverPath == widget.ctx.pathWidget) {
-          debugPrint('onExit hover ${widget.ctx.pathWidget} =>$e');
+          //debugPrint('onExit hover ${widget.ctx.pathWidget} =>$e');
           SelectorWidget.hoverPath = '';
           SelectorWidget.lastStateOver = null;
         }
@@ -189,8 +198,8 @@ class SelectorWidgetState extends State<SelectorWidget> {
         SelectorWidget.hoverPath.startsWith(widget.ctx.pathWidget);
 
     if (!isParent && !isHover) {
-      debugPrint(
-          'onHover ${widget.ctx.pathWidget} ${SelectorWidget.hoverPath}');
+      // debugPrint(
+      //     'onHover ${widget.ctx.pathWidget} ${SelectorWidget.hoverPath}');
 
       removeLastOver();
 

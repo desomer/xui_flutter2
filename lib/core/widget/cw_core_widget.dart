@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/core_data.dart';
+import '../data/core_data.dart';
 import 'cw_builder.dart';
 
 // ignore: must_be_immutable

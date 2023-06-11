@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../core/core_data.dart';
-import '../core/core_event.dart';
-import 'cw_frame_desktop.dart';
-import 'cw_tab.dart';
+import '../data/core_data.dart';
+import '../data/core_event.dart';
+import '../../widget/cw_frame_desktop.dart';
+import '../../widget/cw_tab.dart';
 import 'cw_core_widget.dart';
 
 class CWCollection {
-  CoreDataCollection getCollection() {
-    final CoreDataCollection collection = CoreDataCollection();
+  CWCollection() {
+    _initCollection();
+  }
 
+  final CoreDataCollection collection = CoreDataCollection();
+
+  CoreDataCollection _initCollection() {
     final CoreDataObjectBuilder cwFrame = collection.addObject('CWFrame');
     cwFrame.addAttribut('child', CDAttributType.CDone, tname: 'CWChild');
     cwFrame.addAttribut('designs', CDAttributType.CDmany, tname: 'CWDesign');
@@ -38,79 +42,15 @@ class CWCollection {
     return collection;
   }
 
-  CoreDataEntity getFrame(CoreDataCollection collection) {
-    final CoreDataEntity aFrame = collection.createEntity('CWFrame');
-
-    aFrame.setOne(
-        collection,
-        'child',
-        collection.createEntityByJson('CWChild',
-            <String, dynamic>{'xid': 'root', 'implement': 'CWFrameDesktop'}));
-
-    final CoreDataEntity aFrameDesktop = collection.createEntityByJson(
-        'CWFrame', <String, dynamic>{'title': 'un titre 2'});
-
-    aFrame.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'root')
-            .setOne(collection, 'properties', aFrameDesktop));
-
-    aFrame.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'rootBody')
-            .setOne(
-                collection,
-                'child',
-                collection.createEntityByJson('CWChild',
-                    <String, dynamic>{'xid': 'tab1', 'implement': 'CWTab'})));
-
-    final CoreDataEntity aTab = collection.createEntityByJson(
-        'CWTab', <String, dynamic>{'nb': 3});
-
-    aFrame.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'tab1')
-            .setOne(
-                collection,
-                'properties', aTab));
-
-    aFrame.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'tab1Cont1')
-            .setOne(
-                collection,
-                'child',
-                collection.createEntityByJson('CWChild', <String, dynamic>{
-                  'xid': 'tabInner',
-                  'implement': 'CWTab'
-                })));
-
-    return aFrame;
-  }
-
-  Widget getWidget() {
-    final CoreDataCollection builder = getCollection();
-    final CoreDataEntity aFrame = getFrame(builder);
+  Widget getWidget(final CoreDataEntity aFrame) {
     aFrame.doPrintObject('aFrame');
 
     final CoreDataCtx ctx = CoreDataCtx();
     final WidgetFactoryEventHandler handler =
-        WidgetFactoryEventHandler(builder);
+        WidgetFactoryEventHandler(collection);
 
     ctx.eventHandler = handler;
-    aFrame.browse(builder, ctx);
+    aFrame.browse(collection, ctx);
     final root = handler.mapWidgetByXid['root']!;
     handler.mapXidByPath['root'] = 'root';
     root.initSlot('root');

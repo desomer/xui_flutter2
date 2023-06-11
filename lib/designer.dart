@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'widget/cw_builder.dart';
+import 'package:xui_flutter/core/widget/cw_core_loader.dart';
+import 'core/data/core_data.dart';
+import 'core/widget/cw_builder.dart';
 import 'widget/cw_dialog.dart';
 import 'widget/cw_image.dart';
-import 'widget/cw_core_selector.dart';
+import 'core/widget/cw_core_selector.dart';
 
 class CoreDesigner extends StatefulWidget {
   const CoreDesigner({super.key});
@@ -10,7 +12,9 @@ class CoreDesigner extends StatefulWidget {
   static GlobalKey imageKey = GlobalKey();
 
   Widget getRoot() {
-    return CWCollection().getWidget();
+    final cwCollect = CWCollection();
+    final CoreDataEntity aFrame = CWLoader().getFrame(cwCollect.collection);
+    return cwCollect.getWidget(aFrame);
   }
 
   @override
@@ -21,7 +25,13 @@ class _CoreDesignerState extends State<CoreDesigner> {
   @override
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
-    nav.tab = [getDesignerColumnDesign(), Column( children : [const DialogExample(), CwImage(key:CoreDesigner.imageKey)])];
+    nav.tab = [
+      getDesignerColumnDesign(),
+      Column(children: [
+        const DialogExample(),
+        CwImage(key: CoreDesigner.imageKey)
+      ])
+    ];
 
     return MaterialApp(
         debugShowCheckedModeBanner: false,
