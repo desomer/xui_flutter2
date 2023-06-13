@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:json_patch/json_patch.dart';
@@ -38,7 +37,7 @@ class CoreDataObjectBuilder {
   Map<String, CoreDataAttribut> attributsByName = <String, CoreDataAttribut>{};
   Map<String, CoreDataAction> actions = <String, CoreDataAction>{};
 
-  CoreDataObjectBuilder addAction(String name, Function action) {
+  CoreDataObjectBuilder addObjectAction(String name, Function action) {
     actions[name] = CoreDataActionGetter(action);
     return this;
   }
@@ -53,9 +52,16 @@ class CoreDataObjectBuilder {
     return ret;
   }
 
+  CoreDataAttribut? _lastAttr;
   CoreDataObjectBuilder addAttr(String name, CDAttributType type,
       {String? tname}) {
-    addAttribut(name, type, tname: tname);
+    _lastAttr = addAttribut(name, type, tname: tname);
+    return this;
+  }
+
+  CoreDataObjectBuilder addAttrAction(
+      String actionId, Function action) {
+    _lastAttr?.addAction(actionId, CoreDataActionGetter(action));
     return this;
   }
 
@@ -175,7 +181,7 @@ class CoreDataEntity {
     } else {
       return v as int;
     }
-  }  
+  }
 
   CoreDataEntity prepareChange(CoreDataCollection collection) {
     if (original == null) {
@@ -199,7 +205,7 @@ class CoreDataEntity {
   }
 
   void doTrace(String str) {
-    debugPrint('>>> $str');
+    debugPrint('<<< $str');
   }
 
   void browse(CoreDataCollection collection, CoreDataCtx ctx) {
@@ -441,9 +447,9 @@ class CoreDataAttribut {
       <int, List<CoreDataValidator>>{};
   Map<String, List<CoreDataAction>> actions = <String, List<CoreDataAction>>{};
 
-  CoreDataAttribut addAction(CDAction actionId, CoreDataAction action) {
+  CoreDataAttribut addAction(String actionId, CoreDataAction action) {
     actions.putIfAbsent(actionId.toString(), () => <CoreDataAction>[]);
-    actions[actionId.toString()]!.add(action);
+    actions[actionId]!.add(action);
     return this;
   }
 
@@ -481,7 +487,7 @@ class CoreDataCtx {
   late CoreEventHandler eventHandler;
 
   CoreDataEvent? event;
-  dynamic payload;  
+  dynamic payload;
 
   String getPathData() {
     final StringBuffer buffer = StringBuffer();

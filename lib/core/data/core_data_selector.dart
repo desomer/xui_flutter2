@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../designer/designer.dart';
+import '../../designer/designerProp.dart';
+import '../../designer/prop_designer.dart';
 import '../widget/cw_core_selector.dart';
 
 class CoreDataSelector {
@@ -8,6 +11,8 @@ class CoreDataSelector {
 
     // print('mapWidgetByXid ${slot.ctx.factory.mapWidgetByXid}');
     // print('mapXidByPath ${slot.ctx.factory.mapXidByPath}');
+
+    List<Widget> listProp = [];
 
     while (path.isNotEmpty) {
       final xid = slot.ctx.factory.mapXidByPath[path];
@@ -22,14 +27,25 @@ class CoreDataSelector {
       String? pathDesign = w?.ctx.pathDataDesign;
       String? pathCreate = w?.ctx.pathDataCreate;
 
-      print(
-          'path selected $path $w<xid=${w?.ctx.xid}> pd=$pathDesign pc=$pathCreate prop=$prop');
+      if (w == null) {
+        debugPrint('>>> $path as empty slot');
+      } else {
+        if (w.ctx.entity != null) {
+          listProp.addAll(FormBuilder()
+              .getFormWidget(w.ctx.factory.collection, w.ctx.entity!));
+        }
+        debugPrint(
+            '>>> $path as $w<xid=${w.ctx.xid}> create by $pathCreate design by $pathDesign with $prop ');
+      }
       int i = path.lastIndexOf('.');
       if (i < 0) break;
       path = path.substring(0, i);
     }
 
-    debugPrint(
-        'Clicked gesture ${slot.ctx.pathWidget}  $buttonId ${slot.ctx.xid}');
+    DesignerPropDartState state =
+        CoreDesigner.propKey.currentState as DesignerPropDartState;
+    state.setProp(listProp);
+    // debugPrint(
+    //     'Clicked gesture ${slot.ctx.pathWidget}  $buttonId ${slot.ctx.xid}');
   }
 }

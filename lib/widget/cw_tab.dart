@@ -14,7 +14,7 @@ class CWTab extends CWWidget {
   State<CWTab> createState() => _CWTabState();
 
   int getNb() {
-    return ctx.entity?.getInt("nb", 2) ?? 2;
+    return ctx.entity?.getInt("tabCount", 2) ?? 2;
   }
 
   @override
@@ -72,11 +72,4 @@ class _CWTabState extends State<CWTab> {
 
     return SizedBox(height: h, child: TabBarView(children: listTab));
   }
-
-  // Tab getTabButton() {
-  //   return const Tab(
-  //     height: 20,
-  //     icon: Icon(Icons.directions_bike, size: 18),
-  //   );
-  // }
 }

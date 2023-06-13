@@ -8,10 +8,10 @@ import 'package:universal_html/html.dart' as html;
 
 import 'core/data/core_data.dart';
 import 'deprecated/_core_widget.dart';
-import 'designer.dart';
+import 'designer/designer.dart';
 
 void main() {
-  runApp(const CoreDesigner());
+  runApp(CoreDesigner());
 
   html.document.onContextMenu.listen((html.MouseEvent event) => event.preventDefault());
   //runApp(const MyApp());

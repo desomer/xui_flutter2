@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
-import 'core/data/core_data.dart';
-import 'core/widget/cw_builder.dart';
-import 'widget/cw_dialog.dart';
-import 'widget/cw_image.dart';
-import 'core/widget/cw_core_selector.dart';
+import '../core/data/core_data.dart';
+import '../core/widget/cw_builder.dart';
+import '../widget/cw_dialog.dart';
+import '../widget/cw_image.dart';
+import '../core/widget/cw_core_selector.dart';
+import 'designerProp.dart';
 
+// ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
-  const CoreDesigner({super.key});
+  CoreDesigner({super.key});
 
   static GlobalKey imageKey = GlobalKey();
+  static GlobalKey propKey = GlobalKey();
+
+  final cwCollect = CWCollection();
+  late CoreDataEntity aFrame;
+  late CWLoader loader;
 
   Widget getRoot() {
-    final cwCollect = CWCollection();
-    final CoreDataEntity aFrame = CWLoader().getFrame(cwCollect.collection);
-    return cwCollect.getWidget(aFrame);
+    loader = CWLoaderTest(cwCollect.collection);
+    aFrame = loader.getWidgetEntity();
+    return loader.getWidget(aFrame);
   }
 
   @override
@@ -35,13 +42,13 @@ class _CoreDesignerState extends State<CoreDesigner> {
 
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Designer',
+        title: 'ElisView',
         theme: ThemeData(
           primarySwatch: Colors.blueGrey,
         ),
         home: Scaffold(
             appBar: AppBar(
-              title: const Text('Designer'),
+              title: const Text('ElisView'),
             ),
             body: nav));
   }
@@ -94,14 +101,13 @@ class _CoreDesignerState extends State<CoreDesigner> {
     //     ));
   }
 
-  Widget getEditor() {
-    return Column(children: [
-      getDesignerText(),
-      getDesignerText(),
-      getDesignerText(),
-      getDesignerText(),
-    ]);
-  }
+  // Widget getEditor() {
+  //   final root = widget.loader.handler.mapWidgetByXid["root"]!.ctx.entity;
+
+  //   return Column(
+  //       children: FormBuilder()
+  //           .getFormWidget(widget.cwCollect.collection, root!));
+  // }
 
   Widget getTabProperties() {
     final List<Widget> listTab = <Widget>[];
@@ -116,7 +122,7 @@ class _CoreDesignerState extends State<CoreDesigner> {
     ));
 
     final List<Widget> listTabCont = <Widget>[];
-    listTabCont.add(getEditor());
+    listTabCont.add(DesignerPropDart(key:CoreDesigner.propKey));
     listTabCont.add(Container());
 
     return DefaultTabController(

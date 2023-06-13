@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import '../data/core_data.dart';
 import '../data/core_event.dart';
@@ -14,7 +15,7 @@ class CWCollection {
   final CoreDataCollection collection = CoreDataCollection();
 
   CoreDataCollection _initCollection() {
-    final CoreDataObjectBuilder cwFrame = collection.addObject('CWFrame');
+    final CoreDataObjectBuilder cwFrame = collection.addObject('CWFactory');
     cwFrame.addAttribut('child', CDAttributType.CDone, tname: 'CWChild');
     cwFrame.addAttribut('designs', CDAttributType.CDmany, tname: 'CWDesign');
 
@@ -30,33 +31,27 @@ class CWCollection {
     //-----------------------------------------------------------------------
     collection
         .addObject('CWFrameDesktop')
-        .addAction('BuildWidget', (CWWidgetCtx ctx) => CWFrameDesktop(ctx: ctx))
-        .addAttr('title', CDAttributType.CDtext);
+        .addObjectAction(
+            'BuildWidget', (CWWidgetCtx ctx) => CWFrameDesktop(ctx: ctx))
+        .addAttr('title', CDAttributType.CDtext)
+        .addAttrAction(
+            "FormWidget", (CWWidgetCtx ctx) => CWFrameDesktop(ctx: ctx));
 
     collection
         .addObject('CWTab')
-        .addAction('BuildWidget', (CWWidgetCtx ctx) => CWTab(ctx: ctx))
+        .addObjectAction('BuildWidget', (CWWidgetCtx ctx) => CWTab(ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
         .addAttr('heightTabBar', CDAttributType.CDint);
+
+    collection
+        .addObject('CWTextfield')
+        .addObjectAction(
+            'BuildWidget', (CWWidgetCtx ctx) => CWTextfield(ctx: ctx))
+        .addAttr('label', CDAttributType.CDtext);
 
     return collection;
   }
 
-  Widget getWidget(final CoreDataEntity aFrame) {
-    aFrame.doPrintObject('aFrame');
-
-    final CoreDataCtx ctx = CoreDataCtx();
-    final WidgetFactoryEventHandler handler =
-        WidgetFactoryEventHandler(collection);
-
-    ctx.eventHandler = handler;
-    aFrame.browse(collection, ctx);
-    final root = handler.mapWidgetByXid['root']!;
-    handler.mapXidByPath['root'] = 'root';
-    root.initSlot('root');
-
-    return root;
-  }
 }
 
 class WidgetFactoryEventHandler extends CoreEventHandler {
@@ -72,10 +67,10 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
     // super.process(ctx);
 
     if (ctx.event!.action.startsWith('browserObjectEnd')) {
-      final String id = ctx.getPathData();
-      final String idParent = ctx.getParentPathData();
-      debugPrint(
-          'WidgetFactoryEventHandler id=<$id> p=<$idParent> t=${ctx.event!.builder.name}  o=${ctx.event!.entity}');
+      // final String id = ctx.getPathData();
+      // final String idParent = ctx.getParentPathData();
+      // debugPrint(
+      //     'WidgetFactoryEventHandler id=<$id> p=<$idParent> t=${ctx.event!.builder.name}  o=${ctx.event!.entity}');
 
       if (ctx.event!.builder.name == 'CWChild') {
         final String xid = ctx.event!.entity.getString('xid', '');
@@ -86,7 +81,7 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
         final CWWidget r = wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
         mapWidgetByXid[xid] = r;
         r.ctx.pathDataCreate = ctx.getPathData();
-        debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidgetByXid[xid]!}');
+        //debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidgetByXid[xid]!}');
       }
       if (ctx.event!.builder.name == 'CWDesign') {
         final String xid = ctx.event!.entity.getString('xid', '');

@@ -1,63 +1,94 @@
+import 'package:flutter/material.dart';
+
 import '../data/core_data.dart';
+import 'cw_builder.dart';
 
-class CWLoader {
-  CoreDataEntity getFrame(CoreDataCollection collection) {
-    final CoreDataEntity aFrame = collection.createEntity('CWFrame');
+abstract class CWLoader {
+  CWLoader(this.collection) {
+    aFactory = collection.createEntity('CWFactory');
+    handler = WidgetFactoryEventHandler(collection);
+  }
+  CoreDataCollection collection;
+  late CoreDataEntity aFactory;
+  late WidgetFactoryEventHandler handler;
 
-    aFrame.setOne(
+  setRoot(String implement) {
+    aFactory.setOne(
         collection,
         'child',
         collection.createEntityByJson('CWChild',
-            <String, dynamic>{'xid': 'root', 'implement': 'CWFrameDesktop'}));
+            <String, dynamic>{'xid': 'root', 'implement': implement}));
+  }
 
-    final CoreDataEntity aFrameDesktop = collection.createEntityByJson(
-        'CWFrame', <String, dynamic>{'title': 'un titre modifiable'});
-
-    aFrame.addMany(
+  setProp(String xid, CoreDataEntity prop) {
+    aFactory.addMany(
         collection,
         'designs',
         collection
             .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'root')
-            .setOne(collection, 'properties', aFrameDesktop));
+            .setAttr(collection, 'xid', xid)
+            .setOne(collection, 'properties', prop));
+  }
 
-    aFrame.addMany(
+  addChild(String xid, String xidChild, String implement) {
+    aFactory.addMany(
         collection,
         'designs',
         collection
             .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'rootBody')
-            .setOne(
-                collection,
-                'child',
-                collection.createEntityByJson('CWChild',
-                    <String, dynamic>{'xid': 'tab1', 'implement': 'CWTab'})));
-
-    final CoreDataEntity aTab =
-        collection.createEntityByJson('CWTab', <String, dynamic>{'nb': 3});
-
-    aFrame.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'tab1')
-            .setOne(collection, 'properties', aTab));
-
-    aFrame.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', 'tab1Cont1')
+            .setAttr(collection, 'xid', xid)
             .setOne(
                 collection,
                 'child',
                 collection.createEntityByJson('CWChild', <String, dynamic>{
-                  'xid': 'tabInner',
-                  'implement': 'CWTab'
+                  'xid': xidChild,
+                  'implement': implement
                 })));
+  }
 
-    return aFrame;
+  Widget getWidget(final CoreDataEntity aWidgetEntity) {
+    //aWidgetEntity.doPrintObject('aWidgetEntity');
+
+    final CoreDataCtx ctx = CoreDataCtx();
+
+    ctx.eventHandler = handler;
+    aWidgetEntity.browse(collection, ctx);
+    final root = handler.mapWidgetByXid['root']!;
+    handler.mapXidByPath['root'] = 'root';
+    root.initSlot('root');
+
+    return root;
+  }
+
+  CoreDataEntity getWidgetEntity();
+}
+
+class CWLoaderTest extends CWLoader {
+  CWLoaderTest(super.collection);
+
+  @override
+  CoreDataEntity getWidgetEntity() {
+    setRoot('CWFrameDesktop');
+    setProp(
+        'root',
+        collection.createEntityByJson('CWFrameDesktop',
+            <String, dynamic>{'title': 'un titre modifiable'}));
+
+    //------------------------------------------------------------------
+    addChild('rootBody', 'tab1', 'CWTab');
+    setProp('tab1',
+        collection.createEntityByJson('CWTab', <String, dynamic>{'tabCount': 3}));
+
+    //----------------------------------------------------
+    addChild('tab1Cont0', 'aText', 'CWTextfield');
+    setProp(
+        'aText',
+        collection.createEntityByJson(
+            'CWTextfield', <String, dynamic>{'label': 'un label'}));
+
+    //----------------------------------------------------
+    addChild('tab1Cont1', 'tabInner', 'CWTab');
+
+    return aFactory;
   }
 }
