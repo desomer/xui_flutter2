@@ -33,10 +33,7 @@ class _CWFrameDesktop extends State<CWFrameDesktop> {
               body: Column(children: [
                 Expanded(
                     child: CWSlot(
-                        ctx: CWWidgetCtx(
-                            '${widget.ctx.xid}Body',
-                            widget.ctx.factory,
-                            '${widget.ctx.pathWidget}.Body')))
+                        ctx: widget.createChildCtx('Body',null)))
               ]),
             )));
   }

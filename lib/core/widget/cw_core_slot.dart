@@ -35,10 +35,12 @@ class _CWSlotState extends State<CWSlot> {
     //   //print(">> child >> ${w.ctx.pathWidget}");
     // }
 
-    return SelectorWidget(
-      key: inkWellKey,
-      ctx: widget.ctx,
-      child: w ?? Center(child: Text('<${widget.ctx.xid}>')),
-    );
+    return widget.ctx.modeRendering == ModeRendering.design
+        ? SelectorWidget(
+            key: inkWellKey,
+            ctx: widget.ctx,
+            child: w ?? Center(child: Text('<${widget.ctx.xid}>')),
+          )
+        : w ?? Center(child: Text('<${widget.ctx.xid}>'));
   }
 }

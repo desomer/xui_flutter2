@@ -53,27 +53,28 @@ class _CWTextfieldState extends State<CWTextfield> {
   Widget build(BuildContext context) {
     return Container(
         height: 32,
-        decoration: const BoxDecoration(
-            border:
-                Border(bottom: BorderSide(width: 1.0, color: Colors.black))),
+        decoration: BoxDecoration(
+            border: Border(
+                bottom: BorderSide(
+                    width: 1.0, color: Theme.of(context).dividerColor))),
         child: TextField(
           controller: _controller,
           style: const TextStyle(color: Colors.red, fontSize: 15),
-          keyboardType: TextInputType.number,
+          // keyboardType: TextInputType.number,
           scrollPadding: const EdgeInsets.all(0),
           inputFormatters: <TextInputFormatter>[
             // for below version 2 use this
-            FilteringTextInputFormatter.allow(
-                RegExp(r'[0-9]')), //RegExp("[0-9]+.[0-9]")
+            // FilteringTextInputFormatter.allow(
+            //     RegExp(r'[0-9]')), //RegExp("[0-9]+.[0-9]")
             FilteringTextInputFormatter.singleLineFormatter,
-            LengthLimitingTextInputFormatter(12), //max length of 12 characters
+            // LengthLimitingTextInputFormatter(12), //max length of 12 characters
           ],
           decoration: InputDecoration(
-            border: InputBorder.none,
-            isDense: true,
-            labelText: widget.getLabel(),
-            contentPadding: const EdgeInsets.fromLTRB(5, 1, 5, 0)
-          ),
+              border: InputBorder.none,
+              isDense: true,
+              labelText: widget.getLabel(),
+             // labelStyle: const TextStyle(color: Colors.white70),
+              contentPadding: const EdgeInsets.fromLTRB(5, 1, 5, 0)),
           autofocus: false,
         ));
   }

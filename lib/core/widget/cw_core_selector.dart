@@ -4,7 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:xui_flutter/core/data/core_data_selector.dart';
+import 'package:xui_flutter/designer/widget_selector.dart';
 
 import '../../widget/cw_image.dart';
 import '../../widget/cw_toolkit.dart';

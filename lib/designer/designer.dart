@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
+import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import '../core/data/core_data.dart';
-import '../core/widget/cw_builder.dart';
+import '../core/widget/cw_factory.dart';
 import '../widget/cw_dialog.dart';
+import '../deprecated/cw_expand_panel.dart';
 import '../widget/cw_image.dart';
 import '../core/widget/cw_core_selector.dart';
-import 'designerProp.dart';
+import 'widget_properties.dart';
+import 'widget_selector.dart';
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
@@ -18,8 +21,16 @@ class CoreDesigner extends StatefulWidget {
   late CoreDataEntity aFrame;
   late CWLoader loader;
 
+  final ScrollController scrollController = ScrollController(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+  );
+
   Widget getRoot() {
-    loader = CWLoaderTest(cwCollect.collection);
+    DesignCtx ctx = DesignCtx();
+    ctx.collection = cwCollect.collection;
+    ctx.mode = ModeRendering.design;
+    loader = CWLoaderTest(ctx);
     aFrame = loader.getWidgetEntity();
     return loader.getWidget(aFrame);
   }
@@ -28,14 +39,34 @@ class CoreDesigner extends StatefulWidget {
   State<CoreDesigner> createState() => _CoreDesignerState();
 }
 
-class _CoreDesignerState extends State<CoreDesigner> {
+class _CoreDesignerState extends State<CoreDesigner>
+    with SingleTickerProviderStateMixin {
+  final PageStorageBucket _bucket = PageStorageBucket();
+
+  late TabController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TabController(
+        vsync: this,
+        length: 2,
+        animationDuration: const Duration(milliseconds: 200));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
     nav.tab = [
       getDesignerColumnDesign(),
       Column(children: [
-        const DialogExample(),
+        const DialogExample(key: PageStorageKey<String>('pageMain')),
         CwImage(key: CoreDesigner.imageKey)
       ])
     ];
@@ -43,14 +74,18 @@ class _CoreDesignerState extends State<CoreDesigner> {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
-        theme: ThemeData(
-          primarySwatch: Colors.blueGrey,
-        ),
+        theme: ThemeData(),
+        // standard dark theme
+        darkTheme: ThemeData.dark().copyWith(
+            indicatorColor: Colors.amber,
+            inputDecorationTheme: const InputDecorationTheme(
+                labelStyle: TextStyle(color: Colors.white70))),
+        themeMode: ThemeMode.system,
         home: Scaffold(
             appBar: AppBar(
               title: const Text('ElisView'),
             ),
-            body: nav));
+            body: PageStorage(bucket: _bucket, child: nav)));
   }
 
   Widget getDesignerBody() {
@@ -101,14 +136,6 @@ class _CoreDesignerState extends State<CoreDesigner> {
     //     ));
   }
 
-  // Widget getEditor() {
-  //   final root = widget.loader.handler.mapWidgetByXid["root"]!.ctx.entity;
-
-  //   return Column(
-  //       children: FormBuilder()
-  //           .getFormWidget(widget.cwCollect.collection, root!));
-  // }
-
   Widget getTabProperties() {
     final List<Widget> listTab = <Widget>[];
     listTab.add(const Tab(
@@ -122,41 +149,58 @@ class _CoreDesignerState extends State<CoreDesigner> {
     ));
 
     final List<Widget> listTabCont = <Widget>[];
-    listTabCont.add(DesignerPropDart(key:CoreDesigner.propKey));
-    listTabCont.add(Container());
+    listTabCont.add(Container(
+        key: const PageStorageKey<String>('pageProp'),
+        child: DesignerProp(key: CoreDesigner.propKey)));
+    listTabCont.add(SingleChildScrollView(
+        key: const PageStorageKey<String>('pageHisto'),
+        controller: widget.scrollController,
+        scrollDirection: Axis.vertical,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Card3(),
+          Card3(),
+          Card3(),
+          Card3(),
+          Card3(),
+          Card3(),
+          Card3(),
+          Card3(),
+          Card3(),
+          Card3()
+        ]))); // const Steps());
 
-    return DefaultTabController(
-        length: 2,
-        child: LayoutBuilder(builder:
-            (BuildContext context, BoxConstraints viewportConstraints) {
-          return Column(children: <Widget>[
-            SizedBox(
-              height: 30,
-              child: ColoredBox(
-                  color: Colors.transparent,
-                  child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                          color: Colors.blueGrey,
-                          child: TabBar(
-                            indicator: const UnderlineTabIndicator(
-                                borderSide: BorderSide(
-                                    width: 4, color: Colors.deepOrange),
-                                insets: EdgeInsets.only(
-                                    left: 0, right: 0, bottom: 0)),
-                            isScrollable: true,
-                            //labelPadding: EdgeInsets.only(left: 0, right: 0),
-                            tabs: listTab,
-                          )))),
-            ),
-            Container(
-                padding: const EdgeInsets.all(3.0),
-                decoration:
-                    BoxDecoration(border: Border.all(color: Colors.blueAccent)),
-                height: viewportConstraints.maxHeight - 32,
-                child: TabBarView(children: listTabCont))
-          ]);
-        }));
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints viewportConstraints) {
+      return Column(children: <Widget>[
+        SizedBox(
+          height: 40,
+          child: ColoredBox(
+              color: Colors.transparent,
+              child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                      color: Theme.of(context).highlightColor,
+                      child: TabBar(
+                        controller: _controller,
+                        indicator: const UnderlineTabIndicator(
+                            borderSide:
+                                BorderSide(width: 4, color: Colors.deepOrange),
+                            insets:
+                                EdgeInsets.only(left: 0, right: 0, bottom: 0)),
+                        isScrollable: true,
+                        //labelPadding: EdgeInsets.only(left: 0, right: 0),
+                        tabs: listTab,
+                      )))),
+        ),
+        Container(
+            padding: const EdgeInsets.all(0.0),
+            decoration: BoxDecoration(
+                border:
+                    Border.all(color: Theme.of(context).secondaryHeaderColor)),
+            height: viewportConstraints.maxHeight - 40 - 2,
+            child: TabBarView(controller: _controller, children: listTabCont))
+      ]);
+    });
   }
 }
 
@@ -177,13 +221,19 @@ class _NavRailState extends State<NavRail> {
   PageController pageController = PageController();
 
   @override
+  void dispose() {
+    super.dispose();
+    pageController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
         NavigationRail(
           minWidth: 40,
           labelType: NavigationRailLabelType.none,
-          // selectedIconTheme: const IconThemeData(color: Colors.green),
+          selectedIconTheme: const IconThemeData(color: Colors.deepOrange),
           // unselectedIconTheme: const IconThemeData(color: Colors.blueGrey),
           // selectedLabelTextStyle: const TextStyle(color: Colors.green),
           // unselectedLabelTextStyle: const TextStyle(color: Colors.blueGrey),
@@ -198,17 +248,15 @@ class _NavRailState extends State<NavRail> {
           },
           destinations: const <NavigationRailDestination>[
             NavigationRailDestination(
-              icon: Icon(Icons.edit_document),
+              icon: Tooltip(
+                  message: 'Edit Pages', child: Icon(Icons.edit_document)),
               label: Text('Edit'),
             ),
             NavigationRailDestination(
-              icon: Icon(Icons.storage_rounded),
+              icon:
+                  Tooltip(message: 'Data', child: Icon(Icons.storage_rounded)),
               label: Text('Store'),
             ),
-            // NavigationRailDestination(
-            //   icon: Icon(Icons.message),
-            //   label: Text('Feedback'),
-            // ),
           ],
         ),
         Expanded(

@@ -52,7 +52,7 @@ class _CWTabState extends State<CWTab> {
     return SizedBox(
       height: 22,
       child: ColoredBox(
-          color: Colors.blueGrey,
+          color: Theme.of(context).primaryColor,
           child: TabBar(
             tabs: listTab,
           )),
@@ -63,10 +63,7 @@ class _CWTabState extends State<CWTab> {
     final List<Widget> listTab = <Widget>[];
     final nb = widget.getNb();
     for (int i = 0; i < nb; i++) {
-      final CWWidgetCtx ctxW = CWWidgetCtx('${widget.ctx.xid}Cont$i',
-          widget.ctx.factory, '${widget.ctx.pathWidget}.Cont$i');
-      final CWSlot slot = CWSlot(ctx: ctxW);
-
+      final CWSlot slot = CWSlot(ctx: widget.createChildCtx('Cont', i));
       listTab.add(slot);
     }
 

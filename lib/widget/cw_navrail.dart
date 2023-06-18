@@ -18,10 +18,10 @@ class _NavRailState extends State<NavRail> {
       children: <Widget>[
         NavigationRail(
           labelType: NavigationRailLabelType.all,
-          selectedIconTheme: const IconThemeData(color: Colors.green),
-          unselectedIconTheme: const IconThemeData(color: Colors.blueGrey),
-          selectedLabelTextStyle: const TextStyle(color: Colors.green),
-          unselectedLabelTextStyle: const TextStyle(color: Colors.blueGrey),
+          // selectedIconTheme: const IconThemeData(color: Colors.green),
+          // unselectedIconTheme: const IconThemeData(color: Colors.blueGrey),
+          // selectedLabelTextStyle: const TextStyle(color: Colors.green),
+          // unselectedLabelTextStyle: const TextStyle(color: Colors.blueGrey),
           selectedIndex: selectedIndex,
           onDestinationSelected: (int index) {
             setState(() {
