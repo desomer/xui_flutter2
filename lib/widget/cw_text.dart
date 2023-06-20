@@ -13,7 +13,7 @@ class CWText extends CWWidget {
   State<CWText> createState() => _CWTextState();
 
   String getLabel() {
-    return ctx.entity?.getString('label', '') ?? 'vide';
+    return ctx.entityForFactory?.getString('label') ?? 'vide';
   }
 
   @override

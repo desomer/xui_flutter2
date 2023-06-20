@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
@@ -14,7 +13,8 @@ import 'designer/designer.dart';
 void main() {
   runApp(CoreDesigner());
 
-  html.document.onContextMenu.listen((html.MouseEvent event) => event.preventDefault());
+  html.document.onContextMenu
+      .listen((html.MouseEvent event) => event.preventDefault());
   //runApp(const MyApp());
 }
 
@@ -120,14 +120,14 @@ class FavoriteWidgetState extends State<FavoriteWidget> {
     doPrintObject('', aCol);
 
     final CoreDataCtx ctx = CoreDataCtx();
-    ctx.eventHandler = CoreWidgetFactoryEventHandler();
+    ctx.browseHandler = CoreWidgetFactoryEventHandler();
     aCol.browse(collection, ctx);
 
     // final CoreDataPath path = aCol.getPath(collection, 'children[2]');
     // print('path${path.entities.last}');
 
     final Widget root =
-        (ctx.eventHandler as CoreWidgetFactoryEventHandler).root!;
+        (ctx.browseHandler as CoreWidgetFactoryEventHandler).root!;
 
     return root;
   }
@@ -334,32 +334,32 @@ class _MyAppState extends State<MyApp> {
                 debugPrint(viewportConstraints.toString());
                 return SingleChildScrollView(
                     child: SizedBox(
-                      key: _widgetKey,
-                      height: h + 300,
-                      child: TabBarView(
-                        children: [
-                          // first tab bar view widget
-                          Container(
-                            color: Colors.red,
-                            child: const Center(
-                              child: Text(
-                                'Bike',
-                              ),
-                            ),
+                  key: _widgetKey,
+                  height: h + 300,
+                  child: TabBarView(
+                    children: [
+                      // first tab bar view widget
+                      Container(
+                        color: Colors.red,
+                        child: const Center(
+                          child: Text(
+                            'Bike',
                           ),
-
-                          // second tab bar viiew widget
-                          Container(
-                            color: Colors.pink,
-                            child: const Center(
-                              child: Text(
-                                'Car',
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ));
+
+                      // second tab bar viiew widget
+                      Container(
+                        color: Colors.pink,
+                        child: const Center(
+                          child: Text(
+                            'Car',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ));
               })
             ]));
     // Container(
@@ -380,7 +380,6 @@ class _MyAppState extends State<MyApp> {
 typedef OnWidgetSizeChange = void Function(Size size);
 
 class WidgetSizeRenderObject extends RenderProxyBox {
-
   WidgetSizeRenderObject(this.onSizeChange);
   final OnWidgetSizeChange onSizeChange;
   Size? currentSize;
@@ -405,7 +404,6 @@ class WidgetSizeRenderObject extends RenderProxyBox {
 }
 
 class WidgetSizeOffsetWrapper extends SingleChildRenderObjectWidget {
-
   const WidgetSizeOffsetWrapper({
     super.key,
     required this.onSizeChange,

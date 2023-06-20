@@ -3,6 +3,7 @@ import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import '../core/data/core_data.dart';
 import '../core/widget/cw_factory.dart';
+import '../test_loader.dart';
 import '../widget/cw_dialog.dart';
 import '../deprecated/cw_expand_panel.dart';
 import '../widget/cw_image.dart';
@@ -19,7 +20,7 @@ class CoreDesigner extends StatefulWidget {
 
   final cwCollect = CWCollection();
   late CoreDataEntity aFrame;
-  late CWLoader loader;
+  static late CWLoader loader;
 
   final ScrollController scrollController = ScrollController(
     initialScrollOffset: 0.0,
@@ -27,12 +28,11 @@ class CoreDesigner extends StatefulWidget {
   );
 
   Widget getRoot() {
-    DesignCtx ctx = DesignCtx();
+    LoaderCtx ctx = LoaderCtx();
     ctx.collection = cwCollect.collection;
     ctx.mode = ModeRendering.design;
     loader = CWLoaderTest(ctx);
-    aFrame = loader.getWidgetEntity();
-    return loader.getWidget(aFrame);
+    return loader.getWidget();
   }
 
   @override

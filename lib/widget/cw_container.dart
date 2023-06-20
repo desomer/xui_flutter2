@@ -6,7 +6,7 @@ import '../core/widget/cw_core_widget.dart';
 // ignore: must_be_immutable
 class CWContainer extends CWWidget {
   int getNbChild() {
-    return ctx.entity?.getInt("count", 1) ?? 1;
+    return ctx.entityForFactory?.getInt("count", 1) ?? 1;
   }
 
   CWContainer({Key? key, required super.ctx}) : super(key: key);

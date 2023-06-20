@@ -9,13 +9,11 @@ class CWFrameDesktop extends CWWidget {
 
   @override
   State<CWFrameDesktop> createState() => _CWFrameDesktop();
-  
+
   @override
   initSlot(String path) {
-     addSlotPath('$path.Body', '${ctx.xid}Body');
+    addSlotPath('$path.Body', '${ctx.xid}Body');
   }
-  
-
 }
 
 class _CWFrameDesktop extends State<CWFrameDesktop> {
@@ -28,12 +26,12 @@ class _CWFrameDesktop extends State<CWFrameDesktop> {
             title: 'Mouse Region',
             home: Scaffold(
               appBar: AppBar(
-                title: Text(widget.ctx.entity!.getString('title', '?')),
+                title:
+                    Text(widget.ctx.entityForFactory!.getString('title', def:'?')!),
               ),
               body: Column(children: [
                 Expanded(
-                    child: CWSlot(
-                        ctx: widget.createChildCtx('Body',null)))
+                    child: CWSlot(ctx: widget.createChildCtx('Body', null)))
               ]),
             )));
   }

@@ -20,7 +20,7 @@ class CoreDataCollection {
   }
 
   CoreDataEntity createEntityByJson(String cls, Map<String, dynamic> v) {
-    return getClass(cls)!.createEntity().setValue(v);
+    return getClass(cls)!.createEntity().setAllValue(v);
   }
 
   CoreDataEntity createEntity(String cls) {
@@ -59,8 +59,7 @@ class CoreDataObjectBuilder {
     return this;
   }
 
-  CoreDataObjectBuilder addAttrAction(
-      String actionId, Function action) {
+  CoreDataObjectBuilder addAttrAction(String actionId, Function action) {
     _lastAttr?.addAction(actionId, CoreDataActionGetter(action));
     return this;
   }
@@ -87,19 +86,20 @@ class CoreDataObjectBuilder {
 class CoreDataEntity {
   CoreDataEntity(this.type);
 
-  String type;
+  String type; // type de l'entity
   CDAction operation = CDAction.inherit;
   Map<String, dynamic> value = <String, dynamic>{};
   Map<String, dynamic>? original;
   List<Iterable<Map<String, dynamic>>>? patch;
   List<Iterable<Map<String, dynamic>>>? patchRedo;
+  Map<String, dynamic> custom = <String, dynamic>{};
 
   @override
   String toString() {
     return '<$type>$value';
   }
 
-  CoreDataEntity setValue(Map<String, dynamic> v) {
+  CoreDataEntity setAllValue(Map<String, dynamic> v) {
     value.addAll(v);
     return this;
   }
@@ -114,6 +114,13 @@ class CoreDataEntity {
     }
     patchRedo = null;
     return this;
+  }
+
+  CoreDataAttribut? getAttrByName(
+      CoreDataCollection collection, String attrName) {
+    final CoreDataObjectBuilder builder = collection.getClass(type)!;
+    final CoreDataAttribut? attr = builder.attributsByName[attrName];
+    return attr;
   }
 
   CoreDataEntity setOne(
@@ -165,7 +172,7 @@ class CoreDataEntity {
     return val;
   }
 
-  String getString(String attr, String def) {
+  String? getString(String attr, {String? def}) {
     final dynamic v = value[attr];
     if (v == null) {
       return def;
@@ -212,10 +219,11 @@ class CoreDataEntity {
     _browse(ctx, collection, null, value, '');
   }
 
-  final String typeAttr = r'$type';
+  // ignore: constant_identifier_names
+  static const String _TypeAttr = r'$type';
 
   String getType(CoreDataAttribut? attr, Map<String, dynamic> src) {
-    return src[typeAttr]! as String;
+    return src[_TypeAttr]! as String;
   }
 
   void _browse(CoreDataCtx ctx, CoreDataCollection collection,
@@ -278,7 +286,7 @@ class CoreDataEntity {
       CoreDataObjectBuilder builder,
       CoreDataAttribut? attr,
       Map<String, dynamic> src) {
-    final CoreDataEvent event = CoreDataEvent();
+    final CoreDataBrowseEvent event = CoreDataBrowseEvent();
     event.action = action;
     event.builder = builder;
     event.entity = this;
@@ -287,7 +295,7 @@ class CoreDataEntity {
     event.src = src;
     event.value = src[event.attr.name];
     ctx.event = event;
-    ctx.eventHandler.process(ctx);
+    ctx.browseHandler.process(ctx);
   }
 
   void browseAttr(
@@ -296,7 +304,7 @@ class CoreDataEntity {
       CoreDataObjectBuilder builder,
       CoreDataAttribut attr,
       Map<String, dynamic> src) {
-    final CoreDataEvent event = CoreDataEvent();
+    final CoreDataBrowseEvent event = CoreDataBrowseEvent();
     event.action = 'browserAttr';
     event.builder = builder;
     event.entity = this;
@@ -304,12 +312,12 @@ class CoreDataEntity {
     event.src = src;
     event.value = src[attr.name];
     ctx.event = event;
-    ctx.eventHandler.process(ctx);
+    ctx.browseHandler.process(ctx);
   }
 
   void _getCloneByEntity(CoreDataCollection collection,
       Map<String, dynamic> dest, Map<String, dynamic> src) {
-    dest[typeAttr] = src[typeAttr];
+    dest[_TypeAttr] = src[_TypeAttr];
     final CoreDataObjectBuilder builder = collection.getClass(type)!;
     for (final CoreDataAttribut attr in builder.attributs) {
       if (attr.type == CDAttributType.CDone) {
@@ -320,7 +328,7 @@ class CoreDataEntity {
           final CoreDataEntity child = builderOne.getEntityModel();
           dest[attr.name] = <String, dynamic>{};
           // ignore: avoid_dynamic_calls
-          dest[attr.name][typeAttr] = src[attr.name][typeAttr];
+          dest[attr.name][_TypeAttr] = src[attr.name][_TypeAttr];
           child._getCloneByEntity(
               collection,
               dest[attr.name] as Map<String, dynamic>,
@@ -484,9 +492,9 @@ class CoreDataActionGetter extends CoreDataAction {
 
 class CoreDataCtx {
   ListQueue<CoreDataAttribut> pathData = ListQueue<CoreDataAttribut>();
-  late CoreEventHandler eventHandler;
+  late CoreBrowseEventHandler browseHandler;
+  CoreDataBrowseEvent? event;
 
-  CoreDataEvent? event;
   dynamic payload;
 
   String getPathData() {
@@ -520,7 +528,7 @@ enum CDPriority { min, moy, norm, mid, max }
 
 enum CDAction { inherit, create, insert, update, delete }
 
-class CoreDataEvent {
+class CoreDataBrowseEvent {
   String action = 'browse';
   late CoreDataObjectBuilder builder;
   late CoreDataEntity entity;

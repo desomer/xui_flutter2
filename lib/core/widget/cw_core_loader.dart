@@ -5,31 +5,34 @@ import '../data/core_data.dart';
 import 'cw_factory.dart';
 
 abstract class CWLoader {
-  CWLoader(DesignCtx ctx) {
-    aFactory = ctx.collection.createEntity('CWFactory');
-    handler =
-        WidgetFactoryEventHandler(ctx.collection, ctx.mode);
-    ctxDesign = ctx;
+  CWLoader(LoaderCtx ctx) {
+    ctxLoader = ctx;
+    cwFactory = ctx.collection.createEntity('CWFactory');
+    ctxLoader.factory = WidgetFactoryEventHandler(ctx.collection, ctx.mode);
+    ctxLoader.entityCWFactory = cwFactory;
+    collection = ctx.collection;
   }
-  late DesignCtx ctxDesign;
-  late CoreDataEntity aFactory;
-  late WidgetFactoryEventHandler handler;
+
+  late LoaderCtx ctxLoader;
+  late CoreDataEntity cwFactory;
+  late CoreDataCollection collection;
 
   setRoot(String implement) {
-    aFactory.setOne(
-        ctxDesign.collection,
+    cwFactory.setOne(
+        collection,
         'child',
-        ctxDesign.collection.createEntityByJson('CWChild',
+        collection.createEntityByJson('CWChild',
             <String, dynamic>{'xid': 'root', 'implement': implement}));
   }
 
   setProp(String xid, CoreDataEntity prop) {
-    aFactory.addMany(
-        ctxDesign.collection,
+    cwFactory.addMany(
+        collection,
         'designs',
-        ctxDesign.collection.createEntity('CWDesign')
-            .setAttr(ctxDesign.collection, 'xid', xid)
-            .setOne(ctxDesign.collection, 'properties', prop));
+        collection
+            .createEntity('CWDesign')
+            .setAttr(collection, 'xid', xid)
+            .setOne(collection, 'properties', prop));
   }
 
   addChildProp(
@@ -39,15 +42,16 @@ abstract class CWLoader {
   }
 
   addChild(String xid, String xidChild, String implement) {
-    aFactory.addMany(
-        ctxDesign.collection,
+    cwFactory.addMany(
+        collection,
         'designs',
-        ctxDesign.collection.createEntity('CWDesign')
-            .setAttr(ctxDesign.collection, 'xid', xid)
+        collection
+            .createEntity('CWDesign')
+            .setAttr(collection, 'xid', xid)
             .setOne(
-                ctxDesign.collection,
+                collection,
                 'child',
-                ctxDesign.collection.createEntityByJson('CWChild', <String, dynamic>{
+                collection.createEntityByJson('CWChild', <String, dynamic>{
                   'xid': xidChild,
                   'implement': implement
                 })));
@@ -55,56 +59,22 @@ abstract class CWLoader {
 
   addWidget(String xid, String xidChild, Type type, Map<String, dynamic> v) {
     addChildProp(xid, xidChild, type.toString(),
-        ctxDesign.collection.createEntityByJson(type.toString(), v));
+        collection.createEntityByJson(type.toString(), v));
   }
 
-  Widget getWidget(final CoreDataEntity aWidgetEntity) {
-    //aWidgetEntity.doPrintObject('aWidgetEntity');
-
+  Widget getWidget() {
+    final CoreDataEntity aCWFactory = getCWFactory();
     final CoreDataCtx ctx = CoreDataCtx();
 
-    ctx.eventHandler = handler;
-    handler.root = aWidgetEntity;
-    aWidgetEntity.browse(ctxDesign.collection, ctx);
-    final root = handler.mapWidgetByXid['root']!;
-    handler.mapXidByPath['root'] = 'root';
-    root.initSlot('root');
+    ctx.browseHandler = ctxLoader.factory!;
+    ctxLoader.factory!.cwFactory = aCWFactory;
+    aCWFactory.browse(collection, ctx);
+    final rootWidget = ctxLoader.factory!.mapWidgetByXid['root']!;
+    ctxLoader.factory!.mapXidByPath['root'] = 'root';
+    rootWidget.initSlot('root');
 
-    return root;
+    return rootWidget;
   }
 
-  CoreDataEntity getWidgetEntity();
-}
-
-class CWLoaderTest extends CWLoader {
-  CWLoaderTest(super.ctx);
-
-  @override
-  CoreDataEntity getWidgetEntity() {
-    setRoot('CWFrameDesktop');
-    setProp(
-        'root',
-        ctxDesign.collection.createEntityByJson('CWFrameDesktop',
-            <String, dynamic>{'title': 'un titre modifiable'}));
-
-    //------------------------------------------------------------------
-    addChildProp(
-        'rootBody',
-        'tab1',
-        'CWTab',
-        ctxDesign.collection.createEntityByJson('CWTab', <String, dynamic>{'tabCount': 3}));
-
-    //----------------------------------------------------
-    addChildProp(
-        'tab1Cont0',
-        'aText',
-        'CWTextfield',
-        ctxDesign.collection.createEntityByJson(
-            'CWTextfield', <String, dynamic>{'label': 'un label'}));
-
-    //----------------------------------------------------
-    addChild('tab1Cont1', 'tabInner', 'CWTab');
-
-    return aFactory;
-  }
+  CoreDataEntity getCWFactory();
 }

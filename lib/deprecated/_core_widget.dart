@@ -67,7 +67,7 @@ class CoreWidgetFactory {
     return s;
   }
 
-  Color? getColor(String key, CoreDataEvent event) {
+  Color? getColor(String key, CoreDataBrowseEvent event) {
     //print("color ========= ${event.src[key]}");
 
     Color? c;
@@ -78,11 +78,11 @@ class CoreWidgetFactory {
     return c;
   }
 
-  String? getString(String key, CoreDataEvent event) {
+  String? getString(String key, CoreDataBrowseEvent event) {
     return event.src[key] as String?;
   }
 
-  double? getDouble(String key, CoreDataEvent event) {
+  double? getDouble(String key, CoreDataBrowseEvent event) {
     return event.src[key] as double?;
   }
 }
@@ -105,7 +105,7 @@ class CoreWidget {
   }
 }
 
-class CoreWidgetFactoryEventHandler extends CoreEventHandler {
+class CoreWidgetFactoryEventHandler extends CoreBrowseEventHandler {
   CoreWidgetFactoryEventHandler() {
     dictionaryWidgets['Column'] = WidgetColumn();
     dictionaryWidgets['Text'] = WidgetText();

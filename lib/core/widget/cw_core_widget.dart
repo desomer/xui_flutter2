@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../data/core_data.dart';
 import 'cw_factory.dart';
 
-
 enum ModeRendering { design, view }
 
 // ignore: must_be_immutable
@@ -25,7 +24,7 @@ abstract class CWWidget extends StatefulWidget {
   }
 
   CWWidgetCtx createChildCtx(String id, int? idx) {
-    return CWWidgetCtx('${ctx.xid}$id${idx?.toString()??''}', ctx.factory,
+    return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.factory,
         '${ctx.pathWidget}.$id${idx?.toString() ?? ''}', ctx.modeRendering);
   }
 }
@@ -36,7 +35,7 @@ class CWWidgetCtx {
   String xid;
   String pathWidget;
   WidgetFactoryEventHandler factory;
-  CoreDataEntity? entity;
+  CoreDataEntity? entityForFactory;
   String? pathDataDesign;
   String? pathDataCreate;
 }

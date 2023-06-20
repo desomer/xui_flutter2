@@ -1,6 +1,6 @@
 import 'core_data.dart';
 
-class CoreEventHandler {
+class CoreBrowseEventHandler {
   void process(CoreDataCtx ctx) {
     if (ctx.event!.action.startsWith('browserObject')) {
       doTrace(

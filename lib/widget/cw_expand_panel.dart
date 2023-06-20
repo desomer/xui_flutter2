@@ -16,7 +16,7 @@ class ExpandInfo {
 // ignore: must_be_immutable
 class CWExpandPanel extends CWWidget {
   int getNb() {
-    return ctx.entity?.getInt("count", 1) ?? 1;
+    return ctx.entityForFactory?.getInt("count", 1) ?? 1;
   }
 
   CWExpandPanel({Key? key, required super.ctx}) : super(key: key);
@@ -62,12 +62,11 @@ class CWExpandPanelState extends State<CWExpandPanel> {
 
   @override
   Widget build(BuildContext context) {
-
     List<ExpandInfo> listInfo = [];
     final nb = widget.getNb();
     for (var i = 0; i < nb; i++) {
-      listInfo.add(ExpandInfo(CWSlot(ctx:  widget.createChildCtx("Title", i)),
-          CWSlot(ctx:  widget.createChildCtx("Body", i))));
+      listInfo.add(ExpandInfo(CWSlot(ctx: widget.createChildCtx("Title", i)),
+          CWSlot(ctx: widget.createChildCtx("Body", i))));
     }
 
     return ExpandableNotifier(

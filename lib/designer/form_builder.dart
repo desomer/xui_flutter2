@@ -2,22 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_provider.dart';
 import '../widget/cw_container.dart';
 import '../widget/cw_text.dart';
 import '../widget/cw_textfield.dart';
 import 'widget_selector.dart';
 
 class FormBuilder {
-  List<Widget> getFormWidget(DesignCtx ctxDesign) {
+  List<Widget> getFormWidget(DesignCtx ctxDesign, CoreDataEntity entity) {
     var listWidget = <Widget>[];
 
     final CoreDataObjectBuilder builder =
-        ctxDesign.collection.getClass(ctxDesign.entity.type)!;
-    Map<String, dynamic> src = ctxDesign.entity.value;
+        ctxDesign.collection.getClass(entity.type)!;
+    Map<String, dynamic> src = entity.value;
 
-    FormLoader loader =
-        FormLoader(ctxDesign);
-    loader.label = ctxDesign.entity.type;
+    FormLoader loader = FormLoader(ctxDesign, entity);
 
     for (final CoreDataAttribut attr in builder.attributs) {
       if (attr.type == CDAttributType.CDone) {
@@ -30,42 +29,44 @@ class FormBuilder {
       }
     }
 
-    final aPanel = loader.getWidgetEntity();
-    listWidget.add(loader.getWidget(aPanel));
+    loader.ctxLoader.factory!.mapProvider[ctxDesign.pathWidget] =
+        CWProvider(entity);
+
+    listWidget.add(loader.getWidget());
     return listWidget;
   }
 }
 
 class FormLoader extends CWLoader {
-  FormLoader(DesignCtx ctxDesign) : super(ctxDesign) {
+  FormLoader(DesignCtx ctxDesign, this.entity) : super(ctxDesign) {
     setRoot("CWExpandPanel");
   }
 
   int nbAttr = 0;
-  String? label;
+  CoreDataEntity entity;
 
   void addAttr(CoreDataAttribut attribut) {
     addWidget('Col0Cont$nbAttr', 'attr$nbAttr', CWTextfield, <String, dynamic>{
       'label': attribut.name,
       'bind': attribut.name,
-      'providerName': 'Test'
+      'providerName': (ctxLoader as DesignCtx).pathWidget
     });
     nbAttr++;
   }
 
   @override
-  CoreDataEntity getWidgetEntity() {
+  CoreDataEntity getCWFactory() {
     addWidget(
-        'rootTitle0', 'title0', CWText, <String, dynamic>{'label': label});
+        'rootTitle0', 'title0', CWText, <String, dynamic>{'label': entity.type});
 
     addWidget(
         'rootBody0', 'Col0', CWContainer, <String, dynamic>{'count': nbAttr});
 
     setProp(
         "root",
-        ctxDesign.collection.createEntityByJson(
+        ctxLoader.collection.createEntityByJson(
             'CWExpandPanel', <String, dynamic>{'count': 1}));
 
-    return aFactory;
+    return cwFactory;
   }
 }

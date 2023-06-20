@@ -8,6 +8,7 @@ import '../data/core_data.dart';
 import '../data/core_event.dart';
 import '../../widget/cw_frame_desktop.dart';
 import '../../widget/cw_tab.dart';
+import '../data/core_provider.dart';
 import 'cw_core_widget.dart';
 
 class CWCollection {
@@ -20,26 +21,30 @@ class CWCollection {
 
   /////////////////////////////////////////////////////////////////////////
   void _initWidget() {
-    addWidget((CWFrameDesktop), (CWWidgetCtx ctx) => CWFrameDesktop(ctx: ctx))
+    addWidget((CWFrameDesktop),
+            (CWWidgetCtx ctx) => CWFrameDesktop(key: GlobalKey(), ctx: ctx))
         .addAttr('title', CDAttributType.CDtext);
 
-    addWidget((CWTab), (CWWidgetCtx ctx) => CWTab(ctx: ctx))
+    addWidget((CWTab), (CWWidgetCtx ctx) => CWTab(key: GlobalKey(), ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
         .addAttr('heightTabBar', CDAttributType.CDint);
 
-    addWidget((CWTextfield), (CWWidgetCtx ctx) => CWTextfield(ctx: ctx))
+    addWidget((CWTextfield),
+            (CWWidgetCtx ctx) => CWTextfield(key: GlobalKey(), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
-    addWidget((CWExpandPanel), (CWWidgetCtx ctx) => CWExpandPanel(ctx: ctx))
+    addWidget((CWExpandPanel),
+            (CWWidgetCtx ctx) => CWExpandPanel(key: GlobalKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
 
     addWidget((CWText), (CWWidgetCtx ctx) => CWText(ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('textColor', CDAttributType.CDtext);
 
-    addWidget((CWContainer), (CWWidgetCtx ctx) => CWContainer(ctx: ctx))
+    addWidget((CWContainer),
+            (CWWidgetCtx ctx) => CWContainer(key: GlobalKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
   }
 
@@ -67,19 +72,19 @@ class CWCollection {
   }
 }
 
-class WidgetFactoryEventHandler extends CoreEventHandler {
+
+class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   WidgetFactoryEventHandler(this.collection, this.modeRendering);
 
   ModeRendering modeRendering;
   CoreDataCollection collection;
-  CoreDataEntity? root;
+  CoreDataEntity? cwFactory;
 
   Map<String, CWWidget> mapWidgetByXid = <String, CWWidget>{};
   Map<String, String> mapChildXidByXid = <String, String>{};
   Map<String, String> mapXidByPath = <String, String>{};
 
-  Map<String, CoreDataObjectBuilder> mapProvider =
-      <String, CoreDataObjectBuilder>{};
+  Map<String, CWProvider> mapProvider = <String, CWProvider>{};
 
   @override
   void process(CoreDataCtx ctx) {
@@ -92,8 +97,9 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
       //     'WidgetFactoryEventHandler id=<$id> p=<$idParent> t=${ctx.event!.builder.name}  o=${ctx.event!.entity}');
 
       if (ctx.event!.builder.name == 'CWChild') {
-        final String xid = ctx.event!.entity.getString('xid', '');
-        final String implement = ctx.event!.entity.getString('implement', '');
+        final String xid = ctx.event!.entity.getString('xid', def: '')!;
+        final String implement =
+            ctx.event!.entity.getString('implement', def: '')!;
         final CWWidgetCtx ctxW = CWWidgetCtx(xid, this, xid, modeRendering);
         ctx.payload = ctxW;
         final CoreDataObjectBuilder wid = collection.getClass(implement)!;
@@ -103,17 +109,17 @@ class WidgetFactoryEventHandler extends CoreEventHandler {
         //debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidgetByXid[xid]!}');
       }
       if (ctx.event!.builder.name == 'CWDesign') {
-        final String xid = ctx.event!.entity.getString('xid', '');
+        final String xid = ctx.event!.entity.getString('xid', def: '')!;
         mapWidgetByXid[xid]?.ctx.pathDataDesign = ctx.getPathData();
         final CoreDataEntity? prop =
             ctx.event!.entity.getOneEntity(collection, 'properties');
         if (prop != null) {
-          mapWidgetByXid[xid]?.ctx.entity = prop;
+          mapWidgetByXid[xid]?.ctx.entityForFactory = prop;
         }
         final CoreDataEntity? child =
             ctx.event!.entity.getOneEntity(collection, 'child');
         if (child != null) {
-          mapChildXidByXid[xid] = child.getString('xid', '');
+          mapChildXidByXid[xid] = child.getString('xid', def: '')!;
           debugPrint('$xid ==== ${mapChildXidByXid[xid]}');
         }
       }

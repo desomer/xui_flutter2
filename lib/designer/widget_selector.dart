@@ -13,8 +13,8 @@ class CoreDataSelector {
 
   CoreDataEntity getEmptyEntity(DesignCtx ctx) {
     ctx.factory = ctx.widget!.ctx.factory;
-    CoreDataPath? path =
-        ctx.factory?.root!.getPath(ctx.factory!.collection, ctx.pathCreate!);
+    CoreDataPath? path = ctx.factory?.cwFactory!
+        .getPath(ctx.factory!.collection, ctx.pathCreate!);
     //String type = path!.entities.last.getType(null, path.entities.last.value);
     String impl = path!.entities.last.value['implement'];
     CoreDataEntity emptyEntity = ctx.factory!.collection.createEntity(impl);
@@ -25,40 +25,28 @@ class CoreDataSelector {
     String pathWidget = slot.ctx.pathWidget;
     CoreDataSelector.listProp.clear();
 
-    // print('mapWidgetByXid ${slot.ctx.factory.mapWidgetByXid}');
-    // print('mapXidByPath ${slot.ctx.factory.mapXidByPath}');
-
     while (pathWidget.isNotEmpty) {
-      DesignCtx ctx = DesignCtx();
-      ctx.pathWidget = pathWidget;
+      DesignCtx aCtx = DesignCtx();
+      aCtx.pathWidget = pathWidget;
+      aCtx.xid = slot.ctx.factory.mapXidByPath[pathWidget];
+      aCtx.widget = slot.ctx.factory.mapWidgetByXid[aCtx.xid];
+      aCtx.pathDesign = aCtx.widget?.ctx.pathDataDesign;
+      aCtx.pathCreate = aCtx.widget?.ctx.pathDataCreate;
 
-      ctx.xid = slot.ctx.factory.mapXidByPath[pathWidget];
-      ctx.widget = slot.ctx.factory.mapWidgetByXid[ctx.xid];
-
-      // String prop = 'no child';
-      // if (ctx.widget != null) {
-      //   // test si cmp dans slot
-      //   prop = ctx.widget!.ctx.entity?.value.toString() ?? 'no prop';
-      // }
-
-      ctx.pathDesign = ctx.widget?.ctx.pathDataDesign;
-      ctx.pathCreate = ctx.widget?.ctx.pathDataCreate;
-
-      if (ctx.widget == null) {
+      if (aCtx.widget == null) {
         debugPrint('>>> $pathWidget as empty slot');
       } else {
-        ctx.factory = ctx.widget!.ctx.factory;
-        ctx.collection = ctx.widget!.ctx.factory.collection;
-        ctx.mode = ModeRendering.view;
-        if (ctx.widget!.ctx.entity == null) {
-          ctx.entity = getEmptyEntity(ctx);
-          listProp.addAll(FormBuilder().getFormWidget(ctx));
+        aCtx.factory = aCtx.widget!.ctx.factory;
+        aCtx.collection = aCtx.widget!.ctx.factory.collection;
+        aCtx.mode = ModeRendering.view;
+        if (aCtx.widget!.ctx.entityForFactory == null) {
+          var prop = getEmptyEntity(aCtx);
+          prop.custom["onMap"] = MapDesign(aCtx);
+          listProp.addAll(FormBuilder().getFormWidget(aCtx, prop));
         } else {
-          ctx.entity = ctx.widget!.ctx.entity!;
-          listProp.addAll(FormBuilder().getFormWidget(ctx));
+          listProp.addAll(FormBuilder()
+              .getFormWidget(aCtx, aCtx.widget!.ctx.entityForFactory!));
         }
-        // debugPrint(
-        //     '>>> $pathWidget as $w<xid=${w.ctx.xid}> create by $pathCreate design by $pathDesign with $prop ');
       }
       int i = pathWidget.lastIndexOf('.');
       if (i < 0) break;
@@ -70,20 +58,36 @@ class CoreDataSelector {
 
     // ignore: invalid_use_of_protected_member
     state?.setState(() {});
-
-    // debugPrint(
-    //     'Clicked gesture ${slot.ctx.pathWidget}  $buttonId ${slot.ctx.xid}');
   }
 }
 
-class DesignCtx {
-  String? pathWidget;
-  String? xid;
-  CWWidget? widget;
-  String? pathDesign;
-  String? pathCreate;
+class MapDesign {
+  DesignCtx aCtx;
+
+  MapDesign(this.aCtx);
+
+  void doMap(CoreDataEntity prop) {
+    print("set prop on ${aCtx.xid}");
+    CoreDesigner.loader.setProp(
+        aCtx.xid!, prop
+        );
+
+    print('object  ${CoreDesigner.loader.cwFactory}');
+  }
+}
+
+class LoaderCtx {
   late CoreDataCollection collection;
   WidgetFactoryEventHandler? factory;
-  late CoreDataEntity entity;
+  late CoreDataEntity entityCWFactory;
   late ModeRendering mode;
+}
+
+class DesignCtx extends LoaderCtx {
+  late String pathWidget;
+  String? xid;
+  CWWidget? widget;
+
+  String? pathDesign;
+  String? pathCreate;
 }

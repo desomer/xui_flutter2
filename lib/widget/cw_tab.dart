@@ -14,7 +14,7 @@ class CWTab extends CWWidget {
   State<CWTab> createState() => _CWTabState();
 
   int getNb() {
-    return ctx.entity?.getInt("tabCount", 2) ?? 2;
+    return ctx.entityForFactory?.getInt("tabCount", 2) ?? 2;
   }
 
   @override
