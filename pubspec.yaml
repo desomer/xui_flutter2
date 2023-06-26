@@ -42,6 +42,9 @@ dependencies:
   universal_html: ^2.2.2
   convert: ^3.1.1
   expandable: ^5.0.1
+  flutter_material_color_picker: ^1.2.0
+  localstorage: ^4.0.0+1
+  pluto_grid: ^7.0.2
 
 window_size:
     git:

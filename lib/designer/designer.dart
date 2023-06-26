@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
-import '../core/data/core_data.dart';
+import 'package:xui_flutter/designer/widget_component.dart';
 import '../core/widget/cw_factory.dart';
+import '../deprecated/core_array.dart';
 import '../test_loader.dart';
+import '../widget/cw_switch.dart';
+import '../widget/cw_container.dart';
 import '../widget/cw_dialog.dart';
-import '../deprecated/cw_expand_panel.dart';
 import '../widget/cw_image.dart';
 import '../core/widget/cw_core_selector.dart';
+import '../widget/cw_tab.dart';
+import '../widget/cw_text.dart';
+import '../widget/cw_textfield.dart';
 import 'widget_properties.dart';
-import 'widget_selector.dart';
+import 'selector_manager.dart';
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
@@ -18,18 +24,21 @@ class CoreDesigner extends StatefulWidget {
   static GlobalKey imageKey = GlobalKey();
   static GlobalKey propKey = GlobalKey();
 
-  final cwCollect = CWCollection();
-  late CoreDataEntity aFrame;
-  static late CWLoader loader;
+  late CWLoader loader;
+
+  static late CoreDesigner coreDesigner;
 
   final ScrollController scrollController = ScrollController(
     initialScrollOffset: 0.0,
     keepScrollOffset: true,
   );
 
+  late TabController controllerTabRight;
+
   Widget getRoot() {
+    coreDesigner = this;
     LoaderCtx ctx = LoaderCtx();
-    ctx.collection = cwCollect.collection;
+    ctx.collection = CWCollection().collection;
     ctx.mode = ModeRendering.design;
     loader = CWLoaderTest(ctx);
     return loader.getWidget();
@@ -43,12 +52,32 @@ class _CoreDesignerState extends State<CoreDesigner>
     with SingleTickerProviderStateMixin {
   final PageStorageBucket _bucket = PageStorageBucket();
 
-  late TabController _controller;
+  List<Widget> get getListComponent {
+    return [
+      CardComponents("Layout", [
+        CmpDesc('Label', Icons.format_quote, CWText),
+        CmpDesc('Column', Icons.table_rows_rounded, CWColumn),
+        CmpDesc('Row', Icons.view_week, CWRow),
+        CmpDesc('Tab', Icons.tab, CWTab)
+      ]), // "Column", "Row", "Tab"
+      // CardComponents("Filter", const [
+      //   "Form",
+      //   "Selector",
+      // ]),
+      // CardComponents(
+      //     "Data", const ["Form", "List", "Tree" "List/Form", "Tree/Form"]),
+      // CardComponents("Aggregat", const ["Sum", "Moy", "Count", "Chart"]),
+      CardComponents("Input", [
+        CmpDesc('Text', Icons.text_fields, CWTextfield),
+        CmpDesc('Switch', Icons.toggle_on, CWSwitch),
+      ]),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
-    _controller = TabController(
+    widget.controllerTabRight = TabController(
         vsync: this,
         length: 2,
         animationDuration: const Duration(milliseconds: 200));
@@ -57,19 +86,13 @@ class _CoreDesignerState extends State<CoreDesigner>
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
+    widget.controllerTabRight.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
-    nav.tab = [
-      getDesignerColumnDesign(),
-      Column(children: [
-        const DialogExample(key: PageStorageKey<String>('pageMain')),
-        CwImage(key: CoreDesigner.imageKey)
-      ])
-    ];
+    nav.tab = [getDesignPan(), getDataPan(), getTestPan()];
 
     return MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -82,10 +105,56 @@ class _CoreDesignerState extends State<CoreDesigner>
                 labelStyle: TextStyle(color: Colors.white70))),
         themeMode: ThemeMode.system,
         home: Scaffold(
-            appBar: AppBar(
-              title: const Text('ElisView'),
+          appBar: AppBar(
+            title: const Text('ElisView'),
+          ),
+          body: PageStorage(bucket: _bucket, child: nav),
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                const DrawerHeader(
+                  child: Text('Entete du Drawer'),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                ),
+                ListTile(
+                  title: const Text('Item 1'),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: const Text('Item 2'),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
-            body: PageStorage(bucket: _bucket, child: nav)));
+          ),
+        ));
+  }
+
+  Widget getDataPan() {
+    return Row();
+  }
+
+  Column getTestPan() {
+    return Column(children: [
+      const DialogExample(key: PageStorageKey<String>('pageMain')),
+      CwImage(key: CoreDesigner.imageKey),
+      PlutoGridExamplePage(),
+      MaterialColorPicker(
+          onColorChange: (Color color) {
+            print(color);
+          },
+          onMainColorChange: (ColorSwatch<dynamic>? color) {
+            print(color!.value);
+          },
+          selectedColor: Colors.red)
+    ]);
   }
 
   Widget getDesignerBody() {
@@ -120,7 +189,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         ));
   }
 
-  Widget getDesignerColumnDesign() {
+  Widget getDesignPan() {
     return Row(children: [
       Expanded(child: getDesignerBody()),
       SizedBox(
@@ -139,69 +208,72 @@ class _CoreDesignerState extends State<CoreDesigner>
   Widget getTabProperties() {
     final List<Widget> listTab = <Widget>[];
     listTab.add(const Tab(
-      height: 30,
+      // height: 30,
       icon: Icon(Icons.edit_note),
     ));
 
     listTab.add(const Tab(
       // height: 30,
-      icon: Icon(Icons.access_time),
+      icon: Icon(Icons.widgets),
     ));
 
     final List<Widget> listTabCont = <Widget>[];
+
     listTabCont.add(Container(
         key: const PageStorageKey<String>('pageProp'),
         child: DesignerProp(key: CoreDesigner.propKey)));
+
     listTabCont.add(SingleChildScrollView(
-        key: const PageStorageKey<String>('pageHisto'),
+        key: const PageStorageKey<String>('pageWidget'),
         controller: widget.scrollController,
         scrollDirection: Axis.vertical,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Card3(),
-          Card3(),
-          Card3(),
-          Card3(),
-          Card3(),
-          Card3(),
-          Card3(),
-          Card3(),
-          Card3(),
-          Card3()
-        ]))); // const Steps());
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: getListComponent))); // const Steps());
 
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       return Column(children: <Widget>[
-        SizedBox(
-          height: 40,
-          child: ColoredBox(
-              color: Colors.transparent,
-              child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                      color: Theme.of(context).highlightColor,
-                      child: TabBar(
-                        controller: _controller,
-                        indicator: const UnderlineTabIndicator(
-                            borderSide:
-                                BorderSide(width: 4, color: Colors.deepOrange),
-                            insets:
-                                EdgeInsets.only(left: 0, right: 0, bottom: 0)),
-                        isScrollable: true,
-                        //labelPadding: EdgeInsets.only(left: 0, right: 0),
-                        tabs: listTab,
-                      )))),
-        ),
+        getTabActionLayout(listTab),
         Container(
             padding: const EdgeInsets.all(0.0),
             decoration: BoxDecoration(
                 border:
                     Border.all(color: Theme.of(context).secondaryHeaderColor)),
             height: viewportConstraints.maxHeight - 40 - 2,
-            child: TabBarView(controller: _controller, children: listTabCont))
+            child: TabBarView(
+                controller: widget.controllerTabRight, children: listTabCont))
       ]);
     });
   }
+
+  Widget getTabActionLayout(List<Widget> listTab) {
+    return SizedBox(
+      height: 40,
+      child: ColoredBox(
+          color: Colors.transparent,
+          child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                  color: Theme.of(context).highlightColor,
+                  child: TabBar(
+                    controller: widget.controllerTabRight,
+                    indicator: const UnderlineTabIndicator(
+                        borderSide:
+                            BorderSide(width: 4, color: Colors.deepOrange),
+                        insets: EdgeInsets.only(left: 0, right: 0, bottom: 0)),
+                    isScrollable: true,
+                    //labelPadding: EdgeInsets.only(left: 0, right: 0),
+                    tabs: listTab,
+                  )))),
+    );
+  }
+}
+
+class Component {
+  Component(this.name, this.icon);
+  String name;
+  Icon icon;
 }
 
 //////////////////////////////////////////////////////////////////
@@ -256,6 +328,10 @@ class _NavRailState extends State<NavRail> {
               icon:
                   Tooltip(message: 'Data', child: Icon(Icons.storage_rounded)),
               label: Text('Store'),
+            ),
+            NavigationRailDestination(
+              icon: Tooltip(message: 'Test', child: Icon(Icons.bug_report)),
+              label: Text('Test'),
             ),
           ],
         ),

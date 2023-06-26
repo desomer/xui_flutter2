@@ -12,7 +12,7 @@ class CWFrameDesktop extends CWWidget {
 
   @override
   initSlot(String path) {
-    addSlotPath('$path.Body', '${ctx.xid}Body');
+    addSlotPath('$path.Body', SlotConfig('${ctx.xid}Body'));
   }
 }
 

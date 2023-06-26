@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../designer/widget_selector.dart';
+import '../../designer/selector_manager.dart';
 import '../data/core_data.dart';
 import 'cw_factory.dart';
 
@@ -41,7 +41,7 @@ abstract class CWLoader {
     setProp(xidChild, prop);
   }
 
-  addChild(String xid, String xidChild, String implement) {
+  String addChild(String xid, String xidChild, String implement) {
     cwFactory.addMany(
         collection,
         'designs',
@@ -55,6 +55,8 @@ abstract class CWLoader {
                   'xid': xidChild,
                   'implement': implement
                 })));
+
+    return "designs[${(cwFactory.value["designs"] as List).length-1}].child";
   }
 
   addWidget(String xid, String xidChild, Type type, Map<String, dynamic> v) {

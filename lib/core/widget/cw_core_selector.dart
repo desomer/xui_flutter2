@@ -4,7 +4,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:xui_flutter/designer/widget_selector.dart';
+import 'package:xui_flutter/designer/selector_manager.dart';
 
 import '../../widget/cw_image.dart';
 import '../../widget/cw_toolkit.dart';
@@ -36,7 +36,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
                 height: 20,
                 width: 20,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange,
                       padding: const EdgeInsets.all(0)),
                   child: const Icon(Icons.delete, size: 15),
                   onPressed: () {},
@@ -71,7 +71,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
     return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy + 30);
   }
 
-  final GlobalKey paintKey = GlobalKey();
+  final GlobalKey captureKey = GlobalKey();
   bool menuIsOpen = false;
 
   Widget getChild() {
@@ -84,13 +84,13 @@ class SelectorWidgetState extends State<SelectorWidget> {
     } else*/
     if (isHover && SelectorWidget.lastClickPath == widget.ctx.pathWidget) {
       return DottedBorder(
-          color: Colors.blue,
+          color: Colors.deepOrange,
           dashPattern: const <double>[2, 2],
           strokeWidth: 4,
           child: widget.child);
     } else if (SelectorWidget.lastClickPath == widget.ctx.pathWidget) {
       return DottedBorder(
-          color: Colors.blue,
+          color: Colors.deepOrange,
           dashPattern: const <double>[4, 4],
           strokeWidth: 4,
           child: widget.child);
@@ -102,15 +102,10 @@ class SelectorWidgetState extends State<SelectorWidget> {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-        // margin: EdgeInsets.only(
-        //     right: isHover ? 2 : 0.0,
-        //     left: isHover ? 2 : 0,
-        //     top: isHover ? 2 : 0.0,
-        //     bottom: isHover ? 2 : 0),
         duration: const Duration(milliseconds: 200),
         child: Draggable<String>(
           dragAnchorStrategy: dragAnchorStrategy,
-          data: 'ok',
+          data: 'drag compo',
           feedback: const SizedBox(
             height: 50.0,
             width: 50.0,
@@ -123,7 +118,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
                 key: widget.widgetKey,
                 behavior: HitTestBehavior.opaque,
                 onPointerDown: onPointerDown,
-                child: RepaintBoundary(key: paintKey, child: getChild()),
+                child: RepaintBoundary(key: captureKey, child: getChild()),
               )),
         ));
   }
@@ -136,10 +131,11 @@ class SelectorWidgetState extends State<SelectorWidget> {
     }
 
     if (isHover) {
+
       CoreDataSelector().doSelectWidget(widget, d.buttons);
 
       _capturePng();
-      doSelection();
+      displaySelection();
 
       if (d.buttons == 2) {
         doRightSelection(d);
@@ -160,7 +156,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
         position.dy + d.localPosition.dy + 10));
   }
 
-  void doSelection() {
+  void displaySelection() {
     if (SelectorWidget.lastClickPath != widget.ctx.pathWidget) {
       SelectorWidget.lastClickPath = widget.ctx.pathWidget;
 
@@ -300,7 +296,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
   _capturePng() async {
     RenderRepaintBoundary? boundary =
-        paintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+        captureKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
 
     /// convert boundary to image
     final image = await boundary!.toImage(pixelRatio: 0.5);

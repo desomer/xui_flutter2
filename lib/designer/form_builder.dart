@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
+import 'package:xui_flutter/widget/cw_switch.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../widget/cw_container.dart';
 import '../widget/cw_text.dart';
 import '../widget/cw_textfield.dart';
-import 'widget_selector.dart';
+import 'selector_manager.dart';
 
 class FormBuilder {
-  List<Widget> getFormWidget(DesignCtx ctxDesign, CoreDataEntity entity) {
+  List<Widget> getFormWidget(CWProvider provider, DesignCtx ctxDesign) {
     var listWidget = <Widget>[];
+    CoreDataEntity entity = provider.current;
 
     final CoreDataObjectBuilder builder =
         ctxDesign.collection.getClass(entity.type)!;
@@ -29,8 +31,7 @@ class FormBuilder {
       }
     }
 
-    loader.ctxLoader.factory!.mapProvider[ctxDesign.pathWidget] =
-        CWProvider(entity);
+    loader.ctxLoader.factory!.mapProvider[ctxDesign.pathWidget] = provider;
 
     listWidget.add(loader.getWidget());
     return listWidget;
@@ -46,21 +47,31 @@ class FormLoader extends CWLoader {
   CoreDataEntity entity;
 
   void addAttr(CoreDataAttribut attribut) {
-    addWidget('Col0Cont$nbAttr', 'attr$nbAttr', CWTextfield, <String, dynamic>{
-      'label': attribut.name,
-      'bind': attribut.name,
-      'providerName': (ctxLoader as DesignCtx).pathWidget
-    });
+    if (attribut.type == CDAttributType.CDbool) {
+      addWidget(
+          'Col0Cont$nbAttr', 'attr$nbAttr', CWSwitch, <String, dynamic>{
+        'label': attribut.name,
+        'bind': attribut.name,
+        'providerName': (ctxLoader as DesignCtx).pathWidget
+      });      
+    } else {
+      addWidget(
+          'Col0Cont$nbAttr', 'attr$nbAttr', CWTextfield, <String, dynamic>{
+        'label': attribut.name,
+        'bind': attribut.name,
+        'providerName': (ctxLoader as DesignCtx).pathWidget
+      });
+    }
     nbAttr++;
   }
 
   @override
   CoreDataEntity getCWFactory() {
-    addWidget(
-        'rootTitle0', 'title0', CWText, <String, dynamic>{'label': entity.type});
+    addWidget('rootTitle0', 'title0', CWText,
+        <String, dynamic>{'label': entity.type});
 
     addWidget(
-        'rootBody0', 'Col0', CWContainer, <String, dynamic>{'count': nbAttr});
+        'rootBody0', 'Col0', CWColumn, <String, dynamic>{'count': nbAttr, 'fillHeight':false});
 
     setProp(
         "root",

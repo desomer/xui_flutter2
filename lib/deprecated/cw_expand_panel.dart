@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
-
-import 'package:expandable/expandable.dart';
 
 class ExpandInfo {
   ExpandInfo(this.body, this.title, [this.isExpanded = false]);
@@ -132,76 +129,4 @@ class _StepListState extends State<StepList> {
   }
 }
 
-class Card3 extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    buildItem(String label) {
-      return Padding(
-        padding: const EdgeInsets.all(0.0),
-        child: Text(label),
-      );
-    }
 
-    buildList() {
-      return Column(
-        children: <Widget>[
-          for (var i in [1, 2, 3, 4,5,6,7,8,9]) buildItem("Item $i"),
-        ],
-      );
-    }
-
-    var header = Container(
-      color: Theme.of(context).primaryColor,
-      child: Row(
-        children: [
-          ExpandableIcon(
-            theme: const ExpandableThemeData(
-              animationDuration: Duration(milliseconds: 100),
-              expandIcon: Icons.arrow_right,
-              collapseIcon: Icons.arrow_drop_down,
-              iconColor: Colors.white,
-              iconSize: 28.0,
-              iconRotationAngle: math.pi / 2,
-              iconPadding: EdgeInsets.only(right: 5),
-              hasIcon: false,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              "Items",
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall!
-                  .copyWith(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    final ctrl = ExpandableController(initialExpanded: true);
-    //ctrl.value = false;
-
-    return ExpandableNotifier(
-      controller: ctrl,
-      child: ScrollOnExpand(
-        child: Column(
-          children: <Widget>[
-            ExpandablePanel(
-              theme: const ExpandableThemeData(
-                animationDuration: Duration(milliseconds: 100),
-                headerAlignment: ExpandablePanelHeaderAlignment.center,
-                tapBodyToExpand: true,
-                tapBodyToCollapse: true,
-                hasIcon: false,
-              ),
-              header: header,
-              collapsed: Container(),
-              expanded: buildList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

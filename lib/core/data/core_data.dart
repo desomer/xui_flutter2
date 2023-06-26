@@ -35,7 +35,7 @@ class CoreDataObjectBuilder {
   late String name;
   List<CoreDataAttribut> attributs = <CoreDataAttribut>[];
   Map<String, CoreDataAttribut> attributsByName = <String, CoreDataAttribut>{};
-  Map<String, CoreDataAction> actions = <String, CoreDataAction>{};
+  Map<String, CoreDataBrowseAction> actions = <String, CoreDataBrowseAction>{};
 
   CoreDataObjectBuilder addObjectAction(String name, Function action) {
     actions[name] = CoreDataActionGetter(action);
@@ -70,7 +70,7 @@ class CoreDataObjectBuilder {
     // for (final CoreDataAttribut attr in attributs) {
     //   ret.value[attr.name] = '';
     // }
-
+    ret.operation = CDAction.none;
     ret.value[r'$type'] = name;
 
     return ret;
@@ -189,6 +189,15 @@ class CoreDataEntity {
       return v as int;
     }
   }
+
+  bool getBool(String attr, bool def) {
+    final dynamic v = value[attr];
+    if (v == null) {
+      return def;
+    } else {
+      return v as bool;
+    }
+  }  
 
   CoreDataEntity prepareChange(CoreDataCollection collection) {
     if (original == null) {
@@ -453,10 +462,11 @@ class CoreDataAttribut {
 
   Map<int, List<CoreDataValidator>> validators =
       <int, List<CoreDataValidator>>{};
-  Map<String, List<CoreDataAction>> actions = <String, List<CoreDataAction>>{};
+  Map<String, List<CoreDataBrowseAction>> actions =
+      <String, List<CoreDataBrowseAction>>{};
 
-  CoreDataAttribut addAction(String actionId, CoreDataAction action) {
-    actions.putIfAbsent(actionId.toString(), () => <CoreDataAction>[]);
+  CoreDataAttribut addAction(String actionId, CoreDataBrowseAction action) {
+    actions.putIfAbsent(actionId.toString(), () => <CoreDataBrowseAction>[]);
     actions[actionId]!.add(action);
     return this;
   }
@@ -475,11 +485,11 @@ class CoreDataAttributItemIdx extends CoreDataAttribut {
 
 class CoreDataValidator {}
 
-abstract class CoreDataAction {
+abstract class CoreDataBrowseAction {
   dynamic execute(CoreDataCtx ctx) {}
 }
 
-class CoreDataActionGetter extends CoreDataAction {
+class CoreDataActionGetter extends CoreDataBrowseAction {
   CoreDataActionGetter(this.fct);
 
   Function fct;
@@ -522,11 +532,11 @@ class CoreDataCtx {
 }
 
 // ignore: constant_identifier_names
-enum CDAttributType { CDtext, CDint, CDdec, CDdate, CDone, CDmany, CDPathIdx }
+enum CDAttributType { CDtext, CDint, CDdec, CDdate, CDbool, CDone, CDmany }
 
 enum CDPriority { min, moy, norm, mid, max }
 
-enum CDAction { inherit, create, insert, update, delete }
+enum CDAction { inherit, none, create, read, update, delete }
 
 class CoreDataBrowseEvent {
   String action = 'browse';

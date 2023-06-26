@@ -21,8 +21,8 @@ class CWTab extends CWWidget {
   initSlot(String path) {
     final nb = getNb();
     for (int i = 0; i < nb; i++) {
-      addSlotPath('$path.Tab$i', '${ctx.xid}Tab$i');
-      addSlotPath('$path.Cont$i', '${ctx.xid}Cont$i');
+      addSlotPath('$path.Tab$i', SlotConfig('${ctx.xid}Tab$i'));
+      addSlotPath('$path.Cont$i', SlotConfig('${ctx.xid}Cont$i'));
     }
   }
 }
@@ -46,6 +46,7 @@ class _CWTabState extends State<CWTab> {
 
     for (int i = 0; i < widget.getNb(); i++) {
       listTab.add(
+         // icon: Icon(size:10,  Icons.access_alarm), 
           Tab(height: 20, child: CWSlot(ctx: widget.createChildCtx('Tab', i))));
     }
 

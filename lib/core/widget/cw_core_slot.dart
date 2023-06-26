@@ -1,5 +1,7 @@
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
+import '../../designer/widget_component.dart';
 import 'cw_core_selector.dart';
 import 'cw_core_widget.dart';
 
@@ -19,28 +21,51 @@ class CWSlot extends CWWidget {
 }
 
 class _CWSlotState extends State<CWSlot> {
+  Widget getDrop(Widget child) {
+    return DragTarget<CmpDesc>(
+        builder: (context, candidateItems, rejectedItems) {
+          return child;
+        },
+        onWillAccept: (value) => true,
+        onAccept: (item) {
+          print(
+              '${item.impl}=>${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
+
+          item.addNewWidgetOn(widget);
+
+          setState(() {});
+        });
+  }
+
+  Widget getSlotDesign() {
+    return getDrop(
+      DottedBorder(
+          color: Colors.deepOrange,
+          dashPattern: const <double>[6, 6],
+          strokeWidth: 1,
+        child: const Center(
+            child: Text(
+          'Slot',
+          style: TextStyle(color: Colors.deepOrange),
+        ))));
+  }
+
   @override
   Widget build(BuildContext context) {
     Key inkWellKey = ValueKey(widget.ctx.xid);
 
     final String childXid =
         widget.ctx.factory.mapChildXidByXid[widget.ctx.xid] ?? '';
-    Widget? w = widget.child ?? widget.ctx.factory.mapWidgetByXid[childXid];
-    // if (widget.child is CWWidget) {
-    //   w = widget.child;
-    // }
-    // if (w is CWWidget) {
-    //   w.ctx.pathWidget = widget.ctx.pathWidget;  // path passer par le parent
-    //   // change le path
-    //   //print(">> child >> ${w.ctx.pathWidget}");
-    // }
+
+    Widget? widgetToDisplay =
+        widget.child ?? widget.ctx.factory.mapWidgetByXid[childXid];
 
     return widget.ctx.modeRendering == ModeRendering.design
         ? SelectorWidget(
             key: inkWellKey,
             ctx: widget.ctx,
-            child: w ?? Center(child: Text('<${widget.ctx.xid}>')),
+            child: widgetToDisplay ?? getSlotDesign(),
           )
-        : w ?? Center(child: Text('<${widget.ctx.xid}>'));
+        : widgetToDisplay ?? getSlotDesign();
   }
 }

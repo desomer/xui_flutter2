@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'widget_selector.dart';
+import 'selector_manager.dart';
 
 // ignore: must_be_immutable
 class DesignerProp extends StatefulWidget {

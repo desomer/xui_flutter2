@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
 
@@ -35,16 +36,26 @@ class CWCollection {
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
+    addWidget((CWSwitch),
+            (CWWidgetCtx ctx) => CWSwitch(key: GlobalKey(), ctx: ctx))
+        .addAttr('label', CDAttributType.CDtext)
+        .addAttr('bind', CDAttributType.CDtext)
+        .addAttr('providerName', CDAttributType.CDtext);
+
     addWidget((CWExpandPanel),
             (CWWidgetCtx ctx) => CWExpandPanel(key: GlobalKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
 
-    addWidget((CWText), (CWWidgetCtx ctx) => CWText(ctx: ctx))
+    addWidget((CWText), (CWWidgetCtx ctx) => CWText(key: GlobalKey(), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('textColor', CDAttributType.CDtext);
 
-    addWidget((CWContainer),
-            (CWWidgetCtx ctx) => CWContainer(key: GlobalKey(), ctx: ctx))
+    addWidget((CWColumn),
+            (CWWidgetCtx ctx) => CWColumn(key: GlobalKey(), ctx: ctx))
+        .addAttr('count', CDAttributType.CDint)
+        .addAttr('fillHeight', CDAttributType.CDbool);
+
+    addWidget((CWRow), (CWWidgetCtx ctx) => CWRow(key: GlobalKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
   }
 
@@ -72,7 +83,6 @@ class CWCollection {
   }
 }
 
-
 class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   WidgetFactoryEventHandler(this.collection, this.modeRendering);
 
@@ -85,6 +95,19 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   Map<String, String> mapXidByPath = <String, String>{};
 
   Map<String, CWProvider> mapProvider = <String, CWProvider>{};
+
+  void doRepaintByXid(String? xid) {
+    CWWidget? widgetRepaint = mapWidgetByXid[xid];
+    // ignore: invalid_use_of_protected_member
+    (widgetRepaint?.key as GlobalKey).currentState?.setState(() {});
+  }
+
+  void doRepaintByPath(String? path) {
+    String? xid = mapXidByPath[path];
+    CWWidget? widgetRepaint = mapWidgetByXid[xid];
+    // ignore: invalid_use_of_protected_member
+    (widgetRepaint?.key as GlobalKey).currentState?.setState(() {});
+  }
 
   @override
   void process(CoreDataCtx ctx) {

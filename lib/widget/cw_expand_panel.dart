@@ -28,8 +28,8 @@ class CWExpandPanel extends CWWidget {
   initSlot(String path) {
     final nb = getNb();
     for (int i = 0; i < nb; i++) {
-      addSlotPath('$path.Title$i', '${ctx.xid}Title$i');
-      addSlotPath('$path.Body$i', '${ctx.xid}Body$i');
+      addSlotPath('$path.Title$i', SlotConfig('${ctx.xid}Title$i'));
+      addSlotPath('$path.Body$i', SlotConfig('${ctx.xid}Body$i'));
     }
   }
 }
@@ -78,8 +78,8 @@ class CWExpandPanelState extends State<CWExpandPanel> {
               theme: const ExpandableThemeData(
                 animationDuration: Duration(milliseconds: 100),
                 headerAlignment: ExpandablePanelHeaderAlignment.center,
-                tapBodyToExpand: true,
-                tapBodyToCollapse: true,
+                // tapBodyToExpand: true,
+                // tapBodyToCollapse: true,
                 hasIcon: false,
               ),
               header: getHeader(step),
