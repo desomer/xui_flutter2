@@ -25,7 +25,7 @@ abstract class CWLoader {
             <String, dynamic>{'xid': 'root', 'implement': implement}));
   }
 
-  setProp(String xid, CoreDataEntity prop) {
+  String setProp(String xid, CoreDataEntity prop) {
     cwFactory.addMany(
         collection,
         'designs',
@@ -33,7 +33,19 @@ abstract class CWLoader {
             .createEntity('CWDesign')
             .setAttr(collection, 'xid', xid)
             .setOne(collection, 'properties', prop));
+    return "designs[${(cwFactory.value["designs"] as List).length-1}].properties";               
   }
+
+  String setConstraint(String xid, CoreDataEntity prop) {
+    cwFactory.addMany(
+        collection,
+        'designs',
+        collection
+            .createEntity('CWDesign')
+            .setAttr(collection, 'xid', xid)
+            .setOne(collection, 'constraint', prop));
+    return "designs[${(cwFactory.value["designs"] as List).length-1}].constraint";            
+  }  
 
   addChildProp(
       String xid, String xidChild, String implement, CoreDataEntity prop) {

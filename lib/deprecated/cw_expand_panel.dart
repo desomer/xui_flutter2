@@ -67,23 +67,21 @@ class Steps extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Container(
-        child: FutureBuilder<List<Step>>(
-            future: getSteps(),
-            builder:
-                (BuildContext context, AsyncSnapshot<List<Step>> snapshot) {
-              if (snapshot.hasData) {
-                return StepList(steps: snapshot.data ?? []);
-              } else {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-            }),
-      ),
+      child: FutureBuilder<List<Step>>(
+          future: getSteps(),
+          builder:
+              (BuildContext context, AsyncSnapshot<List<Step>> snapshot) {
+            if (snapshot.hasData) {
+              return StepList(steps: snapshot.data ?? []);
+            } else {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+          }),
     );
   }
 }
@@ -92,6 +90,7 @@ class StepList extends StatefulWidget {
   final List<Step> steps;
   const StepList({Key? key, required this.steps}) : super(key: key);
   @override
+  // ignore: no_logic_in_create_state
   State<StepList> createState() => _StepListState(steps: steps);
 }
 

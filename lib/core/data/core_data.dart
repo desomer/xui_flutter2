@@ -197,7 +197,7 @@ class CoreDataEntity {
     } else {
       return v as bool;
     }
-  }  
+  }
 
   CoreDataEntity prepareChange(CoreDataCollection collection) {
     if (original == null) {
@@ -483,7 +483,12 @@ class CoreDataAttributItemIdx extends CoreDataAttribut {
   int idxInArray = 0;
 }
 
-class CoreDataValidator {}
+class CoreDataAttributTyped extends CoreDataAttribut {
+  CoreDataAttributTyped(super.name);
+  List<String> types = [];
+}
+
+class CoreDataValidator {} 
 
 abstract class CoreDataBrowseAction {
   dynamic execute(CoreDataCtx ctx) {}

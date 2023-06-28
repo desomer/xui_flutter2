@@ -28,7 +28,7 @@ class _CWSlotState extends State<CWSlot> {
         },
         onWillAccept: (value) => true,
         onAccept: (item) {
-          print(
+          debugPrint(
               '${item.impl}=>${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
 
           item.addNewWidgetOn(widget);

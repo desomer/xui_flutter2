@@ -7,14 +7,9 @@ import 'cw_factory.dart';
 enum ModeRendering { design, view }
 
 class SlotConfig {
-  SlotConfig(this.xid, {this.constraint});
+  SlotConfig(this.xid, {this.constraintEntity});
   String xid;
-  SlotConstraint? constraint;
-}
-
-class SlotConstraint {
-  SlotConstraint(this.entityForConstraint);
-  CoreDataEntity entityForConstraint;
+  String? constraintEntity;
 }
 
 // ignore: must_be_immutable
@@ -27,6 +22,7 @@ abstract class CWWidget extends StatefulWidget {
     final String childXid = ctx.factory.mapChildXidByXid[config.xid] ?? '';
     debugPrint('add slot >>>> $pathWid  ${config.xid} childXid=$childXid');
     Widget? w = ctx.factory.mapWidgetByXid[childXid];
+    ctx.factory.mapSlotConstraintByPath[pathWid] = config;
 
     if (w is CWWidget) {
       ctx.factory.mapXidByPath[pathWid] = childXid;

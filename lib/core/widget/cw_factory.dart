@@ -55,8 +55,29 @@ class CWCollection {
         .addAttr('count', CDAttributType.CDint)
         .addAttr('fillHeight', CDAttributType.CDbool);
 
+    collection
+        .addObject('CWColConstraint')
+        .addAttr('flex', CDAttributType.CDint)
+        .addAttr('tight/loose', CDAttributType.CDbool)
+        .addAttr('height (sizedBox)', CDAttributType.CDint)
+        .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
+        .addAttr('max (ConstrainedBox)', CDAttributType.CDint)
+        .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
+        .addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
+
+    collection
+        .addObject('CWRowConstraint')
+        .addAttr('flex', CDAttributType.CDint)
+        .addAttr('tight/loose', CDAttributType.CDbool)
+        .addAttr('width (sizedBox)', CDAttributType.CDint)
+        .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
+        .addAttr('max (ConstrainedBox)', CDAttributType.CDint)
+        .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
+        .addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
+
     addWidget((CWRow), (CWWidgetCtx ctx) => CWRow(key: GlobalKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint);
+        .addAttr('count', CDAttributType.CDint)
+        .addAttr('fillWidth', CDAttributType.CDbool);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -70,7 +91,8 @@ class CWCollection {
         .addObject('CWDesign')
         .addAttr('xid', CDAttributType.CDtext)
         .addAttr('child', CDAttributType.CDone, tname: 'CWChild')
-        .addAttr('properties', CDAttributType.CDone, tname: 'CWWidget');
+        .addAttr('properties', CDAttributType.CDone, tname: 'CWWidget')
+        .addAttr('constraint', CDAttributType.CDone, tname: 'CWWidget');
 
     collection
         .addObject('CWChild')
@@ -91,8 +113,12 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   CoreDataEntity? cwFactory;
 
   Map<String, CWWidget> mapWidgetByXid = <String, CWWidget>{};
+  Map<String, CWWidgetCtx> mapConstraintByXid = <String, CWWidgetCtx>{};
+  Map<String, SlotConfig> mapSlotConstraintByPath = <String, SlotConfig>{};
+
   Map<String, String> mapChildXidByXid = <String, String>{};
   Map<String, String> mapXidByPath = <String, String>{};
+  Map<String, String> mapPathDesignByXid = <String, String>{};
 
   Map<String, CWProvider> mapProvider = <String, CWProvider>{};
 
@@ -133,12 +159,26 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
       }
       if (ctx.event!.builder.name == 'CWDesign') {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
-        mapWidgetByXid[xid]?.ctx.pathDataDesign = ctx.getPathData();
+        String path = ctx.getPathData();
+        mapPathDesignByXid[xid] = path;
+        mapWidgetByXid[xid]?.ctx.pathDataDesign = path;
+
         final CoreDataEntity? prop =
             ctx.event!.entity.getOneEntity(collection, 'properties');
         if (prop != null) {
           mapWidgetByXid[xid]?.ctx.entityForFactory = prop;
         }
+
+        final CoreDataEntity? constraint =
+            ctx.event!.entity.getOneEntity(collection, 'constraint');
+        if (constraint != null) {
+          CWWidgetCtx ctxConstraint =
+              CWWidgetCtx(xid, this, "?", modeRendering);
+          ctxConstraint.entityForFactory = constraint;
+          ctxConstraint.pathDataDesign = ctx.getPathData();
+          mapConstraintByXid[xid] = ctxConstraint;
+        }
+
         final CoreDataEntity? child =
             ctx.event!.entity.getOneEntity(collection, 'child');
         if (child != null) {

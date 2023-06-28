@@ -123,7 +123,7 @@ class _PlutoGridExamplePageState extends State<PlutoGridExamplePage> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(
+      constraints: const BoxConstraints(
         maxHeight: 500.0,
         maxWidth: double.infinity,
         minHeight: 200.0,
@@ -138,7 +138,7 @@ class _PlutoGridExamplePageState extends State<PlutoGridExamplePage> {
           stateManager.setShowColumnFilter(true);
         },
         onChanged: (PlutoGridOnChangedEvent event) {
-          print(event);
+          debugPrint(event.toString());
         },
         configuration: const PlutoGridConfiguration(),
       ),

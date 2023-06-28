@@ -37,7 +37,7 @@ class _CWSwitchState extends State<CWSwitch> {
         onChanged: (bool value) {
           // This is called when the user toggles the switch.
           setState(() {
-            if (value != val) widget.setValue(val);
+            if (value != val) widget.setValue(value);
             val = value;
           });
         });

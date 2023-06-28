@@ -45,6 +45,7 @@ dependencies:
   flutter_material_color_picker: ^1.2.0
   localstorage: ^4.0.0+1
   pluto_grid: ^7.0.2
+  flutter_json_viewer: ^1.0.1
 
 window_size:
     git:

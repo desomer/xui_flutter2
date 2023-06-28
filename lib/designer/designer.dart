@@ -16,6 +16,8 @@ import '../widget/cw_text.dart';
 import '../widget/cw_textfield.dart';
 import 'widget_properties.dart';
 import 'selector_manager.dart';
+import 'package:flutter_json_viewer/flutter_json_viewer.dart';
+
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
@@ -28,10 +30,15 @@ class CoreDesigner extends StatefulWidget {
 
   static late CoreDesigner coreDesigner;
 
-  final ScrollController scrollController = ScrollController(
+  final ScrollController scrollComponentController = ScrollController(
     initialScrollOffset: 0.0,
     keepScrollOffset: true,
   );
+
+  final ScrollController scrollPropertiesController = ScrollController(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+  );  
 
   late TabController controllerTabRight;
 
@@ -92,7 +99,7 @@ class _CoreDesignerState extends State<CoreDesigner>
   @override
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
-    nav.tab = [getDesignPan(), getDataPan(), getTestPan()];
+    nav.tab = [getDesignPan(), getDataPan(), getDebugPan(), getTestPan()];
 
     return MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -114,10 +121,10 @@ class _CoreDesignerState extends State<CoreDesigner>
               padding: EdgeInsets.zero,
               children: [
                 const DrawerHeader(
-                  child: Text('Entete du Drawer'),
                   decoration: BoxDecoration(
                     color: Colors.blue,
                   ),
+                  child: Text('Entete du Drawer'),
                 ),
                 ListTile(
                   title: const Text('Item 1'),
@@ -138,20 +145,24 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDataPan() {
-    return Row();
+    return const Row();
+  }
+
+  Widget getDebugPan() {
+    return Container( color: Colors.white, child :JsonViewer(widget.loader.cwFactory.value));
   }
 
   Column getTestPan() {
     return Column(children: [
       const DialogExample(key: PageStorageKey<String>('pageMain')),
       CwImage(key: CoreDesigner.imageKey),
-      PlutoGridExamplePage(),
+      const PlutoGridExamplePage(),
       MaterialColorPicker(
           onColorChange: (Color color) {
-            print(color);
+            debugPrint(color.toString());
           },
           onMainColorChange: (ColorSwatch<dynamic>? color) {
-            print(color!.value);
+            debugPrint(color!.value.toString());
           },
           selectedColor: Colors.red)
     ]);
@@ -219,13 +230,15 @@ class _CoreDesignerState extends State<CoreDesigner>
 
     final List<Widget> listTabCont = <Widget>[];
 
-    listTabCont.add(Container(
+    listTabCont.add(SingleChildScrollView(
         key: const PageStorageKey<String>('pageProp'),
+        controller: widget.scrollPropertiesController,
+        scrollDirection: Axis.vertical,
         child: DesignerProp(key: CoreDesigner.propKey)));
 
     listTabCont.add(SingleChildScrollView(
         key: const PageStorageKey<String>('pageWidget'),
-        controller: widget.scrollController,
+        controller: widget.scrollComponentController,
         scrollDirection: Axis.vertical,
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,7 +343,11 @@ class _NavRailState extends State<NavRail> {
               label: Text('Store'),
             ),
             NavigationRailDestination(
-              icon: Tooltip(message: 'Test', child: Icon(Icons.bug_report)),
+              icon: Tooltip(message: 'Debug', child: Icon(Icons.bug_report)),
+              label: Text('Debug'),
+            ),
+            NavigationRailDestination(
+              icon: Tooltip(message: 'Test', child: Icon(Icons.quiz)),
               label: Text('Test'),
             ),
           ],

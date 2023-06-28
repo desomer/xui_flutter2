@@ -4,7 +4,9 @@ import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
 
 // ignore: must_be_immutable
-class CWColumn extends CWWidget {
+abstract class CWContainer extends CWWidget {
+  CWContainer({Key? key, required super.ctx}) : super(key: key);
+
   int getNbChild() {
     return ctx.entityForFactory?.getInt("count", 3) ?? 3;
   }
@@ -13,6 +15,23 @@ class CWColumn extends CWWidget {
     return ctx.entityForFactory?.getBool("fillHeight", true) ?? true;
   }
 
+  Widget getCell(int i) {
+    var slot = CWSlot(ctx: createChildCtx("Cont", i));
+    CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
+    print("getCell -------- ${slot.ctx.xid} $constraint");
+
+    int flex = constraint?.entityForFactory?.value["flex"] ?? 1;
+
+    if (isFillHeight()) {
+      return Flexible(flex: flex, fit: FlexFit.loose, child: slot);
+    } else {
+      return slot;
+    }
+  }
+}
+
+// ignore: must_be_immutable
+class CWColumn extends CWContainer {
   CWColumn({Key? key, required super.ctx}) : super(key: key);
 
   @override
@@ -22,27 +41,19 @@ class CWColumn extends CWWidget {
   initSlot(String path) {
     final nb = getNbChild();
     for (int i = 0; i < nb; i++) {
-      addSlotPath('$path.Cont$i', SlotConfig('${ctx.xid}Cont$i'));
+      addSlotPath('$path.Cont$i',
+          SlotConfig('${ctx.xid}Cont$i', constraintEntity: "CWColConstraint"));
     }
   }
 }
 
 class CWColumnState extends State<CWColumn> {
-  Widget getCell(int i) {
-    var slot = CWSlot(ctx: widget.createChildCtx("Cont", i));
-    if (widget.isFillHeight()) {
-      return Expanded(child: slot);
-    } else {
-      return slot;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final List<Widget> listSlot = [];
     final nb = widget.getNbChild();
     for (var i = 0; i < nb; i++) {
-      listSlot.add(getCell(i));
+      listSlot.add(widget.getCell(i));
     }
 
     return Column(children: listSlot);
@@ -50,11 +61,7 @@ class CWColumnState extends State<CWColumn> {
 }
 
 // ignore: must_be_immutable
-class CWRow extends CWWidget {
-  int getNbChild() {
-    return ctx.entityForFactory?.getInt("count", 3) ?? 3;
-  }
-
+class CWRow extends CWContainer {
   CWRow({Key? key, required super.ctx}) : super(key: key);
 
   @override
@@ -64,7 +71,8 @@ class CWRow extends CWWidget {
   initSlot(String path) {
     final nb = getNbChild();
     for (int i = 0; i < nb; i++) {
-      addSlotPath('$path.Cont$i', SlotConfig('${ctx.xid}Cont$i'));
+      addSlotPath('$path.Cont$i',
+          SlotConfig('${ctx.xid}Cont$i', constraintEntity: "CWRowConstraint"));
     }
   }
 }
@@ -75,8 +83,7 @@ class CWRowState extends State<CWRow> {
     final List<Widget> listSlot = [];
     final nb = widget.getNbChild();
     for (var i = 0; i < nb; i++) {
-      listSlot
-          .add(Expanded(child: CWSlot(ctx: widget.createChildCtx("Cont", i))));
+      listSlot.add(widget.getCell(i));
     }
 
     return Row(children: listSlot);
