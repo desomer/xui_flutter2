@@ -20,28 +20,228 @@ class SelectorActionWidget extends StatefulWidget {
   State<SelectorActionWidget> createState() => SelectorActionWidgetState();
 }
 
+class ZoneDesc {
+  bool visibility = false;
+  double? bottom;
+  double? left;
+  double? top;
+  double? right;
+  double? width;
+  double? height;
+  Function? initPos;
+  List<Widget> actions = [];
+}
+
 class SelectorActionWidgetState extends State<SelectorActionWidget> {
-  double top = 10;
+  double bottom = 10;
   double left = 10;
+  double top = 10;
+  double right = 10;
+
   bool _visible = false;
+
+  ZoneDesc bottomZone = ZoneDesc();
+  ZoneDesc topZone = ZoneDesc();
+  ZoneDesc rightZone = ZoneDesc();
+  ZoneDesc leftZone = ZoneDesc();
+
+  @override
+  void initState() {
+    super.initState();
+
+    bottomZone.initPos = () {
+      bottomZone.top = bottom - 10;
+      bottomZone.left = left;
+      bottomZone.width = right - left;
+      bottomZone.height = 40;
+
+      double topBtn = 10;
+      double leftBtn = (right - left) / 2;
+
+      bottomZone.actions = [
+        getAddAction(topBtn, leftBtn - 25, Icons.expand_more),
+        getAddAction(topBtn, leftBtn + 5, Icons.add),
+      ];
+    };
+
+    topZone.initPos = () {
+      topZone.top = top - 30;
+      topZone.left = left;
+      topZone.width = right - left;
+      topZone.height = 40;
+      double topBtn = 10;
+      double leftBtn = (right - left) / 2;
+      topZone.actions = [
+        getAddAction(topBtn, leftBtn - 25, Icons.expand_less),
+        getAddAction(topBtn, leftBtn + 5, Icons.add),
+      ];
+    };
+
+    rightZone.initPos = () {
+      rightZone.top = top;
+      rightZone.left = right - 10;
+      rightZone.width = 40;
+      rightZone.height = bottom - top;
+
+      if (rightZone.height! < 60) {
+        rightZone.height = 60;
+        rightZone.top = top - (60 - (bottom - top)) / 2;
+      }
+
+      double topBtn = rightZone.height! / 2;
+      double leftBtn = 10;
+
+      rightZone.actions = [
+        getAddAction(topBtn - 25, leftBtn, Icons.navigate_next),
+        getAddAction(topBtn + 5, leftBtn, Icons.add),
+      ];
+    };
+
+    leftZone.initPos = () {
+      leftZone.top = top;
+      leftZone.left = left - 30;
+      leftZone.width = 40;
+      leftZone.height = bottom - top;
+
+      if (leftZone.height! < 60) {
+        leftZone.height = 60;
+        leftZone.top = top - (60 - (bottom - top)) / 2;
+      }
+
+      double topBtn = leftZone.height! / 2;
+      double leftBtn = 10;
+
+      leftZone.actions = [
+        getAddAction(topBtn - 25, leftBtn, Icons.navigate_before),
+        getAddAction(topBtn + 5, leftBtn, Icons.add),
+      ];
+    };
+  }
+
+  Positioned getZone(ZoneDesc z) {
+    z.initPos!();
+
+    return Positioned(
+        top: z.top,
+        left: z.left,
+        bottom: z.bottom,
+        right: z.right,
+        child: Container(
+            width: z.width,
+            height: z.height,
+            //color: Colors.blueAccent.withOpacity(0.3),
+            child: Stack(
+              children: [
+                Visibility(
+                  visible: z.visibility,
+                  maintainAnimation: true,
+                  maintainState: true,
+                  child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.fastOutSlowIn,
+                      opacity: z.visibility ? 1 : 0,
+                      child: Stack(
+                        children: z.actions,
+                      )),
+                ),
+                MouseRegion(
+                    opaque: false,
+                    onEnter: (event) {
+                      setState(() {
+                        z.visibility = true;
+                      });
+                    },
+                    onExit: (event) {
+                      setState(() {
+                        z.visibility = false;
+                      });
+                    }),
+              ],
+            )));
+  }
 
   @override
   Widget build(Object context) {
+    List<Widget> childrenAction = [];
+    childrenAction.add(getDeleteAction());
+    childrenAction.add(getZone(topZone));
+    childrenAction.add(getZone(bottomZone));
+    childrenAction.add(getZone(rightZone));
+    childrenAction.add(getZone(leftZone));
+
     return Visibility(
-        visible: _visible,
-        child: Positioned(
-            top: top,
-            left: left,
-            child: SizedBox(
-                height: 20,
-                width: 20,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange,
-                      padding: const EdgeInsets.all(0)),
-                  child: const Icon(Icons.delete, size: 15),
-                  onPressed: () {},
-                ))));
+        visible: _visible, child: Stack(children: childrenAction));
   }
+
+  Positioned getDeleteAction() {
+    return Positioned(
+        top: bottom,
+        left: left,
+        child: SizedBox(
+            height: 20,
+            width: 20,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  padding: const EdgeInsets.all(0)),
+              child: const Icon(Icons.delete, size: 15),
+              onPressed: () {},
+            )));
+  }
+
+  Positioned getAddAction(double top, double left, IconData ic) {
+    return Positioned(
+        top: top,
+        left: left,
+        child: SizedBox(
+            height: 20,
+            width: 20,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepOrange,
+                  padding: const EdgeInsets.all(0)),
+              child: Icon(ic, size: 15),
+              onPressed: () {
+                print("ddddd");
+              },
+            )));
+  }
+
+  // Positioned getAddRightAction(int delta, IconData ic) {
+  //   return Positioned(
+  //       top: delta + (bottom - top) / 2,
+  //       left: 10,
+  //       child: SizedBox(
+  //           height: 20,
+  //           width: 20,
+  //           child: ElevatedButton(
+  //             style: ElevatedButton.styleFrom(
+  //                 backgroundColor: Colors.deepOrange,
+  //                 padding: const EdgeInsets.all(0)),
+  //             child: Icon(ic, size: 15),
+  //             onPressed: () {
+  //               print("ddddd");
+  //             },
+  //           )));
+  // }
+
+  // Positioned getAddBottomAction(int delta, IconData ic) {
+  //   return Positioned(
+  //       top: 10,
+  //       left: delta + (right - left) / 2,
+  //       child: SizedBox(
+  //           height: 20,
+  //           width: 20,
+  //           child: ElevatedButton(
+  //             style: ElevatedButton.styleFrom(
+  //                 backgroundColor: Colors.deepOrange,
+  //                 padding: const EdgeInsets.all(0)),
+  //             child: Icon(ic, size: 15),
+  //             onPressed: () {
+  //               print("ddddd");
+  //             },
+  //           )));
+  // }
 }
 
 // ignore: must_be_immutable
@@ -131,7 +331,6 @@ class SelectorWidgetState extends State<SelectorWidget> {
     }
 
     if (isHover) {
-
       CoreDataSelector().doSelectWidget(widget, d.buttons);
 
       _capturePng();
@@ -237,6 +436,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
     // ignore: cast_nullable_to_non_nullable
     final SelectorActionWidgetState st = SelectorActionWidget
         .actionPanKey.currentState as SelectorActionWidgetState;
+
     st.setState(() {
       final Offset position = CwToolkit.getPosition(
           widget.widgetKey, SelectorActionWidget.designerKey);
@@ -246,7 +446,9 @@ class SelectorWidgetState extends State<SelectorWidget> {
           widget.widgetKey.currentContext!.findRenderObject() as RenderBox;
 
       st.left = position.dx;
-      st.top = position.dy + box.size.height;
+      st.bottom = position.dy + box.size.height;
+      st.top = position.dy;
+      st.right = position.dx + box.size.width;
       st._visible = true;
     });
   }

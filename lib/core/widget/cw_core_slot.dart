@@ -40,13 +40,13 @@ class _CWSlotState extends State<CWSlot> {
   Widget getSlotDesign() {
     return getDrop(
       DottedBorder(
-          color: Colors.deepOrange,
+          color: Colors.grey,
           dashPattern: const <double>[6, 6],
           strokeWidth: 1,
         child: const Center(
             child: Text(
           'Slot',
-          style: TextStyle(color: Colors.deepOrange),
+          style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
         ))));
   }
 

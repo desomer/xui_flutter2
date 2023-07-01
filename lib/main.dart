@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
@@ -10,7 +12,32 @@ import 'core/data/core_data.dart';
 import 'deprecated/_core_widget.dart';
 import 'designer/designer.dart';
 
-void main() {
+class MyErrorsHandler {
+  initialize() {}
+
+  onErrorDetails(FlutterErrorDetails details) {
+    //FlutterError.presentError(details);
+    print('onErrorDetails ${details.summary}');
+  }
+
+  onError(Object error, StackTrace stack) {
+    print('onError $error $stack');
+  }
+}
+
+void main() async {
+  var myErrorsHandler = MyErrorsHandler();
+
+  await myErrorsHandler.initialize();
+
+  // FlutterError.onError = (details) {
+  //   myErrorsHandler.onErrorDetails(details);
+  // };
+  // PlatformDispatcher.instance.onError = (error, stack) {
+  //   myErrorsHandler.onError(error, stack);
+  //   return true;
+  // };
+
   runApp(CoreDesigner());
 
   html.document.onContextMenu

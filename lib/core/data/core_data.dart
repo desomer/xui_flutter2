@@ -64,12 +64,24 @@ class CoreDataObjectBuilder {
     return this;
   }
 
+  CoreDataObjectBuilder withAction(AttrAction action) {
+    _lastAttr?.addAction(action.id, CoreDataActionGetter(action.fct));
+    return this;
+  }
+  
+
   CoreDataEntity createEntity() {
     final CoreDataEntity ret = CoreDataEntity(name);
 
-    // for (final CoreDataAttribut attr in attributs) {
-    //   ret.value[attr.name] = '';
-    // }
+    for (final CoreDataAttribut attr in attributs) {
+      if (attr.actions["default"] != null) {
+        for (var element in attr.actions["default"]!) {
+          CoreDataCtx ctx = CoreDataCtx();
+          ctx.payload = CoreAttrCtx(ret, attr);
+          element.execute(ctx);
+        }
+      }
+    }
     ret.operation = CDAction.none;
     ret.value[r'$type'] = name;
 
@@ -80,6 +92,20 @@ class CoreDataObjectBuilder {
     final CoreDataEntity ret = CoreDataEntity(name);
     return ret;
   }
+}
+
+class AttrAction {
+  AttrAction(this.id, this.fct);
+  String id;
+  Function(CoreAttrCtx) fct;
+}
+
+class AttrActionDefault extends AttrAction {
+  dynamic val;
+  AttrActionDefault(this.val)
+      : super('default', (CoreAttrCtx event) {
+          event.entity.value[event.attr.name] = val;
+        });
 }
 
 ///----------------------------------------------------
@@ -488,7 +514,7 @@ class CoreDataAttributTyped extends CoreDataAttribut {
   List<String> types = [];
 }
 
-class CoreDataValidator {} 
+class CoreDataValidator {}
 
 abstract class CoreDataBrowseAction {
   dynamic execute(CoreDataCtx ctx) {}
@@ -503,6 +529,13 @@ class CoreDataActionGetter extends CoreDataBrowseAction {
   dynamic execute(CoreDataCtx ctx) {
     return fct(ctx.payload);
   }
+}
+
+class CoreAttrCtx {
+  CoreAttrCtx(this.entity, this.attr);
+
+  CoreDataEntity entity;
+  CoreDataAttribut attr;
 }
 
 class CoreDataCtx {

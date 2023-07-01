@@ -28,6 +28,7 @@ class CWCollection {
 
     addWidget((CWTab), (CWWidgetCtx ctx) => CWTab(key: GlobalKey(), ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
+        .withAction(AttrActionDefault(2))
         .addAttr('heightTabBar', CDAttributType.CDint);
 
     addWidget((CWTextfield),
@@ -53,7 +54,9 @@ class CWCollection {
     addWidget((CWColumn),
             (CWWidgetCtx ctx) => CWColumn(key: GlobalKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
-        .addAttr('fillHeight', CDAttributType.CDbool);
+        .withAction(AttrActionDefault(3))
+        .addAttr('fill', CDAttributType.CDbool)
+        .withAction(AttrActionDefault(true));
 
     collection
         .addObject('CWColConstraint')
@@ -77,7 +80,9 @@ class CWCollection {
 
     addWidget((CWRow), (CWWidgetCtx ctx) => CWRow(key: GlobalKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
-        .addAttr('fillWidth', CDAttributType.CDbool);
+        .withAction(AttrActionDefault(3))
+        .addAttr('fill', CDAttributType.CDbool)
+        .withAction(AttrActionDefault(true));
   }
 
   /////////////////////////////////////////////////////////////////////////

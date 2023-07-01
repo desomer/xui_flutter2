@@ -71,7 +71,7 @@ class FormLoader extends CWLoader {
         <String, dynamic>{'label': entity.type});
 
     addWidget(
-        'rootBody0', 'Col0', CWColumn, <String, dynamic>{'count': nbAttr, 'fillHeight':false});
+        'rootBody0', 'Col0', CWColumn, <String, dynamic>{'count': nbAttr, 'fill':false});
 
     setProp(
         "root",

@@ -11,9 +11,10 @@ abstract class CWContainer extends CWWidget {
     return ctx.entityForFactory?.getInt("count", 3) ?? 3;
   }
 
-  bool isFillHeight() {
-    return ctx.entityForFactory?.getBool("fillHeight", true) ?? true;
+  bool isFill() {
+    return ctx.entityForFactory?.getBool("fill", true) ?? true;
   }
+
 
   Widget getCell(int i) {
     var slot = CWSlot(ctx: createChildCtx("Cont", i));
@@ -22,7 +23,7 @@ abstract class CWContainer extends CWWidget {
 
     int flex = constraint?.entityForFactory?.value["flex"] ?? 1;
 
-    if (isFillHeight()) {
+    if (isFill()) {
       return Flexible(flex: flex, fit: FlexFit.loose, child: slot);
     } else {
       return slot;

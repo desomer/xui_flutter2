@@ -3,6 +3,7 @@ import 'package:flutter_material_color_picker/flutter_material_color_picker.dart
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
+import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 import '../core/widget/cw_factory.dart';
 import '../deprecated/core_array.dart';
 import '../test_loader.dart';
@@ -17,7 +18,6 @@ import '../widget/cw_textfield.dart';
 import 'widget_properties.dart';
 import 'selector_manager.dart';
 import 'package:flutter_json_viewer/flutter_json_viewer.dart';
-
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
@@ -38,7 +38,7 @@ class CoreDesigner extends StatefulWidget {
   final ScrollController scrollPropertiesController = ScrollController(
     initialScrollOffset: 0.0,
     keepScrollOffset: true,
-  );  
+  );
 
   late TabController controllerTabRight;
 
@@ -53,6 +53,10 @@ class CoreDesigner extends StatefulWidget {
 
   @override
   State<CoreDesigner> createState() => _CoreDesignerState();
+}
+
+class RouteTest extends Route {
+  RouteTest({super.settings});
 }
 
 class _CoreDesignerState extends State<CoreDesigner>
@@ -101,6 +105,11 @@ class _CoreDesignerState extends State<CoreDesigner>
     final NavRail nav = NavRail();
     nav.tab = [getDesignPan(), getDataPan(), getDebugPan(), getTestPan()];
 
+    List<Route> currentRouteStack = [];
+    currentRouteStack
+        .add(RouteTest(settings: const RouteSettings(name: "Root")));
+    currentRouteStack.add(RouteTest(settings: const RouteSettings(name: "B")));
+
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
@@ -113,7 +122,10 @@ class _CoreDesignerState extends State<CoreDesigner>
         themeMode: ThemeMode.system,
         home: Scaffold(
           appBar: AppBar(
-            title: const Text('ElisView'),
+            title: Container(
+                // color: Colors.blue.withOpacity(0.3),
+                child: // Text('ElisView'),
+                    BreadCrumbNavigator(currentRouteStack)),
           ),
           body: PageStorage(bucket: _bucket, child: nav),
           drawer: Drawer(
@@ -149,7 +161,8 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDebugPan() {
-    return Container( color: Colors.white, child :JsonViewer(widget.loader.cwFactory.value));
+    return Container(
+        color: Colors.white, child: JsonViewer(widget.loader.cwFactory.value));
   }
 
   Column getTestPan() {

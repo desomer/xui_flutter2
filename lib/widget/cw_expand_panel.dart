@@ -40,18 +40,24 @@ class CWExpandPanelState extends State<CWExpandPanel> {
       color: Theme.of(context).secondaryHeaderColor,
       child: Row(
         children: [
-          ExpandableIcon(
-            theme: const ExpandableThemeData(
-              animationDuration: Duration(milliseconds: 100),
-              expandIcon: Icons.arrow_right,
-              collapseIcon: Icons.arrow_drop_down,
-              iconColor: Colors.white,
-              iconSize: 28.0,
-              iconRotationAngle: math.pi / 2,
-              iconPadding: EdgeInsets.only(right: 5),
-              //hasIcon: true,
-            ),
-          ),
+          GestureDetector(
+              onTap: () {
+                setState(() {
+                  ctrl.toggle();
+                });
+              },
+              child: ExpandableIcon(
+                theme: const ExpandableThemeData(
+                  animationDuration: Duration(milliseconds: 100),
+                  expandIcon: Icons.arrow_right,
+                  collapseIcon: Icons.arrow_drop_down,
+                  iconColor: Colors.white,
+                  iconSize: 28.0,
+                  iconRotationAngle: math.pi / 2,
+                  iconPadding: EdgeInsets.only(right: 5),
+                  //hasIcon: true,
+                ),
+              )),
           Expanded(child: step.title),
         ],
       ),
@@ -78,8 +84,9 @@ class CWExpandPanelState extends State<CWExpandPanel> {
               theme: const ExpandableThemeData(
                 animationDuration: Duration(milliseconds: 100),
                 headerAlignment: ExpandablePanelHeaderAlignment.center,
-                // tapBodyToExpand: true,
-                // tapBodyToCollapse: true,
+                tapHeaderToExpand: false,
+                tapBodyToExpand: false,
+                tapBodyToCollapse: false,
                 hasIcon: false,
               ),
               header: getHeader(step),
