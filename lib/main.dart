@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
@@ -17,11 +15,11 @@ class MyErrorsHandler {
 
   onErrorDetails(FlutterErrorDetails details) {
     //FlutterError.presentError(details);
-    print('onErrorDetails ${details.summary}');
+    debugPrint('onErrorDetails ${details.summary}');
   }
 
   onError(Object error, StackTrace stack) {
-    print('onError $error $stack');
+    debugPrint('onError $error $stack');
   }
 }
 

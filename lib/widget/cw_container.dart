@@ -8,11 +8,11 @@ abstract class CWContainer extends CWWidget {
   const CWContainer({Key? key, required super.ctx}) : super(key: key);
 
   int getNbChild() {
-    return ctx.entityForFactory?.getInt("count", 3) ?? 3;
+    return ctx.designEntity?.getInt("count", 3) ?? 3;
   }
 
   bool isFill() {
-    return ctx.entityForFactory?.getBool("fill", true) ?? true;
+    return ctx.designEntity?.getBool("fill", true) ?? true;
   }
 
   Widget getCell(int i) {
@@ -22,7 +22,7 @@ abstract class CWContainer extends CWWidget {
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
     //print("getCell -------- ${slot.ctx.xid} $constraint");
 
-    int flex = constraint?.entityForFactory?.value["flex"] ?? 1;
+    int flex = constraint?.designEntity?.value["flex"] ?? 1;
 
     if (isFill()) {
       return Flexible(flex: flex, fit: FlexFit.loose, child: slot);
@@ -69,7 +69,7 @@ class CWColumnState extends StateCW<CWColumn> {
             }
           }
           h = hm - h;
-          print("h=$h");
+          //debugPrint("h=$h");
           if (h != lasth) {
             setState(() {});
           }
@@ -92,7 +92,7 @@ class CWColumnState extends StateCW<CWColumn> {
       }
     }
 
-    return Stack(children: listStack);
+    return Stack(key:GlobalKey(debugLabel: "CWColumnState"), children: listStack);
   }
 
   double h = 0;

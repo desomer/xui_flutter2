@@ -68,7 +68,6 @@ class CoreDataObjectBuilder {
     _lastAttr?.addAction(action.id, CoreDataActionGetter(action.fct));
     return this;
   }
-  
 
   CoreDataEntity createEntity() {
     final CoreDataEntity ret = CoreDataEntity(name);
@@ -436,7 +435,11 @@ class CoreDataEntity {
   CoreDataPath getPath(CoreDataCollection collection, String pathId) {
     final List<String> lattr = pathId.split('.');
     final List<CoreDataEntity> ret = <CoreDataEntity>[];
+    final List<CoreDataAttribut> attrs = <CoreDataAttribut>[];
     CoreDataEntity cur = this;
+
+    CoreDataObjectBuilder builderOne = collection.getClass(cur.type)!;
+
     ret.add(cur);
     for (String attr in lattr) {
       int idx = 0;
@@ -446,12 +449,19 @@ class CoreDataEntity {
         attr = attr.substring(0, i);
       }
 
+      CoreDataAttribut attribut = builderOne.attributsByName[attr]!;
       dynamic v = cur.value[attr];
       if (v is List) {
         v = v[idx];
+        CoreDataAttributItemIdx attIdx = CoreDataAttributItemIdx("$attr[$idx]");
+        attIdx.initWith(attribut);
+        attIdx.idxInArray = idx;
+        attribut = attIdx;
       }
 
-      final CoreDataObjectBuilder builderOne =
+      attrs.add(attribut);
+
+      builderOne =
           collection.getClass(getType(null, v as Map<String, dynamic>))!;
 
       final CoreDataEntity child = builderOne.createEntity();
@@ -462,6 +472,7 @@ class CoreDataEntity {
 
     final CoreDataPath r = CoreDataPath(ret);
     r.pathId = pathId;
+    r.attributs = attrs;
     return r;
   }
 
@@ -476,11 +487,30 @@ class CoreDataEntity {
 class CoreDataPath {
   CoreDataPath(this.entities);
   List<CoreDataEntity> entities;
+  late List<CoreDataAttribut> attributs;
   late String pathId;
+
+  CoreDataEntity getLast() {
+    return entities.last;
+  }
+
+  CoreDataEntity remove() {
+    CoreDataEntity entity = entities[entities.length - 2];
+    CoreDataAttribut attr = attributs[attributs.length - 1];
+    entity.value.remove(attr.name);
+    return getLast();
+  }
 }
 
 class CoreDataAttribut {
   CoreDataAttribut(this.name);
+
+  void initWith(CoreDataAttribut src) {
+    type = src.type;
+    typeName = src.typeName;
+    validators = src.validators;
+    actions = src.actions;
+  }
 
   late String name;
   CDAttributType type = CDAttributType.CDtext;

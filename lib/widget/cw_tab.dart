@@ -13,7 +13,7 @@ class CWTab extends CWWidget {
   State<CWTab> createState() => _CWTabState();
 
   int getNb() {
-    return ctx.entityForFactory?.getInt("tabCount", 2) ?? 2;
+    return ctx.designEntity?.getInt("tabCount", 2) ?? 2;
   }
 
   @override
@@ -45,8 +45,11 @@ class _CWTabState extends StateCW<CWTab> {
 
     for (int i = 0; i < widget.getNb(); i++) {
       listTab.add(
-         // icon: Icon(size:10,  Icons.access_alarm), 
-          Tab(height: 20, child: CWSlot(key:GlobalKey(),ctx: widget.createChildCtx('Tab', i))));
+          // icon: Icon(size:10,  Icons.access_alarm),
+          Tab(
+              height: 20,
+              child: CWSlot(
+                  key: GlobalKey(debugLabel: 'tab btn slot ${widget.ctx.xid}'), ctx: widget.createChildCtx('Tab', i))));
     }
 
     return SizedBox(
@@ -63,7 +66,8 @@ class _CWTabState extends StateCW<CWTab> {
     final List<Widget> listTab = <Widget>[];
     final nb = widget.getNb();
     for (int i = 0; i < nb; i++) {
-      final CWSlot slot = CWSlot(key:GlobalKey(), ctx: widget.createChildCtx('Cont', i));
+      final CWSlot slot =
+          CWSlot(key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'), ctx: widget.createChildCtx('Cont', i));
       listTab.add(slot);
     }
 

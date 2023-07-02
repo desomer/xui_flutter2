@@ -1,15 +1,13 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/designer/action_manager.dart';
 import 'dart:math' as math;
 
-import '../core/data/core_data.dart';
 import '../widget/cw_container.dart';
 import '../widget/cw_switch.dart';
 import '../widget/cw_tab.dart';
 import '../widget/cw_text.dart';
 import '../widget/cw_textfield.dart';
-import 'designer.dart';
 
 class ComponentDesc {
   static List<Widget> get getListComponent {
@@ -42,40 +40,7 @@ class ComponentDesc {
   IconData icon;
   late String impl;
 
-  void addNewWidgetOn(CWWidget widget) {
-    String pathCreate = CoreDesigner.of()
-        .loader
-        .addChild(widget.ctx.xid, "${widget.ctx.xid}child", impl);
 
-    final CWWidgetCtx ctxW = CWWidgetCtx(widget.ctx.xid, widget.ctx.factory,
-        '${widget.ctx.pathWidget}.${widget.ctx.xid}', ModeRendering.design);
-
-    String newXid = '${widget.ctx.xid}child';
-
-    CoreDataCtx ctx = CoreDataCtx();
-    ctx.payload = ctxW;
-    final CoreDataObjectBuilder wid =
-        widget.ctx.factory.collection.getClass(impl)!;
-    final CWWidget newWidget =
-        wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
-    widget.ctx.factory.mapWidgetByXid[newXid] = newWidget;
-
-    newWidget.ctx.pathDataCreate = pathCreate;
-
-    widget.ctx.factory.mapChildXidByXid[widget.ctx.xid] = newXid;
-
-    final rootWidget = widget.ctx.factory.mapWidgetByXid['root']!;
-    rootWidget.initSlot('root');
-
-    // repaint le parent
-    CWWidget? w = CoreDesigner.of()
-        .getWidgetByPath(CWWidgetCtx.getParentPathFrom(widget.ctx.pathWidget));
-    w?.repaint();
-
-    Future.delayed(const Duration(milliseconds: 100), () {
-      CoreDesigner.emit(CDDesignEvent.reselect, null);
-    });
-  }
 }
 
 // ignore: must_be_immutable
@@ -94,12 +59,12 @@ class CardComponents extends StatelessWidget {
     buildComp(ComponentDesc cmp) {
       return Padding(
           padding: const EdgeInsets.all(5.0),
-          child: Draggable<ComponentDesc>(
+          child: Draggable<DragCtx>(
             onDragStarted: () {
-              GlobalSnackBar.show(context, 'Drag started');
+              // GlobalSnackBar.show(context, 'Drag started');
             },
             dragAnchorStrategy: dragAnchorStrategy,
-            data: cmp,
+            data: DragCtx(cmp, null),
             feedback: Container(
               color: Theme.of(context).primaryColor,
               height: 30.0,

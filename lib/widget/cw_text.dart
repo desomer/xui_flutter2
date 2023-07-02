@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../core/widget/cw_core_widget.dart';
 
-
 class CWText extends CWWidget {
   const CWText({
     super.key,
@@ -13,7 +12,7 @@ class CWText extends CWWidget {
   State<CWText> createState() => _CWTextState();
 
   String getLabel() {
-    return ctx.entityForFactory?.getString('label') ?? '[empty]';
+    return ctx.designEntity?.getString('label') ?? '[empty]';
   }
 
   @override

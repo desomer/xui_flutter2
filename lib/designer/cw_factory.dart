@@ -3,14 +3,14 @@ import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
 
-import '../../widget/cw_container.dart';
-import '../../widget/cw_expand_panel.dart';
-import '../data/core_data.dart';
-import '../data/core_event.dart';
-import '../../widget/cw_frame_desktop.dart';
-import '../../widget/cw_tab.dart';
-import '../data/core_provider.dart';
-import 'cw_core_widget.dart';
+import '../widget/cw_container.dart';
+import '../widget/cw_expand_panel.dart';
+import '../core/data/core_data.dart';
+import '../core/data/core_event.dart';
+import '../widget/cw_frame_desktop.dart';
+import '../widget/cw_tab.dart';
+import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_widget.dart';
 
 class CWCollection {
   CWCollection() {
@@ -22,37 +22,53 @@ class CWCollection {
 
   /////////////////////////////////////////////////////////////////////////
   void _initWidget() {
-    addWidget((CWFrameDesktop),
-            (CWWidgetCtx ctx) => CWFrameDesktop(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWFrameDesktop),
+            (CWWidgetCtx ctx) =>
+                CWFrameDesktop(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('title', CDAttributType.CDtext);
 
-    addWidget((CWTab), (CWWidgetCtx ctx) => CWTab(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWTab),
+            (CWWidgetCtx ctx) =>
+                CWTab(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
         .withAction(AttrActionDefault(2))
         .addAttr('heightTabBar', CDAttributType.CDint);
 
-    addWidget((CWTextfield),
-            (CWWidgetCtx ctx) => CWTextfield(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWTextfield),
+            (CWWidgetCtx ctx) =>
+                CWTextfield(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
-    addWidget((CWSwitch),
-            (CWWidgetCtx ctx) => CWSwitch(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWSwitch),
+            (CWWidgetCtx ctx) =>
+                CWSwitch(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
-    addWidget((CWExpandPanel),
-            (CWWidgetCtx ctx) => CWExpandPanel(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWExpandPanel),
+            (CWWidgetCtx ctx) =>
+                CWExpandPanel(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
 
-    addWidget((CWText), (CWWidgetCtx ctx) => CWText(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWText),
+            (CWWidgetCtx ctx) =>
+                CWText(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('textColor', CDAttributType.CDtext);
 
-    addWidget((CWColumn),
-            (CWWidgetCtx ctx) => CWColumn(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWColumn),
+            (CWWidgetCtx ctx) =>
+                CWColumn(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
@@ -78,7 +94,10 @@ class CWCollection {
         .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
         .addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
 
-    addWidget((CWRow), (CWWidgetCtx ctx) => CWRow(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget(
+            (CWRow),
+            (CWWidgetCtx ctx) =>
+                CWRow(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
@@ -132,18 +151,18 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
     rootWidget.initSlot('root');
   }
 
-  void doRepaintByXid(String? xid) {
-    CWWidget? widgetRepaint = mapWidgetByXid[xid];
-    // ignore: invalid_use_of_protected_member
-    (widgetRepaint?.key as GlobalKey).currentState?.setState(() {});
-  }
+  // void doRepaintByXid(String? xid) {
+  //   CWWidget? widgetRepaint = mapWidgetByXid[xid];
+  //   // ignore: invalid_use_of_protected_member
+  //   (widgetRepaint?.key as GlobalKey).currentState?.setState(() {});
+  // }
 
-  void doRepaintByPath(String? path) {
-    String? xid = mapXidByPath[path];
-    CWWidget? widgetRepaint = mapWidgetByXid[xid];
-    // ignore: invalid_use_of_protected_member
-    (widgetRepaint?.key as GlobalKey).currentState?.setState(() {});
-  }
+  // void doRepaintByPath(String? path) {
+  //   String? xid = mapXidByPath[path];
+  //   CWWidget? widgetRepaint = mapWidgetByXid[xid];
+  //   // ignore: invalid_use_of_protected_member
+  //   (widgetRepaint?.key as GlobalKey).currentState?.setState(() {});
+  // }
 
   @override
   void process(CoreDataCtx ctx) {
@@ -176,7 +195,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         final CoreDataEntity? prop =
             ctx.event!.entity.getOneEntity(collection, 'properties');
         if (prop != null) {
-          mapWidgetByXid[xid]?.ctx.entityForFactory = prop;
+          mapWidgetByXid[xid]?.ctx.designEntity = prop;
         }
 
         final CoreDataEntity? constraint =
@@ -184,7 +203,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         if (constraint != null) {
           CWWidgetCtx ctxConstraint =
               CWWidgetCtx(xid, this, "?", modeRendering);
-          ctxConstraint.entityForFactory = constraint;
+          ctxConstraint.designEntity = constraint;
           ctxConstraint.pathDataDesign = ctx.getPathData();
           mapConstraintByXid[xid] = ctxConstraint;
         }

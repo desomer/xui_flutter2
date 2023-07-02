@@ -7,7 +7,7 @@ import '../core/data/core_provider.dart';
 import '../widget/cw_container.dart';
 import '../widget/cw_text.dart';
 import '../widget/cw_textfield.dart';
-import 'selector_manager.dart';
+import 'prop_builder.dart';
 
 class FormBuilder {
   List<Widget> getFormWidget(CWProvider provider, DesignCtx ctxDesign) {

@@ -8,19 +8,19 @@ import 'package:xui_flutter/designer/widget_component.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
 import '../core/widget/cw_core_selector_action.dart';
-import '../core/widget/cw_factory.dart';
+import 'cw_factory.dart';
 import '../deprecated/core_array.dart';
 import '../test_loader.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
-import 'selector_manager.dart';
+import 'prop_builder.dart';
 import 'widget_properties.dart';
 
 enum CDDesignEvent { select, reselect }
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
-  CoreDesigner({super.key}) {}
+  CoreDesigner({super.key});
 
   static on(CDDesignEvent event, Function(dynamic) fct) {
     of()._eventListener.on(event.toString(), fct);
@@ -37,11 +37,11 @@ class CoreDesigner extends StatefulWidget {
   static late CoreDesigner _coreDesigner;
 
   late CWLoader loader;
-  GlobalKey imageKey = GlobalKey();
-  GlobalKey propKey = GlobalKey();
-  GlobalKey designerKey = GlobalKey();
+  GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
+  GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
+  GlobalKey designerKey = GlobalKey(debugLabel: "CoreDesigner.designerKey");
 
-  var _eventListener = EventListener();
+  final _eventListener = EventListener();
 
   final ScrollController scrollComponentController = ScrollController(
     initialScrollOffset: 0.0,
@@ -97,7 +97,9 @@ class _CoreDesignerState extends State<CoreDesigner>
         animationDuration: const Duration(milliseconds: 200));
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      CoreDesignerSelector.of().doSelectWidgetById('root', 1);
+      //CoreDesignerSelector.of().doSelectWidgetById('root', 1);
+      CWWidget wid = CoreDesigner.of().factory.mapWidgetByXid['root']!;
+      CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
     });
   }
 
@@ -130,10 +132,13 @@ class _CoreDesignerState extends State<CoreDesigner>
         themeMode: ThemeMode.system,
         home: Scaffold(
           appBar: AppBar(
-            title: Container(
+            title: Row(
                 // color: Colors.blue.withOpacity(0.3),
-                child: // Text('ElisView'),
-                    BreadCrumbNavigator(currentRouteStack)),
+                children: [
+                  BreadCrumbNavigator(currentRouteStack),
+                  const Spacer(),
+                  const Text('ElisView v0.1')
+                ]),
           ),
           body: PageStorage(bucket: _bucket, child: nav),
           floatingActionButtonLocation:

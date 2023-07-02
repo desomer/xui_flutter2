@@ -18,7 +18,7 @@ class BreadCrumbNavigator extends StatelessWidget {
                 index,
                 GestureDetector(
                     onTap: () {
-                      print("object $index");
+                      debugPrint("object $index");
                       // Navigator.popUntil(context,
                       //     (route) => route == currentRouteStack[index]);
                     },

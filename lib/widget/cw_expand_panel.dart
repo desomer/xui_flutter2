@@ -13,11 +13,11 @@ class ExpandInfo {
   Widget title;
 }
 
-
 class CWExpandPanel extends CWWidget {
   int getNb() {
-    return ctx.entityForFactory?.getInt("count", 1) ?? 1;
+    return ctx.designEntity?.getInt("count", 1) ?? 1;
   }
+
   const CWExpandPanel({Key? key, required super.ctx}) : super(key: key);
 
   @override
@@ -70,8 +70,9 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
     List<ExpandInfo> listInfo = [];
     final nb = widget.getNb();
     for (var i = 0; i < nb; i++) {
-      listInfo.add(ExpandInfo(CWSlot(key:GlobalKey(), ctx: widget.createChildCtx("Title", i)),
-          CWSlot(key:GlobalKey(), ctx: widget.createChildCtx("Body", i))));
+      listInfo.add(ExpandInfo(
+          CWSlot(key: GlobalKey(), ctx: widget.createChildCtx("Title", i)),
+          CWSlot(key: GlobalKey(), ctx: widget.createChildCtx("Body", i))));
     }
 
     return ExpandableNotifier(

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 
 import '../../designer/designer.dart';
+import '../../designer/selector_manager.dart';
 import '../data/core_data.dart';
 import '../data/core_provider.dart';
-import 'cw_factory.dart';
+import '../../designer/cw_factory.dart';
 
 enum ModeRendering { design, view }
 
@@ -73,7 +74,7 @@ abstract class CWWidgetInput extends CWWidget {
   }
 
   String getLabel() {
-    return ctx.entityForFactory?.getString('label') ?? '[empty]';
+    return ctx.designEntity?.getString('label') ?? '[empty]';
   }
 }
 
@@ -83,7 +84,7 @@ class CWWidgetCtx {
   String xid;
   String pathWidget;
   WidgetFactoryEventHandler factory;
-  CoreDataEntity? entityForFactory;
+  CoreDataEntity? designEntity;
   String? pathDataDesign;
   String? pathDataCreate;
   CWSlot? slot;
@@ -113,6 +114,26 @@ class CWWidgetCtx {
     String? xid = factory.mapXidByPath[getParentPath()];
     CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
     return widget;
+  }
+
+  CWWidgetCtx refreshContext() {
+    CWWidget? wid = factory.mapWidgetByXid[xid];
+    if (wid == null) {
+      SlotConfig? slotConfig = factory.mapSlotConstraintByPath[pathWidget];
+      slot = slotConfig?.slot;
+    } else {
+      slot = wid.ctx.slot;
+    }
+    return this;
+  }
+
+  bool isSelected() {
+    return CoreDesignerSelector.of().isSelectedWidget(this);
+  }
+
+  CWWidget? getWidgetInSlot() {
+    final String childXid = factory.mapChildXidByXid[xid] ?? '';
+    return factory.mapWidgetByXid[childXid];
   }
 }
 

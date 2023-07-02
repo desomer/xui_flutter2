@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../designer/selector_manager.dart';
+import '../../designer/prop_builder.dart';
 import '../data/core_data.dart';
-import 'cw_factory.dart';
+import '../../designer/cw_factory.dart';
 
 abstract class CWLoader {
   CWLoader(LoaderCtx ctx) {
@@ -84,7 +84,7 @@ abstract class CWLoader {
     ctxLoader.factory!.cwFactory = aCWFactory;
     aCWFactory.browse(collection, ctx);
 
-    
+
     final rootWidget = ctxLoader.factory!.mapWidgetByXid['root']!;
     ctxLoader.factory!.mapXidByPath['root'] = 'root';
     rootWidget.initSlot('root');

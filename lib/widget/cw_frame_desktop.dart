@@ -21,20 +21,23 @@ class CWFrameDesktop extends CWWidget {
 class _CWFrameDesktop extends StateCW<CWFrameDesktop> {
   @override
   Widget build(BuildContext context) {
-    return CWSlot(key: widget.keySlot,
+    return CWSlot(
+        key: widget.keySlot,
         ctx: widget.ctx,
-        child: MaterialApp(
+        childForced: MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'Mouse Region',
             home: Scaffold(
               appBar: AppBar(
                 title: Text(
-                    widget.ctx.entityForFactory!.getString('title', def: '?')!),
+                    widget.ctx.designEntity!.getString('title', def: '?')!),
               ),
               body: Column(children: [
                 Expanded(
-                    child: CWSlot(key:GlobalKey(debugLabel: "slot body"), ctx: widget.createChildCtx('Body', null)))
+                    child: CWSlot(
+                        key: GlobalKey(debugLabel: "slot body"),
+                        ctx: widget.createChildCtx('Body', null)))
               ]),
-             )));
+            )));
   }
 }

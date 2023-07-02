@@ -8,6 +8,7 @@ class SelectorActionWidget extends StatefulWidget {
   SelectorActionWidget({super.key}) {
     CoreDesigner.on(CDDesignEvent.select, (arg) {
       CWWidgetCtx ctx = arg as CWWidgetCtx;
+      ctx.refreshContext();
       showActionWidget(ctx.slot!.key as GlobalKey);
     });
 
@@ -18,9 +19,9 @@ class SelectorActionWidget extends StatefulWidget {
     });
   }
 
-  static final GlobalKey actionPanKey = GlobalKey();
-  static final GlobalKey designerKey = GlobalKey();
-  static final GlobalKey rootKey = GlobalKey();
+  static final GlobalKey actionPanKey = GlobalKey(debugLabel: "actionPanKey");
+  static final GlobalKey designerKey = GlobalKey(debugLabel: "designerKey");
+  static final GlobalKey rootKey = GlobalKey(debugLabel: "rootKey");
   @override
   State<SelectorActionWidget> createState() => SelectorActionWidgetState();
 
@@ -210,13 +211,13 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
     childrenAction.add(getZone(rightZone));
     childrenAction.add(getZone(leftZone));
     childrenAction.add(AnimatedPositioned(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 200),
         top: top,
         left: left,
         child: MouseRegion(
             opaque: false,
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 200),
               width: right - left,
               height: bottom - top,
               decoration:
@@ -238,7 +239,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
                   padding: const EdgeInsets.all(0)),
               child: Icon(ic, size: 15),
               onPressed: () {
-                print("ddddd");
+                debugPrint("ddddd");
               },
             )));
   }

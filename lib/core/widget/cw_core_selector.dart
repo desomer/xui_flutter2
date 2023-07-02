@@ -5,8 +5,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:xui_flutter/designer/designer.dart';
-import 'package:xui_flutter/designer/selector_manager.dart';
 
+import '../../designer/action_manager.dart';
 import '../../widget/cw_image.dart';
 import '../../widget/cw_toolkit.dart';
 import 'cw_core_selector_action.dart';
@@ -38,8 +38,9 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
   double hm = 0;
   double wm = 0;
 
-  Widget getBorderOver(Widget child, Color color, double stroke) {
+  Widget _getBorderOver(Widget child, Color color, double stroke) {
     return Stack(
+      //  key: GlobalKey(debugLabel: "_getBorderOver ${widget.ctx.xid}"),
       children: [
         child,
         MouseRegion(
@@ -71,22 +72,24 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
     });
 
     if (widget.isHover) {
-      return getBorderOver(widget.child, Colors.grey, 2);
-    } else if (CoreDesignerSelector.of().lastSelectedPath ==
-        widget.ctx.pathWidget) {
-      return getBorderOver(widget.child, Colors.deepOrange, 4);
+      return _getBorderOver(widget.child, Colors.grey, 2);
+    } else if (widget.ctx.isSelected()) {
+      return _getBorderOver(widget.child, Colors.deepOrange, 4);
     } else {
       return widget.child;
     }
   }
 
-  GlobalKey? captureKey = GlobalKey(debugLabel: "captureKey");
+  GlobalKey? captureKey;
 
   @override
   Widget build(BuildContext context) {
-    return Draggable<String>(
+    // ne creer pas de key sinon perte de focus
+    captureKey ??= GlobalKey(debugLabel: "captureKey ${widget.ctx.xid}");
+
+    return Draggable<DragCtx>(
       dragAnchorStrategy: dragAnchorStrategy,
-      data: 'drag compo',
+      data: DragCtx(null, widget.ctx),
       feedback: const SizedBox(
         height: 50.0,
         width: 50.0,
@@ -96,7 +99,6 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
           onHover: onHover,
           onExit: onExit,
           child: Listener(
-            // key: widget.widgetKey,
             behavior: HitTestBehavior.opaque,
             onPointerDown: onPointerDown,
             child: RepaintBoundary(
@@ -111,12 +113,9 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
     widget.ctx.lastEvent = d;
 
     if (widget.isHover) {
-      //CoreDesigner.of().eventListener.emit("select", widget.ctx);
+      bool isSelectionChange = !widget.ctx.isSelected();
 
-      bool isChange =
-          CoreDesignerSelector.of().lastSelectedPath != widget.ctx.pathWidget;
-
-      if (isChange) {
+      if (isSelectionChange) {
         CoreDesigner.emit(CDDesignEvent.select, widget.ctx);
 
         setState(() {
