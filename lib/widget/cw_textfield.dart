@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/widget/cw_core_widget.dart';
 
-// ignore: must_be_immutable
+
 class CWTextfield extends CWWidgetInput {
-  CWTextfield({
+  const CWTextfield({
     super.key,
     required super.ctx,
   });
@@ -16,7 +16,7 @@ class CWTextfield extends CWWidgetInput {
   initSlot(String path) {}
 }
 
-class _CWTextfieldState extends State<CWTextfield> {
+class _CWTextfieldState extends StateCW<CWTextfield> {
   final TextEditingController _controller = TextEditingController();
   String? last;
 

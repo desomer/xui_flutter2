@@ -1,34 +1,47 @@
+import 'package:event_listener/event_listener.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_json_viewer/flutter_json_viewer.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
+
+import '../core/widget/cw_core_selector_action.dart';
 import '../core/widget/cw_factory.dart';
 import '../deprecated/core_array.dart';
 import '../test_loader.dart';
-import '../widget/cw_switch.dart';
-import '../widget/cw_container.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
-import '../core/widget/cw_core_selector.dart';
-import '../widget/cw_tab.dart';
-import '../widget/cw_text.dart';
-import '../widget/cw_textfield.dart';
-import 'widget_properties.dart';
 import 'selector_manager.dart';
-import 'package:flutter_json_viewer/flutter_json_viewer.dart';
+import 'widget_properties.dart';
+
+enum CDDesignEvent { select, reselect }
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
-  CoreDesigner({super.key});
+  CoreDesigner({super.key}) {}
 
-  static GlobalKey imageKey = GlobalKey();
-  static GlobalKey propKey = GlobalKey();
+  static on(CDDesignEvent event, Function(dynamic) fct) {
+    of()._eventListener.on(event.toString(), fct);
+  }
+
+  static emit(CDDesignEvent event, dynamic payload) {
+    of()._eventListener.emit(event.toString(), payload);
+  }
+
+  static CoreDesigner of() {
+    return _coreDesigner;
+  }
+
+  static late CoreDesigner _coreDesigner;
 
   late CWLoader loader;
+  GlobalKey imageKey = GlobalKey();
+  GlobalKey propKey = GlobalKey();
+  GlobalKey designerKey = GlobalKey();
 
-  static late CoreDesigner coreDesigner;
+  var _eventListener = EventListener();
 
   final ScrollController scrollComponentController = ScrollController(
     initialScrollOffset: 0.0,
@@ -40,15 +53,27 @@ class CoreDesigner extends StatefulWidget {
     keepScrollOffset: true,
   );
 
+  WidgetFactoryEventHandler get factory {
+    return loader.ctxLoader.factory!;
+  }
+
+  CWWidget? getWidgetByPath(String path) {
+    return factory.mapWidgetByXid[factory.mapXidByPath[path] ?? ""];
+  }
+
   late TabController controllerTabRight;
+  Widget? rootWidget;
 
   Widget getRoot() {
-    coreDesigner = this;
+    if (rootWidget != null) return rootWidget!;
+
+    _coreDesigner = this;
     LoaderCtx ctx = LoaderCtx();
     ctx.collection = CWCollection().collection;
     ctx.mode = ModeRendering.design;
     loader = CWLoaderTest(ctx);
-    return loader.getWidget();
+    rootWidget = loader.getWidget();
+    return rootWidget!;
   }
 
   @override
@@ -63,28 +88,6 @@ class _CoreDesignerState extends State<CoreDesigner>
     with SingleTickerProviderStateMixin {
   final PageStorageBucket _bucket = PageStorageBucket();
 
-  List<Widget> get getListComponent {
-    return [
-      CardComponents("Layout", [
-        CmpDesc('Label', Icons.format_quote, CWText),
-        CmpDesc('Column', Icons.table_rows_rounded, CWColumn),
-        CmpDesc('Row', Icons.view_week, CWRow),
-        CmpDesc('Tab', Icons.tab, CWTab)
-      ]), // "Column", "Row", "Tab"
-      // CardComponents("Filter", const [
-      //   "Form",
-      //   "Selector",
-      // ]),
-      // CardComponents(
-      //     "Data", const ["Form", "List", "Tree" "List/Form", "Tree/Form"]),
-      // CardComponents("Aggregat", const ["Sum", "Moy", "Count", "Chart"]),
-      CardComponents("Input", [
-        CmpDesc('Text', Icons.text_fields, CWTextfield),
-        CmpDesc('Switch', Icons.toggle_on, CWSwitch),
-      ]),
-    ];
-  }
-
   @override
   void initState() {
     super.initState();
@@ -92,6 +95,10 @@ class _CoreDesignerState extends State<CoreDesigner>
         vsync: this,
         length: 2,
         animationDuration: const Duration(milliseconds: 200));
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      CoreDesignerSelector.of().doSelectWidgetById('root', 1);
+    });
   }
 
   @override
@@ -111,6 +118,7 @@ class _CoreDesignerState extends State<CoreDesigner>
     currentRouteStack.add(RouteTest(settings: const RouteSettings(name: "B")));
 
     return MaterialApp(
+        key: CoreDesigner.of().designerKey,
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
         theme: ThemeData(),
@@ -128,6 +136,46 @@ class _CoreDesignerState extends State<CoreDesigner>
                     BreadCrumbNavigator(currentRouteStack)),
           ),
           body: PageStorage(bucket: _bucket, child: nav),
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.miniCenterDocked,
+          floatingActionButton: FloatingActionButton(
+            elevation: 4,
+            backgroundColor: Colors.deepOrange.shade400,
+            mini: true,
+            child: const Icon(Icons.add, color: Colors.white),
+            onPressed: () {
+              widget.controllerTabRight.index = 1;
+            },
+          ),
+          bottomNavigationBar: BottomAppBar(
+              shape: const CircularNotchedRectangle(),
+              notchMargin: 4.0,
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Row(children: [
+                    IconButton(
+                      icon: const Icon(Icons.undo),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.redo),
+                      onPressed: () {},
+                    ),
+                    Tooltip(
+                        message: 'Clear all',
+                        child: IconButton(
+                          icon: const Icon(Icons.clear_all),
+                          onPressed: () {},
+                        )),
+                  ]),
+                  IconButton(
+                    icon: const Icon(Icons.help),
+                    onPressed: () {},
+                  ),
+                ],
+              )),
           drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -168,7 +216,7 @@ class _CoreDesignerState extends State<CoreDesigner>
   Column getTestPan() {
     return Column(children: [
       const DialogExample(key: PageStorageKey<String>('pageMain')),
-      CwImage(key: CoreDesigner.imageKey),
+      CwImage(key: CoreDesigner.of().imageKey),
       const PlutoGridExamplePage(),
       MaterialColorPicker(
           onColorChange: (Color color) {
@@ -195,23 +243,23 @@ class _CoreDesignerState extends State<CoreDesigner>
     ]);
   }
 
-  Widget getDesignerText() {
-    return Container(
-        transform: Matrix4.translationValues(0, -10, 0),
-        height: 45,
-        decoration: const BoxDecoration(
-            border:
-                Border(bottom: BorderSide(width: 1.0, color: Colors.black))),
-        child: const TextField(
-          style: TextStyle(color: Colors.red, fontSize: 15),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            labelText: 'b',
-            //     contentPadding: EdgeInsets.symmetric(horizontal: 0)
-          ),
-          autofocus: false,
-        ));
-  }
+  // Widget getDesignerText2() {
+  //   return Container(
+  //       transform: Matrix4.translationValues(0, -10, 0),
+  //       height: 45,
+  //       decoration: const BoxDecoration(
+  //           border:
+  //               Border(bottom: BorderSide(width: 1.0, color: Colors.black))),
+  //       child: const TextField(
+  //         style: TextStyle(color: Colors.red, fontSize: 15),
+  //         decoration: InputDecoration(
+  //           border: InputBorder.none,
+  //           labelText: 'b',
+  //           //     contentPadding: EdgeInsets.symmetric(horizontal: 0)
+  //         ),
+  //         autofocus: false,
+  //       ));
+  // }
 
   Widget getDesignPan() {
     return Row(children: [
@@ -247,7 +295,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         key: const PageStorageKey<String>('pageProp'),
         controller: widget.scrollPropertiesController,
         scrollDirection: Axis.vertical,
-        child: DesignerProp(key: CoreDesigner.propKey)));
+        child: DesignerProp(key: CoreDesigner.of().propKey)));
 
     listTabCont.add(SingleChildScrollView(
         key: const PageStorageKey<String>('pageWidget'),
@@ -255,7 +303,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         scrollDirection: Axis.vertical,
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: getListComponent))); // const Steps());
+            children: ComponentDesc.getListComponent))); // const Steps());
 
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
@@ -296,11 +344,11 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 }
 
-class Component {
-  Component(this.name, this.icon);
-  String name;
-  Icon icon;
-}
+// class Component {
+//   Component(this.name, this.icon);
+//   String name;
+//   Icon icon;
+// }
 
 //////////////////////////////////////////////////////////////////
 // ignore: must_be_immutable

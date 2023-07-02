@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/widget/cw_core_widget.dart';
 
-// ignore: must_be_immutable
+
 class CWSwitch extends CWWidgetInput {
-  CWSwitch({
+  const CWSwitch({
     super.key,
     required super.ctx,
   });
@@ -16,7 +16,7 @@ class CWSwitch extends CWWidgetInput {
   initSlot(String path) {}
 }
 
-class _CWSwitchState extends State<CWSwitch> {
+class _CWSwitchState extends StateCW<CWSwitch> {
   bool val = true;
 
   @override

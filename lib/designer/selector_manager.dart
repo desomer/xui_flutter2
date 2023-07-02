@@ -7,40 +7,82 @@ import '../core/widget/cw_factory.dart';
 import 'designer.dart';
 import 'widget_properties.dart';
 import 'form_builder.dart';
-import '../core/widget/cw_core_selector.dart';
 
-class CoreDataSelector {
-  static String lastSelection = '';
-  static List<Widget> listProp = [];
+class CoreDesignerSelector {
+  CoreDesignerSelector() {
+    CoreDesigner.on(CDDesignEvent.select, (arg) {
+      CWWidgetCtx ctx = arg as CWWidgetCtx;
+      showWidgetProperties(ctx, 1);
+      unselect();
+      select(ctx.pathWidget);
+    });
 
-  CoreDataEntity getEmptyEntity(DesignCtx ctx) {
-    ctx.factory = ctx.widget!.ctx.factory;
-    CoreDataPath? path = ctx.factory?.cwFactory!
-        .getPath(ctx.factory!.collection, ctx.pathCreate!);
-    String impl = path!.entities.last.value['implement'];
-    CoreDataEntity emptyEntity = ctx.factory!.collection.createEntity(impl);
-    return emptyEntity;
+    CoreDesigner.on(CDDesignEvent.reselect, (arg) {
+      if (arg == null) {
+        SlotConfig? config =
+            CoreDesigner.of().factory.mapSlotConstraintByPath[lastSelectedPath];
+
+        if (config != null && config.slot != null) {
+          CoreDesigner.emit(
+              CDDesignEvent.reselect, config.slot!.key as GlobalKey);
+        }
+      }
+    });
   }
 
-  doSelectWidget(SelectorWidget slot, int buttonId) {
-    String pathWidget = slot.ctx.pathWidget;
+  static final CoreDesignerSelector _current = CoreDesignerSelector();
+  static CoreDesignerSelector of() {
+    return _current;
+  }
 
-    CoreDataSelector.listProp.clear();
+  String lastSelection = '';
+  List<Widget> listProp = [];
+  String lastSelectedPath = '';
+
+  void select(String path) {
+    lastSelectedPath = path;
+  }
+
+  void unselect() {
+    String old = lastSelectedPath;
+    lastSelectedPath = "";
+
+    SlotConfig? config = CoreDesigner.of().factory.mapSlotConstraintByPath[old];
+    if (config != null) {
+      debugPrint("deselection ${config.xid}");
+      // Future.delayed(const Duration(milliseconds: 1000), () {
+      config.slot?.repaint();
+      // });
+    }
+  }
+
+  doSelectWidgetById(String xid, int buttonId) {
+    unselect();
+    CWWidget wid = CoreDesigner.of().factory.mapWidgetByXid[xid]!;
+    lastSelectedPath = wid.ctx.pathWidget;
+    wid.repaint();
+    showWidgetProperties(wid.ctx, buttonId);
+  }
+
+  showWidgetProperties(CWWidgetCtx ctx, int buttonId) {
+    String pathWidget = ctx.pathWidget;
+
+    listProp.clear();
 
     while (pathWidget.isNotEmpty) {
       DesignCtx aCtx = DesignCtx();
       aCtx.pathWidget = pathWidget;
-      aCtx.xid = slot.ctx.factory.mapXidByPath[pathWidget];
-      aCtx.widget = slot.ctx.factory.mapWidgetByXid[aCtx.xid];
+      aCtx.xid = ctx.factory.mapXidByPath[pathWidget];
+      aCtx.widget = ctx.factory.mapWidgetByXid[aCtx.xid];
       aCtx.pathDesign = aCtx.widget?.ctx.pathDataDesign;
       aCtx.pathCreate = aCtx.widget?.ctx.pathDataCreate;
 
       if (aCtx.widget == null) {
         debugPrint('>>> $pathWidget as empty slot');
-        CoreDesigner.coreDesigner.controllerTabRight.index = 0;
+        CoreDesigner.of().controllerTabRight.index = 0;
       } else {
         if (lastSelection == pathWidget) {
-          CoreDesigner.coreDesigner.controllerTabRight.index = 1;
+          CoreDesigner.of().controllerTabRight.index = 0;
         }
         lastSelection = pathWidget;
 
@@ -48,7 +90,7 @@ class CoreDataSelector {
         aCtx.collection = aCtx.widget!.ctx.factory.collection;
         aCtx.mode = ModeRendering.view;
         if (aCtx.widget!.ctx.entityForFactory == null) {
-          var prop = getEmptyEntity(aCtx);
+          var prop = _getEmptyEntity(aCtx);
           var provider = CWProvider(prop);
           provider.addAction(CWProviderAction.onChange, RefreshDesign(aCtx));
           provider.addAction(
@@ -64,7 +106,7 @@ class CoreDataSelector {
         }
       }
 
-      addSlotConstraint(aCtx, slot, pathWidget);
+      _addSlotConstraint(aCtx, ctx, pathWidget);
 
       int i = pathWidget.lastIndexOf('.');
       if (i < 0) break;
@@ -72,27 +114,36 @@ class CoreDataSelector {
     }
 
     DesignerPropState? state =
-        CoreDesigner.propKey.currentState as DesignerPropState?;
+        CoreDesigner.of().propKey.currentState as DesignerPropState?;
 
     // ignore: invalid_use_of_protected_member
     state?.setState(() {});
   }
 
-  void addSlotConstraint(
-      DesignCtx aCtx, SelectorWidget slot, String pathWidget) {
-    SlotConfig? sc = slot.ctx.factory.mapSlotConstraintByPath[pathWidget];
+  CoreDataEntity _getEmptyEntity(DesignCtx ctx) {
+    ctx.factory = ctx.widget!.ctx.factory;
+    CoreDataPath? path = ctx.factory?.cwFactory!
+        .getPath(ctx.factory!.collection, ctx.pathCreate!);
+    String impl = path!.entities.last.value['implement'];
+    CoreDataEntity emptyEntity = ctx.factory!.collection.createEntity(impl);
+    return emptyEntity;
+  }
+
+  void _addSlotConstraint(
+      DesignCtx aCtx, CWWidgetCtx slotCtx, String pathWidget) {
+    SlotConfig? sc = slotCtx.factory.mapSlotConstraintByPath[pathWidget];
     if (sc != null && sc.constraintEntity != null) {
       DesignCtx aCtxConstraint = DesignCtx();
       aCtxConstraint.pathWidget = pathWidget;
       print("SlotConfig ${sc.xid} ${sc.constraintEntity}");
-      aCtxConstraint.factory = slot.ctx.factory;
-      aCtxConstraint.collection = slot.ctx.factory.collection;
+      aCtxConstraint.factory = slotCtx.factory;
+      aCtxConstraint.collection = slotCtx.factory.collection;
       aCtxConstraint.mode = ModeRendering.view;
       aCtxConstraint.xid = sc.xid;
 
       CoreDataEntity constraintEntity =
-          slot.ctx.factory.mapConstraintByXid[sc.xid]?.entityForFactory ??
-              slot.ctx.factory.collection.createEntity(sc.constraintEntity!);
+          slotCtx.factory.mapConstraintByXid[sc.xid]?.entityForFactory ??
+              slotCtx.factory.collection.createEntity(sc.constraintEntity!);
 
       var provider = CWProvider(constraintEntity);
       provider.addAction(CWProviderAction.onChange, RefreshDesignParent(aCtx));
@@ -118,80 +169,4 @@ class DesignCtx extends LoaderCtx {
   String? pathDesign;
   String? pathCreate;
   CoreDataEntity? constraint;
-}
-
-////////////////////////////////////////////////////////////
-class RefreshDesign extends CoreDataAction {
-  RefreshDesign(this.aCtx);
-  DesignCtx aCtx;
-
-  @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
-    // ignore: invalid_use_of_protected_member
-    (aCtx.widget!.key as GlobalKey).currentState?.setState(() {});
-  }
-}
-
-class RefreshDesignParent extends CoreDataAction {
-  RefreshDesignParent(this.aCtx);
-  DesignCtx aCtx;
-
-  @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
-    String pathWidget = aCtx.pathWidget;
-    int i = pathWidget.lastIndexOf('.');
-    if (i > 0) {
-      pathWidget = pathWidget.substring(0, i);
-    }
-
-    WidgetFactoryEventHandler factory =
-        CoreDesigner.coreDesigner.loader.ctxLoader.factory!;
-
-    String xid = factory.mapXidByPath[pathWidget]!;
-    CWWidget widget = factory.mapWidgetByXid[xid]!;
-    // ignore: invalid_use_of_protected_member
-    (widget.key as GlobalKey).currentState?.setState(() {});
-  }
-}
-
-class MapDesign extends CoreDataAction {
-  DesignCtx aCtx;
-  CoreDataEntity prop;
-
-  MapDesign(this.aCtx, this.prop);
-
-  @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
-    debugPrint("set prop on ${aCtx.xid}");
-
-    aCtx.widget?.ctx.entityForFactory = prop;
-    CoreDesigner.coreDesigner.loader.setProp(aCtx.xid!, prop);
-    debugPrint('object  ${CoreDesigner.coreDesigner.loader.cwFactory}');
-  }
-}
-
-class MapConstraint extends CoreDataAction {
-  DesignCtx aCtx;
-  CoreDataEntity prop;
-
-  MapConstraint(this.aCtx, this.prop);
-
-  @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
-    debugPrint("set constraint on ${aCtx.xid}");
-
-    CWWidgetCtx ctxConstraint = CWWidgetCtx(
-        aCtx.xid!,
-        CoreDesigner.coreDesigner.loader.ctxLoader.factory!,
-        "?",
-        ModeRendering.design);
-    ctxConstraint.entityForFactory = prop;
-    CoreDesigner.coreDesigner.loader.ctxLoader.factory!
-        .mapConstraintByXid[aCtx.xid!] = ctxConstraint;
-
-    // aCtx.widget?.ctx.entityForFactory = prop;
-    ctxConstraint.pathDataDesign =
-        CoreDesigner.coreDesigner.loader.setConstraint(aCtx.xid!, prop);
-    debugPrint('object  ${CoreDesigner.coreDesigner.loader.cwFactory}');
-  }
 }

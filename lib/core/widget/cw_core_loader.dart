@@ -83,6 +83,8 @@ abstract class CWLoader {
     ctx.browseHandler = ctxLoader.factory!;
     ctxLoader.factory!.cwFactory = aCWFactory;
     aCWFactory.browse(collection, ctx);
+
+    
     final rootWidget = ctxLoader.factory!.mapWidgetByXid['root']!;
     ctxLoader.factory!.mapXidByPath['root'] = 'root';
     rootWidget.initSlot('root');

@@ -23,36 +23,36 @@ class CWCollection {
   /////////////////////////////////////////////////////////////////////////
   void _initWidget() {
     addWidget((CWFrameDesktop),
-            (CWWidgetCtx ctx) => CWFrameDesktop(key: GlobalKey(), ctx: ctx))
+            (CWWidgetCtx ctx) => CWFrameDesktop(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('title', CDAttributType.CDtext);
 
-    addWidget((CWTab), (CWWidgetCtx ctx) => CWTab(key: GlobalKey(), ctx: ctx))
+    addWidget((CWTab), (CWWidgetCtx ctx) => CWTab(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
         .withAction(AttrActionDefault(2))
         .addAttr('heightTabBar', CDAttributType.CDint);
 
     addWidget((CWTextfield),
-            (CWWidgetCtx ctx) => CWTextfield(key: GlobalKey(), ctx: ctx))
+            (CWWidgetCtx ctx) => CWTextfield(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
     addWidget((CWSwitch),
-            (CWWidgetCtx ctx) => CWSwitch(key: GlobalKey(), ctx: ctx))
+            (CWWidgetCtx ctx) => CWSwitch(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
     addWidget((CWExpandPanel),
-            (CWWidgetCtx ctx) => CWExpandPanel(key: GlobalKey(), ctx: ctx))
+            (CWWidgetCtx ctx) => CWExpandPanel(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
 
-    addWidget((CWText), (CWWidgetCtx ctx) => CWText(key: GlobalKey(), ctx: ctx))
+    addWidget((CWText), (CWWidgetCtx ctx) => CWText(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('textColor', CDAttributType.CDtext);
 
     addWidget((CWColumn),
-            (CWWidgetCtx ctx) => CWColumn(key: GlobalKey(), ctx: ctx))
+            (CWWidgetCtx ctx) => CWColumn(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
@@ -78,7 +78,7 @@ class CWCollection {
         .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
         .addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
 
-    addWidget((CWRow), (CWWidgetCtx ctx) => CWRow(key: GlobalKey(), ctx: ctx))
+    addWidget((CWRow), (CWWidgetCtx ctx) => CWRow(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
@@ -126,6 +126,11 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   Map<String, String> mapPathDesignByXid = <String, String>{};
 
   Map<String, CWProvider> mapProvider = <String, CWProvider>{};
+
+  initSlot() {
+    final rootWidget = mapWidgetByXid['root']!;
+    rootWidget.initSlot('root');
+  }
 
   void doRepaintByXid(String? xid) {
     CWWidget? widgetRepaint = mapWidgetByXid[xid];
@@ -188,7 +193,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
             ctx.event!.entity.getOneEntity(collection, 'child');
         if (child != null) {
           mapChildXidByXid[xid] = child.getString('xid', def: '')!;
-          debugPrint('$xid ==== ${mapChildXidByXid[xid]}');
+          //debugPrint('$xid ==== ${mapChildXidByXid[xid]}');
         }
       }
     }

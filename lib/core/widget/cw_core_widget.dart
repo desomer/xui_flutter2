@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 
+import '../../designer/designer.dart';
 import '../data/core_data.dart';
 import '../data/core_provider.dart';
 import 'cw_factory.dart';
@@ -10,19 +12,22 @@ class SlotConfig {
   SlotConfig(this.xid, {this.constraintEntity});
   String xid;
   String? constraintEntity;
+  CWSlot? slot;
 }
 
-// ignore: must_be_immutable
 abstract class CWWidget extends StatefulWidget {
-  CWWidget({super.key, required this.ctx});
-  CWWidgetCtx ctx;
+  const CWWidget({super.key, required this.ctx});
+  final CWWidgetCtx ctx;
+
   initSlot(String path);
 
   void addSlotPath(String pathWid, SlotConfig config) {
     final String childXid = ctx.factory.mapChildXidByXid[config.xid] ?? '';
-    debugPrint('add slot >>>> $pathWid  ${config.xid} childXid=$childXid');
+    //debugPrint('add slot >>>> $pathWid  ${config.xid} childXid=$childXid');
     Widget? w = ctx.factory.mapWidgetByXid[childXid];
-    ctx.factory.mapSlotConstraintByPath[pathWid] = config;
+
+    SlotConfig? old = ctx.factory.mapSlotConstraintByPath[pathWid];
+    ctx.factory.mapSlotConstraintByPath[pathWid] = old ?? config;
 
     if (w is CWWidget) {
       ctx.factory.mapXidByPath[pathWid] = childXid;
@@ -35,11 +40,20 @@ abstract class CWWidget extends StatefulWidget {
     return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.factory,
         '${ctx.pathWidget}.$id${idx?.toString() ?? ''}', ctx.modeRendering);
   }
+
+  void repaint() {
+    ((key as GlobalKey).currentState as StateCW?)?.repaint();
+  }
 }
 
-// ignore: must_be_immutable
+abstract class StateCW<T extends StatefulWidget> extends State<T> {
+  void repaint() {
+    setState(() {});
+  }
+}
+
 abstract class CWWidgetInput extends CWWidget {
-  CWWidgetInput({super.key, required super.ctx});
+  const CWWidgetInput({super.key, required super.ctx});
 
   String getValue() {
     CWProvider? provider = CWProvider.of(ctx);
@@ -72,6 +86,34 @@ class CWWidgetCtx {
   CoreDataEntity? entityForFactory;
   String? pathDataDesign;
   String? pathDataCreate;
+  CWSlot? slot;
+  dynamic lastEvent;
+
+  static String getParentPathFrom(String path) {
+    String p = path;
+    int i = p.lastIndexOf('.');
+    if (i > 0) {
+      p = p.substring(0, i);
+    }
+    return p;
+  }
+
+  String getParentPath() {
+    String p = pathWidget;
+    int i = p.lastIndexOf('.');
+    if (i > 0) {
+      p = p.substring(0, i);
+    }
+    return p;
+  }
+
+  CWWidget? getParentCWWidget() {
+    WidgetFactoryEventHandler factory = CoreDesigner.of().factory;
+
+    String? xid = factory.mapXidByPath[getParentPath()];
+    CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
+    return widget;
+  }
 }
 
 class CWWidgetEvent {

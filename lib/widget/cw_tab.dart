@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
 
-// ignore: must_be_immutable
 class CWTab extends CWWidget {
-  CWTab({
+  const CWTab({
     super.key,
     required super.ctx,
   });
@@ -27,7 +26,7 @@ class CWTab extends CWWidget {
   }
 }
 
-class _CWTabState extends State<CWTab> {
+class _CWTabState extends StateCW<CWTab> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -47,7 +46,7 @@ class _CWTabState extends State<CWTab> {
     for (int i = 0; i < widget.getNb(); i++) {
       listTab.add(
          // icon: Icon(size:10,  Icons.access_alarm), 
-          Tab(height: 20, child: CWSlot(ctx: widget.createChildCtx('Tab', i))));
+          Tab(height: 20, child: CWSlot(key:GlobalKey(),ctx: widget.createChildCtx('Tab', i))));
     }
 
     return SizedBox(
@@ -64,7 +63,7 @@ class _CWTabState extends State<CWTab> {
     final List<Widget> listTab = <Widget>[];
     final nb = widget.getNb();
     for (int i = 0; i < nb; i++) {
-      final CWSlot slot = CWSlot(ctx: widget.createChildCtx('Cont', i));
+      final CWSlot slot = CWSlot(key:GlobalKey(), ctx: widget.createChildCtx('Cont', i));
       listTab.add(slot);
     }
 

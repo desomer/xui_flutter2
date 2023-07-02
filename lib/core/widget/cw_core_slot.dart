@@ -1,5 +1,6 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/designer/designer.dart';
 
 import '../../designer/widget_component.dart';
 import 'cw_core_selector.dart';
@@ -7,7 +8,7 @@ import 'cw_core_widget.dart';
 
 // ignore: must_be_immutable
 class CWSlot extends CWWidget {
-  CWSlot({super.key, this.child, required super.ctx});
+  CWSlot({required super.key, this.child, required super.ctx});
 
   Widget? child;
 
@@ -20,9 +21,9 @@ class CWSlot extends CWWidget {
   }
 }
 
-class _CWSlotState extends State<CWSlot> {
+class _CWSlotState extends StateCW<CWSlot> {
   Widget getDrop(Widget child) {
-    return DragTarget<CmpDesc>(
+    return DragTarget<ComponentDesc>(
         builder: (context, candidateItems, rejectedItems) {
           return child;
         },
@@ -38,11 +39,10 @@ class _CWSlotState extends State<CWSlot> {
   }
 
   Widget getSlotDesign() {
-    return getDrop(
-      DottedBorder(
-          color: Colors.grey,
-          dashPattern: const <double>[6, 6],
-          strokeWidth: 1,
+    return getDrop(DottedBorder(
+        color: Colors.grey,
+        dashPattern: const <double>[6, 6],
+        strokeWidth: 1,
         child: const Center(
             child: Text(
           'Slot',
@@ -52,7 +52,18 @@ class _CWSlotState extends State<CWSlot> {
 
   @override
   Widget build(BuildContext context) {
-    Key inkWellKey = ValueKey(widget.ctx.xid);
+    widget.ctx.slot = widget;
+    SlotConfig? slotConfig =
+        widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
+
+    if (slotConfig == null) {
+      // init les slot lié a un ajout par les properties
+      CoreDesigner.of().factory.initSlot();
+      slotConfig =
+          widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
+    }
+
+    slotConfig!.slot = widget;
 
     final String childXid =
         widget.ctx.factory.mapChildXidByXid[widget.ctx.xid] ?? '';
@@ -61,11 +72,14 @@ class _CWSlotState extends State<CWSlot> {
         widget.child ?? widget.ctx.factory.mapWidgetByXid[childXid];
 
     return widget.ctx.modeRendering == ModeRendering.design
-        ? SelectorWidget(
-            key: inkWellKey,
-            ctx: widget.ctx,
-            child: widgetToDisplay ?? getSlotDesign(),
-          )
+        ? getSelector(widgetToDisplay)
         : widgetToDisplay ?? getSlotDesign();
+  }
+
+  SelectorWidget getSelector(Widget? widgetToDisplay) {
+    return SelectorWidget(
+      ctx: widget.ctx,
+      child: widgetToDisplay ?? getSlotDesign(),
+    );
   }
 }

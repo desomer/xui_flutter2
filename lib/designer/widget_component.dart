@@ -1,14 +1,40 @@
-// ignore: must_be_immutable
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'dart:math' as math;
 
 import '../core/data/core_data.dart';
+import '../widget/cw_container.dart';
+import '../widget/cw_switch.dart';
+import '../widget/cw_tab.dart';
+import '../widget/cw_text.dart';
+import '../widget/cw_textfield.dart';
 import 'designer.dart';
 
-class CmpDesc {
-  CmpDesc(this.name, this.icon, Type widget) {
+class ComponentDesc {
+  static List<Widget> get getListComponent {
+    return [
+      CardComponents("Layout", [
+        ComponentDesc('Label', Icons.format_quote, CWText),
+        ComponentDesc('Column', Icons.table_rows_rounded, CWColumn),
+        ComponentDesc('Row', Icons.view_week, CWRow),
+        ComponentDesc('Tab', Icons.tab, CWTab)
+      ]), // "Column", "Row", "Tab"
+      // CardComponents("Filter", const [
+      //   "Form",
+      //   "Selector",
+      // ]),
+      // CardComponents(
+      //     "Data", const ["Form", "List", "Tree" "List/Form", "Tree/Form"]),
+      // CardComponents("Aggregat", const ["Sum", "Moy", "Count", "Chart"]),
+      CardComponents("Input", [
+        ComponentDesc('Text', Icons.text_fields, CWTextfield),
+        ComponentDesc('Switch', Icons.toggle_on, CWSwitch),
+      ]),
+    ];
+  }
+
+  ComponentDesc(this.name, this.icon, Type widget) {
     impl = widget.toString();
   }
 
@@ -17,7 +43,8 @@ class CmpDesc {
   late String impl;
 
   void addNewWidgetOn(CWWidget widget) {
-    String pathCreate = CoreDesigner.coreDesigner.loader
+    String pathCreate = CoreDesigner.of()
+        .loader
         .addChild(widget.ctx.xid, "${widget.ctx.xid}child", impl);
 
     final CWWidgetCtx ctxW = CWWidgetCtx(widget.ctx.xid, widget.ctx.factory,
@@ -39,6 +66,15 @@ class CmpDesc {
 
     final rootWidget = widget.ctx.factory.mapWidgetByXid['root']!;
     rootWidget.initSlot('root');
+
+    // repaint le parent
+    CWWidget? w = CoreDesigner.of()
+        .getWidgetByPath(CWWidgetCtx.getParentPathFrom(widget.ctx.pathWidget));
+    w?.repaint();
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      CoreDesigner.emit(CDDesignEvent.reselect, null);
+    });
   }
 }
 
@@ -46,7 +82,7 @@ class CmpDesc {
 class CardComponents extends StatelessWidget {
   CardComponents(this.category, this.nameComp, {super.key});
   String category;
-  List<CmpDesc> nameComp;
+  List<ComponentDesc> nameComp;
 
   Offset dragAnchorStrategy(
       Draggable<Object> d, BuildContext context, Offset point) {
@@ -55,10 +91,10 @@ class CardComponents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    buildComp(CmpDesc cmp) {
+    buildComp(ComponentDesc cmp) {
       return Padding(
           padding: const EdgeInsets.all(5.0),
-          child: Draggable<CmpDesc>(
+          child: Draggable<ComponentDesc>(
             onDragStarted: () {
               GlobalSnackBar.show(context, 'Drag started');
             },

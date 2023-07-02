@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/widget/cw_core_widget.dart';
 
-// ignore: must_be_immutable
+
 class CWText extends CWWidget {
-  CWText({
+  const CWText({
     super.key,
     required super.ctx,
   });
@@ -20,7 +20,7 @@ class CWText extends CWWidget {
   initSlot(String path) {}
 }
 
-class _CWTextState extends State<CWText> {
+class _CWTextState extends StateCW<CWText> {
   @override
   Widget build(BuildContext context) {
     return Text(widget.getLabel());
