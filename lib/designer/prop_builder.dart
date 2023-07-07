@@ -11,10 +11,15 @@ import 'form_builder.dart';
 class PropBuilder {
   List<Widget> listProp = [];
 
+  Map<String, DesignCtx> mapEntityByPath = <String, DesignCtx>{};
+  Map<String, CoreDataEntity> mapEntityWidgetByPath =
+      <String, CoreDataEntity>{};
+
   buildWidgetProperties(CWWidgetCtx ctx, int buttonId) {
     String pathWidget = ctx.pathWidget;
 
     listProp.clear();
+    mapEntityByPath.clear();
 
     while (pathWidget.isNotEmpty) {
       DesignCtx aCtx = DesignCtx();
@@ -23,6 +28,8 @@ class PropBuilder {
       aCtx.widget = ctx.factory.mapWidgetByXid[aCtx.xid];
       aCtx.pathDesign = aCtx.widget?.ctx.pathDataDesign;
       aCtx.pathCreate = aCtx.widget?.ctx.pathDataCreate;
+
+      mapEntityByPath[pathWidget] = aCtx;
 
       if (aCtx.widget == null) {
         debugPrint('>>> $pathWidget as empty slot');
@@ -42,13 +49,18 @@ class PropBuilder {
           provider.addAction(CWProviderAction.onChange, RefreshDesign(aCtx));
           provider.addAction(
               CWProviderAction.onStateCreate, MapDesign(aCtx, prop));
-          // prop.custom["onMap"] = MapDesign(aCtx, prop);
+          provider.addAction(
+              CWProviderAction.onMountWidget, OnMount(aCtx, pathWidget));
+
           listProp.addAll(FormBuilder().getFormWidget(provider, aCtx));
         } else {
           var prop = aCtx.widget!.ctx.designEntity!;
           prop.operation = CDAction.read;
           var provider = CWProvider(prop);
           provider.addAction(CWProviderAction.onChange, RefreshDesign(aCtx));
+          provider.addAction(
+              CWProviderAction.onMountWidget, OnMount(aCtx, pathWidget));
+
           listProp.addAll(FormBuilder().getFormWidget(provider, aCtx));
         }
       }

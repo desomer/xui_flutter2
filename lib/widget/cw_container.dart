@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
+import 'package:xui_flutter/designer/cw_factory.dart';
 import 'package:xui_flutter/designer/designer.dart';
 
+import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
 
 abstract class CWContainer extends CWWidget {
@@ -11,11 +13,11 @@ abstract class CWContainer extends CWWidget {
     return ctx.designEntity?.getInt("count", 3) ?? 3;
   }
 
-  bool isFill() {
-    return ctx.designEntity?.getBool("fill", true) ?? true;
+  bool isFill(bool def) {
+    return ctx.designEntity?.getBool("fill", def) ?? def;
   }
 
-  Widget getCell(int i) {
+  Widget getCell(int i, bool defFill, {required bool canFill}) {
     var slot = CWSlot(
         key: GlobalKey(debugLabel: 'slot ${ctx.xid}'),
         ctx: createChildCtx("Cont", i));
@@ -23,9 +25,14 @@ abstract class CWContainer extends CWWidget {
     //print("getCell -------- ${slot.ctx.xid} $constraint");
 
     int flex = constraint?.designEntity?.value["flex"] ?? 1;
+    bool loose = constraint?.designEntity?.value["tight/loose"] ?? false;
+    int? height = constraint?.designEntity?.value["height"];
 
-    if (isFill()) {
-      return Flexible(flex: flex, fit: FlexFit.loose, child: slot);
+    if (height != null && height > 5) {
+      return SizedBox(height: height.toDouble(), child: slot);
+    } else if (isFill(defFill) && canFill) {
+      return Flexible(
+          flex: flex, fit: loose ? FlexFit.loose : FlexFit.tight, child: slot);
     } else {
       return slot;
     }
@@ -46,6 +53,28 @@ class CWColumn extends CWContainer {
           SlotConfig('${ctx.xid}Cont$i', constraintEntity: "CWColConstraint"));
     }
   }
+
+  static initFactory(CWCollection c) {
+    c
+        .addWidget(
+            (CWColumn),
+            (CWWidgetCtx ctx) =>
+                CWColumn(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+        .addAttr('count', CDAttributType.CDint)
+        .withAction(AttrActionDefault(3))
+        .addAttr('fill', CDAttributType.CDbool)
+        .withAction(AttrActionDefault(false));
+
+    c.collection
+        .addObject('CWColConstraint')
+        .addAttr('flex', CDAttributType.CDint)
+        .addAttr('tight/loose', CDAttributType.CDbool)
+        .addAttr('height', CDAttributType.CDint);
+    // .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
+    // .addAttr('max (ConstrainedBox)', CDAttributType.CDint);
+    //    .addAttr('% ()', CDAttributType.CDint);
+    //.addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
+  }
 }
 
 class CWColumnState extends StateCW<CWColumn> {
@@ -53,6 +82,8 @@ class CWColumnState extends StateCW<CWColumn> {
   Widget build(BuildContext context) {
     if (widget.ctx.modeRendering == ModeRendering.design) {
       double lasth = h;
+
+      // gestion de la zone de drop Filler
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         if (context.mounted && context.size is Size) {
           hm = context.size!.height;
@@ -62,14 +93,13 @@ class CWColumnState extends StateCW<CWColumn> {
           for (int i = 0; i < nb; i++) {
             String slotName = "${widget.ctx.pathWidget}.Cont$i";
             SlotConfig? sc =
-                CoreDesigner.of().factory.mapSlotConstraintByPath[slotName];
+                CoreDesigner.ofFactory().mapSlotConstraintByPath[slotName];
             if (sc != null) {
               GlobalKey ks = sc.slot!.key! as GlobalKey;
               h = h + ks.currentContext!.size!.height;
             }
           }
           h = hm - h;
-          //debugPrint("h=$h");
           if (h != lasth) {
             setState(() {});
           }
@@ -77,22 +107,28 @@ class CWColumnState extends StateCW<CWColumn> {
       });
     }
 
-    final List<Widget> listStack = [];
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints viewportConstraints) {
+      print("viewportConstraints ${viewportConstraints.hasBoundedHeight}");
 
-    final List<Widget> listSlot = [];
-    final nb = widget.getNbChild();
-    for (var i = 0; i < nb; i++) {
-      listSlot.add(widget.getCell(i));
-    }
-    listStack.add(Column(children: listSlot));
-    if (widget.ctx.modeRendering == ModeRendering.design) {
-      Widget? filler = getFiller();
-      if (filler != null) {
-        listStack.add(filler);
+      final List<Widget> listStack = [];
+
+      final List<Widget> listSlot = [];
+      final nb = widget.getNbChild();
+      for (var i = 0; i < nb; i++) {
+        listSlot.add(widget.getCell(i, false, canFill: viewportConstraints.hasBoundedHeight));
       }
-    }
+      listStack.add(Column(mainAxisSize: MainAxisSize.min, children: listSlot));
+      if (widget.ctx.modeRendering == ModeRendering.design) {
+        Widget? filler = getFiller();
+        if (filler != null) {
+          listStack.add(filler);
+        }
+      }
 
-    return Stack(key:GlobalKey(debugLabel: "CWColumnState"), children: listStack);
+      return Stack(
+          key: GlobalKey(debugLabel: "CWColumnState"), children: listStack);
+    });
   }
 
   double h = 0;
@@ -108,8 +144,32 @@ class CWColumnState extends StateCW<CWColumn> {
   }
 }
 
+////////////////////////////////////////////////////////////////////////
 class CWRow extends CWContainer {
   const CWRow({Key? key, required super.ctx}) : super(key: key);
+
+  static initFactory(CWCollection c) {
+    c.collection
+            .addObject('CWRowConstraint')
+            .addAttr('flex', CDAttributType.CDint)
+            .addAttr('tight/loose', CDAttributType.CDbool)
+            .addAttr('width (sizedBox)', CDAttributType.CDint)
+        // .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
+        // .addAttr('max (ConstrainedBox)', CDAttributType.CDint)
+        // .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
+        // .addAttr('Fitted child (FittedBox)', CDAttributType.CDbool)
+        ;
+
+    c
+        .addWidget(
+            (CWRow),
+            (CWWidgetCtx ctx) =>
+                CWRow(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+        .addAttr('count', CDAttributType.CDint)
+        .withAction(AttrActionDefault(3))
+        .addAttr('fill', CDAttributType.CDbool)
+        .withAction(AttrActionDefault(true));
+  }
 
   @override
   State<CWRow> createState() => CWRowState();
@@ -130,7 +190,7 @@ class CWRowState extends StateCW<CWRow> {
     final List<Widget> listSlot = [];
     final nb = widget.getNbChild();
     for (var i = 0; i < nb; i++) {
-      listSlot.add(widget.getCell(i));
+      listSlot.add(widget.getCell(i, true, canFill: true));
     }
 
     return Row(children: listSlot);

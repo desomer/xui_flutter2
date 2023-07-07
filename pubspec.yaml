@@ -49,6 +49,8 @@ dependencies:
   assorted_layout_widgets: ^8.0.4
   event_listener: ^0.2.0
   nanoid: ^1.0.0
+  rich_clipboard: ^1.0.1
+  device_preview: ^1.1.0
 
 window_size:
     git:

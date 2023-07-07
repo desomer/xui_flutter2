@@ -33,7 +33,7 @@ abstract class CWLoader {
             .createEntity('CWDesign')
             .setAttr(collection, 'xid', xid)
             .setOne(collection, 'properties', prop));
-    return "designs[${(cwFactory.value["designs"] as List).length-1}].properties";               
+    return "designs[${(cwFactory.value["designs"] as List).length - 1}].properties";
   }
 
   String setConstraint(String xid, CoreDataEntity prop) {
@@ -44,13 +44,14 @@ abstract class CWLoader {
             .createEntity('CWDesign')
             .setAttr(collection, 'xid', xid)
             .setOne(collection, 'constraint', prop));
-    return "designs[${(cwFactory.value["designs"] as List).length-1}].constraint";            
-  }  
+    return "designs[${(cwFactory.value["designs"] as List).length - 1}].constraint";
+  }
 
-  addChildProp(
+  String addChildProp(
       String xid, String xidChild, String implement, CoreDataEntity prop) {
-    addChild(xid, xidChild, implement);
+    String ret = addChild(xid, xidChild, implement);
     setProp(xidChild, prop);
+    return ret;
   }
 
   String addChild(String xid, String xidChild, String implement) {
@@ -68,11 +69,12 @@ abstract class CWLoader {
                   'implement': implement
                 })));
 
-    return "designs[${(cwFactory.value["designs"] as List).length-1}].child";
+    return "designs[${(cwFactory.value["designs"] as List).length - 1}].child";
   }
 
-  addWidget(String xid, String xidChild, Type type, Map<String, dynamic> v) {
-    addChildProp(xid, xidChild, type.toString(),
+  String addWidget(
+      String xid, String xidChild, Type type, Map<String, dynamic> v) {
+    return addChildProp(xid, xidChild, type.toString(),
         collection.createEntityByJson(type.toString(), v));
   }
 
@@ -83,7 +85,6 @@ abstract class CWLoader {
     ctx.browseHandler = ctxLoader.factory!;
     ctxLoader.factory!.cwFactory = aCWFactory;
     aCWFactory.browse(collection, ctx);
-
 
     final rootWidget = ctxLoader.factory!.mapWidgetByXid['root']!;
     ctxLoader.factory!.mapXidByPath['root'] = 'root';

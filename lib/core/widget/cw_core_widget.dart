@@ -87,7 +87,7 @@ class CWWidgetCtx {
   CoreDataEntity? designEntity;
   String? pathDataDesign;
   String? pathDataCreate;
-  CWSlot? slot;
+  CWSlot? isSlot;
   dynamic lastEvent;
 
   static String getParentPathFrom(String path) {
@@ -109,20 +109,33 @@ class CWWidgetCtx {
   }
 
   CWWidget? getParentCWWidget() {
-    WidgetFactoryEventHandler factory = CoreDesigner.of().factory;
+    WidgetFactoryEventHandler factory = CoreDesigner.ofFactory();
 
     String? xid = factory.mapXidByPath[getParentPath()];
     CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
     return widget;
   }
 
+  CWWidget? getCWWidget() {
+    WidgetFactoryEventHandler factory = CoreDesigner.ofFactory();
+
+    String? xid = factory.mapXidByPath[pathWidget];
+    CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
+    return widget;
+  }
+
+  CWSlot? getSlot() {
+    WidgetFactoryEventHandler factory = CoreDesigner.ofFactory();
+    return factory.mapSlotConstraintByPath[pathWidget]?.slot;
+  }
+
   CWWidgetCtx refreshContext() {
     CWWidget? wid = factory.mapWidgetByXid[xid];
     if (wid == null) {
       SlotConfig? slotConfig = factory.mapSlotConstraintByPath[pathWidget];
-      slot = slotConfig?.slot;
+      isSlot = slotConfig?.slot;
     } else {
-      slot = wid.ctx.slot;
+      isSlot = wid.ctx.isSlot;
     }
     return this;
   }

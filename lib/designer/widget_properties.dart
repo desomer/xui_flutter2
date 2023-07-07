@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/selector_manager.dart';
+import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
@@ -23,6 +24,21 @@ class DesignerPropState extends State<DesignerProp> {
 }
 
 ////////////////////////////////////////////////////////////
+class OnMount extends CoreDataAction {
+  OnMount(this.aCtx, this.path);
+  DesignCtx aCtx;
+  String path;
+
+  @override
+  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
+    if (ctx.designEntity!.type == "CWTextfield") {
+      String attr = ctx.designEntity!.value["bind"];
+      CWTextfield wid = event!.payload! as CWTextfield;
+      print('-------->  $attr on $path = $wid');
+    }
+  }
+}
+
 class RefreshDesign extends CoreDataAction {
   RefreshDesign(this.aCtx);
   DesignCtx aCtx;
@@ -43,7 +59,7 @@ class RefreshDesignParent extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
-    CWWidget? widget = CoreDesigner.of()
+    CWWidget? widget = CoreDesigner.ofView()
         .getWidgetByPath(CWWidgetCtx.getParentPathFrom(aCtx.pathWidget));
     widget?.repaint();
 
@@ -64,8 +80,8 @@ class MapDesign extends CoreDataAction {
     debugPrint("set prop on ${aCtx.xid}");
 
     aCtx.widget?.ctx.designEntity = prop;
-    CoreDesigner.of().loader.setProp(aCtx.xid!, prop);
-    debugPrint('object  ${CoreDesigner.of().loader.cwFactory}');
+    CoreDesigner.ofLoader().setProp(aCtx.xid!, prop);
+    debugPrint('object  ${CoreDesigner.ofLoader().cwFactory}');
   }
 }
 
@@ -80,13 +96,13 @@ class MapConstraint extends CoreDataAction {
     debugPrint("set constraint on ${aCtx.xid}");
 
     CWWidgetCtx ctxConstraint = CWWidgetCtx(
-        aCtx.xid!, CoreDesigner.of().factory, "?", ModeRendering.design);
+        aCtx.xid!, CoreDesigner.ofFactory(), "?", ModeRendering.design);
     ctxConstraint.designEntity = prop;
-    CoreDesigner.of().factory.mapConstraintByXid[aCtx.xid!] = ctxConstraint;
+    CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!] = ctxConstraint;
 
     // aCtx.widget?.ctx.entityForFactory = prop;
     ctxConstraint.pathDataDesign =
-        CoreDesigner.of().loader.setConstraint(aCtx.xid!, prop);
-    debugPrint('object  ${CoreDesigner.of().loader.cwFactory}');
+        CoreDesigner.ofLoader().setConstraint(aCtx.xid!, prop);
+    debugPrint('object  ${CoreDesigner.ofLoader().cwFactory}');
   }
 }

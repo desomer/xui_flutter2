@@ -26,15 +26,10 @@ class CWCollection {
             (CWFrameDesktop),
             (CWWidgetCtx ctx) =>
                 CWFrameDesktop(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
-        .addAttr('title', CDAttributType.CDtext);
+        .addAttr('title', CDAttributType.CDtext)
+        .addAttr('fill', CDAttributType.CDbool);
 
-    addWidget(
-            (CWTab),
-            (CWWidgetCtx ctx) =>
-                CWTab(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
-        .addAttr('tabCount', CDAttributType.CDint)
-        .withAction(AttrActionDefault(2))
-        .addAttr('heightTabBar', CDAttributType.CDint);
+    CWTab.initFactory(this);
 
     addWidget(
             (CWTextfield),
@@ -65,43 +60,8 @@ class CWCollection {
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('textColor', CDAttributType.CDtext);
 
-    addWidget(
-            (CWColumn),
-            (CWWidgetCtx ctx) =>
-                CWColumn(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint)
-        .withAction(AttrActionDefault(3))
-        .addAttr('fill', CDAttributType.CDbool)
-        .withAction(AttrActionDefault(true));
-
-    collection
-        .addObject('CWColConstraint')
-        .addAttr('flex', CDAttributType.CDint)
-        .addAttr('tight/loose', CDAttributType.CDbool)
-        .addAttr('height (sizedBox)', CDAttributType.CDint)
-        .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
-        .addAttr('max (ConstrainedBox)', CDAttributType.CDint)
-        .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
-        .addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
-
-    collection
-        .addObject('CWRowConstraint')
-        .addAttr('flex', CDAttributType.CDint)
-        .addAttr('tight/loose', CDAttributType.CDbool)
-        .addAttr('width (sizedBox)', CDAttributType.CDint)
-        .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
-        .addAttr('max (ConstrainedBox)', CDAttributType.CDint)
-        .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
-        .addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
-
-    addWidget(
-            (CWRow),
-            (CWWidgetCtx ctx) =>
-                CWRow(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint)
-        .withAction(AttrActionDefault(3))
-        .addAttr('fill', CDAttributType.CDbool)
-        .withAction(AttrActionDefault(true));
+    CWColumn.initFactory(this);
+    CWRow.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -142,7 +102,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
 
   Map<String, String> mapChildXidByXid = <String, String>{};
   Map<String, String> mapXidByPath = <String, String>{};
-  Map<String, String> mapPathDesignByXid = <String, String>{};
+  //Map<String, String> mapPathDesignByXid = <String, String>{};
 
   Map<String, CWProvider> mapProvider = <String, CWProvider>{};
 
@@ -189,13 +149,21 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
       if (ctx.event!.builder.name == 'CWDesign') {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
         String path = ctx.getPathData();
-        mapPathDesignByXid[xid] = path;
+        //mapPathDesignByXid[xid] = path;
         mapWidgetByXid[xid]?.ctx.pathDataDesign = path;
 
         final CoreDataEntity? prop =
             ctx.event!.entity.getOneEntity(collection, 'properties');
         if (prop != null) {
           mapWidgetByXid[xid]?.ctx.designEntity = prop;
+          CWWidgetEvent ctxWE = CWWidgetEvent();
+          ctxWE.action = CWProviderAction.onMountWidget.name;
+          ctxWE.payload = mapWidgetByXid[xid];
+
+          mapProvider[mapProvider.keys.firstOrNull]
+              ?.actions[CWProviderAction.onMountWidget]
+              ?.first
+              .execute(mapWidgetByXid[xid]!.ctx, ctxWE);
         }
 
         final CoreDataEntity? constraint =

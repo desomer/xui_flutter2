@@ -48,12 +48,11 @@ class FormLoader extends CWLoader {
 
   void addAttr(CoreDataAttribut attribut) {
     if (attribut.type == CDAttributType.CDbool) {
-      addWidget(
-          'Col0Cont$nbAttr', 'attr$nbAttr', CWSwitch, <String, dynamic>{
+      addWidget('Col0Cont$nbAttr', 'attr$nbAttr', CWSwitch, <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
         'providerName': (ctxLoader as DesignCtx).pathWidget
-      });      
+      });
     } else {
       addWidget(
           'Col0Cont$nbAttr', 'attr$nbAttr', CWTextfield, <String, dynamic>{
@@ -61,6 +60,10 @@ class FormLoader extends CWLoader {
         'bind': attribut.name,
         'providerName': (ctxLoader as DesignCtx).pathWidget
       });
+
+      // CoreDataEntity ent = cwFactory.getPath(collection, path).getLast();
+      // ent.custom[]
+      // // print("object $ent");
     }
     nbAttr++;
   }
@@ -70,8 +73,8 @@ class FormLoader extends CWLoader {
     addWidget('rootTitle0', 'title0', CWText,
         <String, dynamic>{'label': entity.type});
 
-    addWidget(
-        'rootBody0', 'Col0', CWColumn, <String, dynamic>{'count': nbAttr, 'fill':false});
+    addWidget('rootBody0', 'Col0', CWColumn,
+        <String, dynamic>{'count': nbAttr, 'fill': false});
 
     setProp(
         "root",

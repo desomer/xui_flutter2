@@ -1,7 +1,7 @@
 import '../widget/cw_core_widget.dart';
 import 'core_data.dart';
 
-enum CWProviderAction { onStateCreate, onChange }
+enum CWProviderAction { onStateCreate, onChange, onMountWidget }
 
 class CWProvider {
   CWProvider(this.current);

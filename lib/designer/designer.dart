@@ -1,26 +1,25 @@
 import 'package:event_listener/event_listener.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_json_viewer/flutter_json_viewer.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
-import '../core/widget/cw_core_selector_action.dart';
-import 'cw_factory.dart';
 import '../deprecated/core_array.dart';
-import '../test_loader.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
-import 'prop_builder.dart';
+import 'cw_factory.dart';
+import 'designer_view.dart';
 import 'widget_properties.dart';
 
 enum CDDesignEvent { select, reselect }
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
-  CoreDesigner({super.key});
+  CoreDesigner({super.key}) {
+    _coreDesigner = this;
+  }
 
   static on(CDDesignEvent event, Function(dynamic) fct) {
     of()._eventListener.on(event.toString(), fct);
@@ -34,12 +33,24 @@ class CoreDesigner extends StatefulWidget {
     return _coreDesigner;
   }
 
-  static late CoreDesigner _coreDesigner;
+  static DesignerView ofView() {
+    return _coreDesigner.view;
+  }
 
-  late CWLoader loader;
+  static CWLoader ofLoader() {
+    return _coreDesigner.view.loader;
+  }
+
+  static WidgetFactoryEventHandler ofFactory() {
+    return _coreDesigner.view.factory;
+  }
+
+  static late CoreDesigner _coreDesigner;
+  DesignerView view = DesignerView();
+
   GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
   GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
-  GlobalKey designerKey = GlobalKey(debugLabel: "CoreDesigner.designerKey");
+  GlobalKey designerKey = GlobalKey(debugLabel: "CoreDesignerdesignerKey");
 
   final _eventListener = EventListener();
 
@@ -53,28 +64,7 @@ class CoreDesigner extends StatefulWidget {
     keepScrollOffset: true,
   );
 
-  WidgetFactoryEventHandler get factory {
-    return loader.ctxLoader.factory!;
-  }
-
-  CWWidget? getWidgetByPath(String path) {
-    return factory.mapWidgetByXid[factory.mapXidByPath[path] ?? ""];
-  }
-
   late TabController controllerTabRight;
-  Widget? rootWidget;
-
-  Widget getRoot() {
-    if (rootWidget != null) return rootWidget!;
-
-    _coreDesigner = this;
-    LoaderCtx ctx = LoaderCtx();
-    ctx.collection = CWCollection().collection;
-    ctx.mode = ModeRendering.design;
-    loader = CWLoaderTest(ctx);
-    rootWidget = loader.getWidget();
-    return rootWidget!;
-  }
 
   @override
   State<CoreDesigner> createState() => _CoreDesignerState();
@@ -97,8 +87,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         animationDuration: const Duration(milliseconds: 200));
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      //CoreDesignerSelector.of().doSelectWidgetById('root', 1);
-      CWWidget wid = CoreDesigner.of().factory.mapWidgetByXid['root']!;
+      CWWidget wid = CoreDesigner.of().view.factory.mapWidgetByXid['root']!;
       CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
     });
   }
@@ -215,7 +204,9 @@ class _CoreDesignerState extends State<CoreDesigner>
 
   Widget getDebugPan() {
     return Container(
-        color: Colors.white, child: JsonViewer(widget.loader.cwFactory.value));
+      color: Colors.white,
+      // child: JsonViewer(CoreDesigner.ofLoader().cwFactory.value)
+    );
   }
 
   Column getTestPan() {
@@ -231,20 +222,6 @@ class _CoreDesignerState extends State<CoreDesigner>
             debugPrint(color!.value.toString());
           },
           selectedColor: Colors.red)
-    ]);
-  }
-
-  Widget getDesignerBody() {
-    return Stack(key: SelectorActionWidget.designerKey, children: [
-      Center(
-          child: SizedBox(
-              height: 896,
-              width: 414,
-              child: Material(
-                  key: SelectorActionWidget.rootKey,
-                  elevation: 5,
-                  child: widget.getRoot()))),
-      SelectorActionWidget(key: SelectorActionWidget.actionPanKey)
     ]);
   }
 
@@ -268,7 +245,7 @@ class _CoreDesignerState extends State<CoreDesigner>
 
   Widget getDesignPan() {
     return Row(children: [
-      Expanded(child: getDesignerBody()),
+      Expanded(child: widget.view),
       SizedBox(
           //  margin: new EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
           width: 300,

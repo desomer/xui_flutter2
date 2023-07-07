@@ -39,20 +39,19 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
   double wm = 0;
 
   Widget _getBorderOver(Widget child, Color color, double stroke) {
+    var borderOver = MouseRegion(
+      opaque: false,
+      child: DottedBorder(
+        color: color,
+        dashPattern: const <double>[4, 4],
+        strokeWidth: stroke,
+        child: SizedBox(width: wm, height: hm),
+      ),
+    );
+
     return Stack(
       //  key: GlobalKey(debugLabel: "_getBorderOver ${widget.ctx.xid}"),
-      children: [
-        child,
-        MouseRegion(
-          opaque: false,
-          child: DottedBorder(
-            color: color,
-            dashPattern: const <double>[4, 4],
-            strokeWidth: stroke,
-            child: SizedBox(width: wm, height: hm),
-          ),
-        )
-      ],
+      children: [child, borderOver],
     );
   }
 

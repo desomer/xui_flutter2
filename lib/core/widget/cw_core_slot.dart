@@ -24,18 +24,19 @@ class CWSlot extends CWWidget {
 class _CWSlotState extends StateCW<CWSlot> {
   @override
   Widget build(BuildContext context) {
-    widget.ctx.slot = widget;
+    widget.ctx.isSlot = widget;
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
 
     if (slotConfig == null) {
       // init les slot lié a un ajout par les properties
-      CoreDesigner.of().factory.initSlot();
+      CoreDesigner.ofFactory().initSlot();
       slotConfig =
           widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     }
 
     slotConfig!.slot = widget;
+    widget.ctx.designEntity ??=  widget.ctx.factory.mapConstraintByXid[slotConfig.xid]?.designEntity;
 
     Widget? contentWidget = widget.childForced ?? widget.ctx.getWidgetInSlot();
 
