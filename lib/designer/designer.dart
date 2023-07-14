@@ -10,7 +10,9 @@ import '../deprecated/core_array.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
 import 'cw_factory.dart';
+import 'designer_model.dart';
 import 'designer_view.dart';
+import 'widget_model_attribut.dart';
 import 'widget_properties.dart';
 
 enum CDDesignEvent { select, reselect }
@@ -46,11 +48,12 @@ class CoreDesigner extends StatefulWidget {
   }
 
   static late CoreDesigner _coreDesigner;
-  DesignerView view = DesignerView();
+  final DesignerView view = DesignerView();
 
-  GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
-  GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
-  GlobalKey designerKey = GlobalKey(debugLabel: "CoreDesignerdesignerKey");
+  final GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
+  final GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
+  final GlobalKey designerKey =
+      GlobalKey(debugLabel: "CoreDesignerdesignerKey");
 
   final _eventListener = EventListener();
 
@@ -199,7 +202,36 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDataPan() {
-    return const Row();
+    return Row(
+      children: [
+        const SizedBox(
+          width: 200,
+          child: DesignerListModel(),
+        ),
+        Expanded(
+            child: Container(
+            color: Colors.black26,
+          child: Stack(
+            children: [
+              Positioned(
+                  left: 20,
+                  top: 20,
+                  width: 200,
+                  // height: 500,
+                  child: Container(
+                      decoration:
+                          BoxDecoration(border: Border.all(color: Colors.grey)),
+                      width: 100,
+                      child: DesignerModel()))
+            ],
+          ),
+        )),
+        Container(
+          width: 300,
+          child: Column(children: AttributDesc.getListAttr),
+        )
+      ],
+    );
   }
 
   Widget getDebugPan() {

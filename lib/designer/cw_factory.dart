@@ -3,11 +3,13 @@ import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
 
+import '../core/widget/cw_core_loader.dart';
 import '../widget/cw_container.dart';
 import '../widget/cw_expand_panel.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_event.dart';
 import '../widget/cw_frame_desktop.dart';
+import '../widget/cw_list.dart';
 import '../widget/cw_tab.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -31,37 +33,26 @@ class CWCollection {
 
     CWTab.initFactory(this);
 
-    addWidget(
-            (CWTextfield),
-            (CWWidgetCtx ctx) =>
-                CWTextfield(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget((CWTextfield),
+            (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
-    addWidget(
-            (CWSwitch),
-            (CWWidgetCtx ctx) =>
-                CWSwitch(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget((CWSwitch),
+            (CWWidgetCtx ctx) => CWSwitch(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
-    addWidget(
-            (CWExpandPanel),
-            (CWWidgetCtx ctx) =>
-                CWExpandPanel(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget((CWExpandPanel),
+            (CWWidgetCtx ctx) => CWExpandPanel(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
 
-    addWidget(
-            (CWText),
-            (CWWidgetCtx ctx) =>
-                CWText(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
-        .addAttr('label', CDAttributType.CDtext)
-        .addAttr('textColor', CDAttributType.CDtext);
-
+    CWText.initFactory(this);
     CWColumn.initFactory(this);
     CWRow.initFactory(this);
+    CWList.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -90,8 +81,9 @@ class CWCollection {
 }
 
 class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
-  WidgetFactoryEventHandler(this.collection, this.modeRendering);
+  WidgetFactoryEventHandler(this.collection, this.modeRendering, this.loader);
 
+  LoaderCtx loader;
   ModeRendering modeRendering;
   CoreDataCollection collection;
   CoreDataEntity? cwFactory;
@@ -138,7 +130,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
         final String implement =
             ctx.event!.entity.getString('implement', def: '')!;
-        final CWWidgetCtx ctxW = CWWidgetCtx(xid, this, xid, modeRendering);
+        final CWWidgetCtx ctxW = CWWidgetCtx(xid, this, xid);
         ctx.payload = ctxW;
         final CoreDataObjectBuilder wid = collection.getClass(implement)!;
         final CWWidget r = wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
@@ -170,7 +162,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
             ctx.event!.entity.getOneEntity(collection, 'constraint');
         if (constraint != null) {
           CWWidgetCtx ctxConstraint =
-              CWWidgetCtx(xid, this, "?", modeRendering);
+              CWWidgetCtx(xid, this, "?");
           ctxConstraint.designEntity = constraint;
           ctxConstraint.pathDataDesign = ctx.getPathData();
           mapConstraintByXid[xid] = ctxConstraint;

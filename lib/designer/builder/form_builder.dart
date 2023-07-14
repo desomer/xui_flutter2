@@ -2,23 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/widget/cw_switch.dart';
 
-import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
-import '../widget/cw_container.dart';
-import '../widget/cw_text.dart';
-import '../widget/cw_textfield.dart';
-import 'prop_builder.dart';
+import '../../core/data/core_data.dart';
+import '../../core/data/core_provider.dart';
+import '../../widget/cw_container.dart';
+import '../../widget/cw_text.dart';
+import '../../widget/cw_textfield.dart';
 
 class FormBuilder {
   List<Widget> getFormWidget(CWProvider provider, DesignCtx ctxDesign) {
     var listWidget = <Widget>[];
-    CoreDataEntity entity = provider.current;
+    CoreDataEntity entity = provider.getCurrent();
 
     final CoreDataObjectBuilder builder =
-        ctxDesign.collection.getClass(entity.type)!;
+        ctxDesign.collectionWidget.getClass(entity.type)!;
     Map<String, dynamic> src = entity.value;
 
-    FormLoader loader = FormLoader(ctxDesign, entity);
+    AttrFormLoader loader = AttrFormLoader(ctxDesign, entity);
 
     for (final CoreDataAttribut attr in builder.attributs) {
       if (attr.type == CDAttributType.CDone) {
@@ -38,8 +37,8 @@ class FormBuilder {
   }
 }
 
-class FormLoader extends CWLoader {
-  FormLoader(DesignCtx ctxDesign, this.entity) : super(ctxDesign) {
+class AttrFormLoader extends CWLoader {
+  AttrFormLoader(DesignCtx ctxDesign, this.entity) : super(ctxDesign) {
     setRoot("CWExpandPanel");
   }
 
@@ -70,16 +69,18 @@ class FormLoader extends CWLoader {
 
   @override
   CoreDataEntity getCWFactory() {
+    setProp(
+        "root",
+        ctxLoader.collectionWidget.createEntityByJson(
+            'CWExpandPanel', <String, dynamic>{'count': 1}));
+
+    // le titre
     addWidget('rootTitle0', 'title0', CWText,
         <String, dynamic>{'label': entity.type});
 
+    // la colonne d'attribut
     addWidget('rootBody0', 'Col0', CWColumn,
         <String, dynamic>{'count': nbAttr, 'fill': false});
-
-    setProp(
-        "root",
-        ctxLoader.collection.createEntityByJson(
-            'CWExpandPanel', <String, dynamic>{'count': 1}));
 
     return cwFactory;
   }

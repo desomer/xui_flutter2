@@ -3,7 +3,10 @@ import 'package:xui_flutter/designer/selector_manager.dart';
 
 import '../../designer/action_manager.dart';
 import '../../designer/designer.dart';
+import '../../designer/prop_builder.dart';
 import '../../widget/cw_toolkit.dart';
+import '../data/core_data.dart';
+import 'cw_core_loader.dart';
 import 'cw_core_widget.dart';
 
 class SelectorActionWidget extends StatefulWidget {
@@ -11,7 +14,7 @@ class SelectorActionWidget extends StatefulWidget {
     CoreDesigner.on(CDDesignEvent.select, (arg) {
       CWWidgetCtx ctx = arg as CWWidgetCtx;
       ctx.refreshContext();
-      showActionWidget(ctx.isSlot!.key as GlobalKey);
+      showActionWidget(ctx.inSlot!.key as GlobalKey);
     });
 
     CoreDesigner.on(CDDesignEvent.reselect, (arg) {
@@ -279,21 +282,27 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
               BoxSelectedState box = boxkey.currentState as BoxSelectedState;
               box.addSize(details.delta.dy, details.delta.dx);
 
-              if (CoreDesignerSelector.of()
-                      .getSelectedSlotContext()!
-                      .designEntity !=
-                  null) {
-                int v = CoreDesignerSelector.of()
-                    .getSelectedSlotContext()!
-                    .designEntity!
-                    .value["height"];
+              DesignCtx aCtx = DesignCtx().forDesign(
+                  CoreDesignerSelector.of().getSelectedSlotContext()!);
+                  
+              CoreDataEntity prop = PropBuilder.preparePropChange(aCtx);
+              prop.value["height"] = box.widget.getSize().height.toInt();
 
-                CoreDesignerSelector.of()
-                    .getSelectedSlotContext()!
-                    .designEntity!
-                    .value["height"] = box.widget.getSize().height.toInt();
-                print("v=$v");
-              }
+              // if (CoreDesignerSelector.of()
+              //         .getSelectedSlotContext()!
+              //         .designEntity !=
+              //     null) {
+              //   // int v = CoreDesignerSelector.of()
+              //   //     .getSelectedSlotContext()!
+              //   //     .designEntity!
+              //   //     .value["height"];
+
+              //   CoreDesignerSelector.of()
+              //       .getSelectedSlotContext()!
+              //       .designEntity!
+              //       .value["height"] = box.widget.getSize().height.toInt();
+              //   //print("v=$v");
+              // }
 
               CoreDesignerSelector.of()
                   .getSelectedSlotContext()!

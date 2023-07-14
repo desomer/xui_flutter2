@@ -19,7 +19,7 @@ abstract class CWContainer extends CWWidget {
 
   Widget getCell(int i, bool defFill, {required bool canFill}) {
     var slot = CWSlot(
-        key: GlobalKey(debugLabel: 'slot ${ctx.xid}'),
+        key: GlobalKey(debugLabel: 'slot ${ctx.xid}$i'),
         ctx: createChildCtx("Cont", i));
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
     //print("getCell -------- ${slot.ctx.xid} $constraint");
@@ -27,6 +27,8 @@ abstract class CWContainer extends CWWidget {
     int flex = constraint?.designEntity?.value["flex"] ?? 1;
     bool loose = constraint?.designEntity?.value["tight/loose"] ?? false;
     int? height = constraint?.designEntity?.value["height"];
+
+    // var slot2 = IntrinsicHeight(child: slot);
 
     if (height != null && height > 5) {
       return SizedBox(height: height.toDouble(), child: slot);
@@ -59,7 +61,7 @@ class CWColumn extends CWContainer {
         .addWidget(
             (CWColumn),
             (CWWidgetCtx ctx) =>
-                CWColumn(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+                CWColumn(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
@@ -80,7 +82,7 @@ class CWColumn extends CWContainer {
 class CWColumnState extends StateCW<CWColumn> {
   @override
   Widget build(BuildContext context) {
-    if (widget.ctx.modeRendering == ModeRendering.design) {
+    if (widget.ctx.factory.modeRendering == ModeRendering.design) {
       double lasth = h;
 
       // gestion de la zone de drop Filler
@@ -116,15 +118,20 @@ class CWColumnState extends StateCW<CWColumn> {
       final List<Widget> listSlot = [];
       final nb = widget.getNbChild();
       for (var i = 0; i < nb; i++) {
-        listSlot.add(widget.getCell(i, false, canFill: viewportConstraints.hasBoundedHeight));
+        listSlot.add(widget.getCell(i, false,
+            canFill: viewportConstraints.hasBoundedHeight));
       }
-      listStack.add(Column(mainAxisSize: MainAxisSize.min, children: listSlot));
-      if (widget.ctx.modeRendering == ModeRendering.design) {
-        Widget? filler = getFiller();
-        if (filler != null) {
-          listStack.add(filler);
-        }
-      }
+      listStack.add(Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: listSlot));
+      // if (widget.ctx.modeRendering == ModeRendering.design) {
+      //   Widget? filler = getFiller();
+      //   if (filler != null) {
+      //     listStack.add(filler);
+      //   }
+      // }
 
       return Stack(
           key: GlobalKey(debugLabel: "CWColumnState"), children: listStack);
@@ -164,7 +171,7 @@ class CWRow extends CWContainer {
         .addWidget(
             (CWRow),
             (CWWidgetCtx ctx) =>
-                CWRow(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+                CWRow(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
@@ -193,6 +200,10 @@ class CWRowState extends StateCW<CWRow> {
       listSlot.add(widget.getCell(i, true, canFill: true));
     }
 
-    return Row(children: listSlot);
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: listSlot);
   }
 }

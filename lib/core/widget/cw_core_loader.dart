@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../designer/prop_builder.dart';
 import '../data/core_data.dart';
 import '../../designer/cw_factory.dart';
+import 'cw_core_widget.dart';
+
 
 abstract class CWLoader {
   CWLoader(LoaderCtx ctx) {
     ctxLoader = ctx;
-    cwFactory = ctx.collection.createEntity('CWFactory');
-    ctxLoader.factory = WidgetFactoryEventHandler(ctx.collection, ctx.mode);
+    cwFactory = ctx.collectionWidget.createEntity('CWFactory');
+    ctxLoader.factory =
+        WidgetFactoryEventHandler(ctx.collectionWidget, ctx.mode, ctx);
     ctxLoader.entityCWFactory = cwFactory;
-    collection = ctx.collection;
+    collection = ctx.collectionWidget;
   }
 
   late LoaderCtx ctxLoader;
@@ -94,4 +96,66 @@ abstract class CWLoader {
   }
 
   CoreDataEntity getCWFactory();
+}
+
+class LoaderCtx {
+  late CoreDataCollection collectionWidget;
+  late CoreDataCollection collectionAppli;
+  WidgetFactoryEventHandler? factory;
+  late CoreDataEntity entityCWFactory;
+  late ModeRendering mode;
+}
+
+class DesignCtx extends LoaderCtx {
+  late String pathWidget;
+  String? xid;
+  CWWidget? widget;
+
+  String? pathDesign;
+  String? pathCreate;
+  bool isSlot = false;
+  CoreDataEntity? designEntity;
+
+  DesignCtx ofWidgetPath(CWWidgetCtx ctx, String path) {
+    pathWidget = path;
+    xid = ctx.factory.mapXidByPath[path];
+    widget = ctx.factory.mapWidgetByXid[xid];
+    if (widget != null) {
+      pathDesign = widget?.ctx.pathDataDesign;
+      pathCreate = widget?.ctx.pathDataCreate;
+      designEntity = widget!.ctx.designEntity;
+    } else {
+      isSlot = true;
+    }
+    mode = ModeRendering.view;
+    this.factory = ctx.factory;
+    collectionWidget = ctx.factory.collection;
+    return this;
+  }
+
+  DesignCtx forDesign(CWWidgetCtx ctx) {
+    pathWidget = ctx.pathWidget;
+    var isNotSlot = ctx.designEntity != null &&
+        ctx.designEntity != ctx.inSlot?.ctx.designEntity;
+
+    if (isNotSlot) {
+      xid = ctx.factory.mapXidByPath[pathWidget];
+      widget = ctx.factory.mapWidgetByXid[xid];
+      pathDesign = widget?.ctx.pathDataDesign;
+      pathCreate = widget?.ctx.pathDataCreate;
+    } else {
+      xid = ctx.inSlot!.ctx.xid;
+      widget = ctx.inSlot!;
+      isSlot = true;
+    }
+
+    if (widget != null) {
+      designEntity = widget!.ctx.designEntity;
+    }
+    mode = ModeRendering.view;
+    this.factory = ctx.factory;
+    collectionWidget = ctx.factory.collection;
+
+    return this;
+  }
 }

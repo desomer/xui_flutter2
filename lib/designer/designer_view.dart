@@ -6,7 +6,6 @@ import '../core/widget/cw_core_selector_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../test_loader.dart';
 import 'cw_factory.dart';
-import 'prop_builder.dart';
 
 // ignore: must_be_immutable
 class DesignerView extends StatefulWidget {
@@ -26,7 +25,7 @@ class DesignerView extends StatefulWidget {
     if (rootWidget != null) return rootWidget!;
 
     LoaderCtx ctx = LoaderCtx();
-    ctx.collection = CWCollection().collection;
+    ctx.collectionWidget = CWCollection().collection;
     ctx.mode = ModeRendering.design;
     loader = CWLoaderTest(ctx);
     rootWidget = loader.getWidget();
@@ -36,7 +35,6 @@ class DesignerView extends StatefulWidget {
   CWWidget? getWidgetByPath(String path) {
     return factory.mapWidgetByXid[factory.mapXidByPath[path] ?? ""];
   }
-
 }
 
 class DesignerViewState extends State<DesignerView> {

@@ -12,9 +12,9 @@ import '../../widget/cw_toolkit.dart';
 import 'cw_core_selector_action.dart';
 import 'cw_core_widget.dart';
 
-// ignore: must_be_immutable
+
 class SelectorWidget extends StatefulWidget {
-  SelectorWidget({super.key, required this.child, required this.ctx});
+  const SelectorWidget({super.key, required this.child, required this.ctx});
 
   final Widget child;
   final CWWidgetCtx ctx;
@@ -22,7 +22,6 @@ class SelectorWidget extends StatefulWidget {
   static String hoverPath = '';
   static SelectorWidgetState? lastStateOver;
 
-  bool isHover = false;
 
   @override
   State<SelectorWidget> createState() => SelectorWidgetState();
@@ -34,6 +33,7 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
     return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy + 30);
   }
 
+  bool isHover = false;
   bool menuIsOpen = false;
   double hm = 0;
   double wm = 0;
@@ -70,7 +70,7 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
       }
     });
 
-    if (widget.isHover) {
+    if (isHover) {
       return _getBorderOver(widget.child, Colors.grey, 2);
     } else if (widget.ctx.isSelected()) {
       return _getBorderOver(widget.child, Colors.deepOrange, 4);
@@ -111,7 +111,7 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
 
     widget.ctx.lastEvent = d;
 
-    if (widget.isHover) {
+    if (isHover) {
       bool isSelectionChange = !widget.ctx.isSelected();
 
       if (isSelectionChange) {
@@ -146,14 +146,14 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
   void onExit(PointerExitEvent e) {
     if (menuIsOpen) return; // ouverture du menu ne ferme pas le hover
 
-    if (widget.isHover) {
+    if (isHover) {
       setState(() {
         if (SelectorWidget.hoverPath == widget.ctx.pathWidget) {
           //debugPrint('onExit hover ${widget.ctx.pathWidget} =>$e');
           SelectorWidget.hoverPath = '';
           SelectorWidget.lastStateOver = null;
         }
-        widget.isHover = false;
+        isHover = false;
       });
     }
   }
@@ -162,11 +162,11 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
     final bool isParent = SelectorWidget.hoverPath != widget.ctx.pathWidget &&
         SelectorWidget.hoverPath.startsWith(widget.ctx.pathWidget);
 
-    if (!isParent && !widget.isHover) {
+    if (!isParent && !isHover) {
       removeLastOver();
 
       setState(() {
-        widget.isHover = true;
+        isHover = true;
         SelectorWidget.lastStateOver = this;
         SelectorWidget.hoverPath = widget.ctx.pathWidget;
       });
@@ -181,7 +181,7 @@ class SelectorWidgetState extends StateCW<SelectorWidget> {
 
     if (remove && current.mounted) {
       current.setState(() {
-        current.widget.isHover = false;
+        current.isHover = false;
       });
     }
   }

@@ -4,8 +4,19 @@ import 'core_data.dart';
 enum CWProviderAction { onStateCreate, onChange, onMountWidget }
 
 class CWProvider {
-  CWProvider(this.current);
-  CoreDataEntity current;
+  CWProvider();
+  List<CoreDataEntity> content = [];
+  int idx = -1;
+
+  add(CoreDataEntity add) {
+    content.add(add);
+    if (idx == -1) idx = 0;
+  }
+
+  CoreDataEntity getCurrent() {
+    return content[idx];
+  }
+
   Map<CWProviderAction, List<CoreDataAction>> actions = {};
 
   CWProvider addAction(CWProviderAction idAction, CoreDataAction action) {
@@ -31,28 +42,28 @@ class CWProvider {
   }
 
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
-    dynamic val = current.value[ctx.designEntity?.getString(propName)];
+    dynamic val = getCurrent().value[ctx.designEntity?.getString(propName)];
     return val?.toString() ?? "";
   }
 
   bool getBoolValueOf(CWWidgetCtx ctx, String propName) {
-    dynamic val = current.value[ctx.designEntity?.getString(propName)];
+    dynamic val = getCurrent().value[ctx.designEntity?.getString(propName)];
     return val ?? false;
   }
 
   void setValueOf(
       CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
     dynamic v = val;
-    CoreDataAttribut? attr = current.getAttrByName(
+    CoreDataAttribut? attr = getCurrent().getAttrByName(
         ctx.factory.collection, ctx.designEntity!.getString(propName)!);
     if (attr?.type == CDAttributType.CDint) {
       v = int.tryParse(val);
     }
-    current.setAttr(
+    getCurrent().setAttr(
         ctx.factory.collection, ctx.designEntity!.getString(propName)!, v);
 
-    if (current.operation == CDAction.none) {
-      current.operation = CDAction.create;
+    if (getCurrent().operation == CDAction.none) {
+      getCurrent().operation = CDAction.create;
       doAction(ctx, event, CWProviderAction.onStateCreate);
     }
     doAction(ctx, event, CWProviderAction.onChange);

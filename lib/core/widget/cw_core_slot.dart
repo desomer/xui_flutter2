@@ -6,11 +6,10 @@ import '../../designer/action_manager.dart';
 import 'cw_core_selector.dart';
 import 'cw_core_widget.dart';
 
-// ignore: must_be_immutable
 class CWSlot extends CWWidget {
-  CWSlot({required super.key, this.childForced, required super.ctx});
+  const CWSlot({required super.key, this.childForced, required super.ctx});
 
-  Widget? childForced;
+  final Widget? childForced;
 
   @override
   State<CWSlot> createState() => _CWSlotState();
@@ -21,10 +20,29 @@ class CWSlot extends CWWidget {
   }
 }
 
+class _SlotDesign {
+  _SlotDesign(this.contentWidget, this.constraints);
+  Widget? contentWidget;
+  BoxConstraints constraints;
+}
+
 class _CWSlotState extends StateCW<CWSlot> {
   @override
   Widget build(BuildContext context) {
-    widget.ctx.isSlot = widget;
+    initSlot();
+
+    Widget? contentWidget = widget.childForced ?? widget.ctx.getWidgetInSlot();
+
+    return LayoutBuilder(builder: (context, constraints) {
+      return widget.ctx.factory.modeRendering == ModeRendering.design
+          ? getSelector(contentWidget, _SlotDesign(contentWidget, constraints))
+          : getSlotDesign(
+              contentWidget, _SlotDesign(contentWidget, constraints));
+    });
+  }
+
+  void initSlot() {
+    widget.ctx.inSlot = widget;
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
 
@@ -36,13 +54,9 @@ class _CWSlotState extends StateCW<CWSlot> {
     }
 
     slotConfig!.slot = widget;
-    widget.ctx.designEntity ??=  widget.ctx.factory.mapConstraintByXid[slotConfig.xid]?.designEntity;
-
-    Widget? contentWidget = widget.childForced ?? widget.ctx.getWidgetInSlot();
-
-    return widget.ctx.modeRendering == ModeRendering.design
-        ? getSelector(contentWidget)
-        : getSlotDesign(contentWidget);
+    // init le design Constraint du slot
+    widget.ctx.designEntity ??=
+        widget.ctx.factory.mapConstraintByXid[slotConfig.xid]?.designEntity;
   }
 
   /////////////////////////////////////////////////////////////////
@@ -72,26 +86,30 @@ class _CWSlotState extends StateCW<CWSlot> {
     });
   }
 
-  Widget getSlotDesign(Widget? widgetToDisplay) {
+  SelectorWidget getSelector(Widget? widgetToDisplay, _SlotDesign slotDesign) {
+    return SelectorWidget(
+      ctx: widget.ctx,
+      child: getSlotDesign(widgetToDisplay, slotDesign),
+    );
+  }
+
+  Widget getSlotDesign(Widget? widgetToDisplay, _SlotDesign slotDesign) {
     if (widgetToDisplay != null) {
       return widgetToDisplay;
     } else {
+      //bool hasBoundedHeight = slotDesign.constraints.hasBoundedHeight;
+
+      const slot = Center(
+          child: Text(
+        'Slot', //${widget.ctx.xid}
+        style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+      ));
+
       return getDropZone(DottedBorder(
           color: Colors.grey,
           dashPattern: const <double>[6, 6],
           strokeWidth: 1,
-          child: const Center(
-              child: Text(
-            'Slot',
-            style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-          ))));
+          child: slot));
     }
-  }
-
-  SelectorWidget getSelector(Widget? widgetToDisplay) {
-    return SelectorWidget(
-      ctx: widget.ctx,
-      child: getSlotDesign(widgetToDisplay),
-    );
   }
 }

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/widget/cw_core_widget.dart';
 
-
-class CWTextfield extends CWWidgetInput {
+class CWTextfield extends CWWidgetMap {
   const CWTextfield({
     super.key,
     required super.ctx,

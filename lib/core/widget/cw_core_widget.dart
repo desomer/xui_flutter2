@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 
-import '../../designer/designer.dart';
 import '../../designer/selector_manager.dart';
 import '../data/core_data.dart';
 import '../data/core_provider.dart';
@@ -39,7 +38,7 @@ abstract class CWWidget extends StatefulWidget {
 
   CWWidgetCtx createChildCtx(String id, int? idx) {
     return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.factory,
-        '${ctx.pathWidget}.$id${idx?.toString() ?? ''}', ctx.modeRendering);
+        '${ctx.pathWidget}.$id${idx?.toString() ?? ''}');
   }
 
   void repaint() {
@@ -53,8 +52,8 @@ abstract class StateCW<T extends StatefulWidget> extends State<T> {
   }
 }
 
-abstract class CWWidgetInput extends CWWidget {
-  const CWWidgetInput({super.key, required super.ctx});
+abstract class CWWidgetMap extends CWWidget {
+  const CWWidgetMap({super.key, required super.ctx});
 
   String getValue() {
     CWProvider? provider = CWProvider.of(ctx);
@@ -73,22 +72,48 @@ abstract class CWWidgetInput extends CWWidget {
     }
   }
 
+  int getItemsCount() {
+    CWProvider? provider = CWProvider.of(ctx);
+    if (provider != null) {
+      return provider.content.length;
+    }
+    return -1;
+  }
+
+  void setIdx(int idx) {
+    CWProvider? provider = CWProvider.of(ctx);
+    if (provider != null) {
+      provider.idx = idx;
+    }
+  }
+
   String getLabel() {
     return ctx.designEntity?.getString('label') ?? '[empty]';
   }
 }
 
 class CWWidgetCtx {
-  CWWidgetCtx(this.xid, this.factory, this.pathWidget, this.modeRendering);
-  ModeRendering modeRendering;
+  CWWidgetCtx(this.xid, this.factory, this.pathWidget);
   String xid;
   String pathWidget;
   WidgetFactoryEventHandler factory;
   CoreDataEntity? designEntity;
   String? pathDataDesign;
   String? pathDataCreate;
-  CWSlot? isSlot;
+  CWSlot? inSlot;
   dynamic lastEvent;
+
+  GlobalKey? getKey() {
+    return factory.modeRendering == ModeRendering.design
+        ? GlobalKey(debugLabel: xid)
+        : null;
+  }
+
+  GlobalKey? getSlotKey(String prefix) {
+    return factory.modeRendering == ModeRendering.design
+        ? GlobalKey(debugLabel: "$xid$prefix")
+        : null;
+  }
 
   static String getParentPathFrom(String path) {
     String p = path;
@@ -109,23 +134,18 @@ class CWWidgetCtx {
   }
 
   CWWidget? getParentCWWidget() {
-    WidgetFactoryEventHandler factory = CoreDesigner.ofFactory();
-
     String? xid = factory.mapXidByPath[getParentPath()];
     CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
     return widget;
   }
 
   CWWidget? getCWWidget() {
-    WidgetFactoryEventHandler factory = CoreDesigner.ofFactory();
-
     String? xid = factory.mapXidByPath[pathWidget];
     CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
     return widget;
   }
 
   CWSlot? getSlot() {
-    WidgetFactoryEventHandler factory = CoreDesigner.ofFactory();
     return factory.mapSlotConstraintByPath[pathWidget]?.slot;
   }
 
@@ -133,9 +153,9 @@ class CWWidgetCtx {
     CWWidget? wid = factory.mapWidgetByXid[xid];
     if (wid == null) {
       SlotConfig? slotConfig = factory.mapSlotConstraintByPath[pathWidget];
-      isSlot = slotConfig?.slot;
+      inSlot = slotConfig?.slot;
     } else {
-      isSlot = wid.ctx.isSlot;
+      inSlot = wid.ctx.inSlot;
     }
     return this;
   }

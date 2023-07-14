@@ -16,7 +16,7 @@ class CWTab extends CWWidget {
         .addWidget(
             (CWTab),
             (CWWidgetCtx ctx) =>
-                CWTab(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+                CWTab(key: ctx.getKey(), ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
         .withAction(AttrActionDefault(2))
         .addAttr('heightTabBar', CDAttributType.CDint)

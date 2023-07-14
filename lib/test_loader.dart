@@ -9,7 +9,7 @@ class CWLoaderTest extends CWLoader {
     setRoot('CWFrameDesktop');
     setProp(
         'root',
-        ctxLoader.collection.createEntityByJson('CWFrameDesktop',
+        ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',
             <String, dynamic>{'title': 'un titre modifiable'}));
 
     //------------------------------------------------------------------

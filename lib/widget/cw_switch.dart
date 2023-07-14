@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/widget/cw_core_widget.dart';
 
-
-class CWSwitch extends CWWidgetInput {
+class CWSwitch extends CWWidgetMap {
   const CWSwitch({
     super.key,
     required super.ctx,

@@ -75,7 +75,7 @@ class DesignActionManager {
         .addChild(toCtxSlot.xid, "${toCtxSlot.xid}child", desc.impl);
 
     final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, toCtxSlot.factory,
-        '${toCtxSlot.pathWidget}.${toCtxSlot.xid}', ModeRendering.design);
+        '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
 
     CoreDataCtx ctx = CoreDataCtx();
     ctx.payload = ctxW;
@@ -97,7 +97,7 @@ class DesignActionManager {
         .addChild(toCtxSlot.xid, child.ctx.xid, cwchild.value["implement"]);
 
     final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, ctxSlot.factory,
-        '${toCtxSlot.pathWidget}.${toCtxSlot.xid}', ModeRendering.design);
+        '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
 
     CoreDataCtx ctx = CoreDataCtx();
     ctx.payload = ctxW;

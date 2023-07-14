@@ -4,6 +4,7 @@ import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
 import 'prop_builder.dart';
@@ -79,9 +80,7 @@ class MapDesign extends CoreDataAction {
   execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
     debugPrint("set prop on ${aCtx.xid}");
 
-    aCtx.widget?.ctx.designEntity = prop;
-    CoreDesigner.ofLoader().setProp(aCtx.xid!, prop);
-    debugPrint('object  ${CoreDesigner.ofLoader().cwFactory}');
+    PropBuilder.setDesignOn(aCtx, prop);
   }
 }
 
@@ -96,7 +95,7 @@ class MapConstraint extends CoreDataAction {
     debugPrint("set constraint on ${aCtx.xid}");
 
     CWWidgetCtx ctxConstraint = CWWidgetCtx(
-        aCtx.xid!, CoreDesigner.ofFactory(), "?", ModeRendering.design);
+        aCtx.xid!, CoreDesigner.ofFactory(), "?");
     ctxConstraint.designEntity = prop;
     CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!] = ctxConstraint;
 
