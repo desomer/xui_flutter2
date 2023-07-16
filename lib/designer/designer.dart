@@ -4,6 +4,7 @@ import 'package:flutter_material_color_picker/flutter_material_color_picker.dart
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
+import 'package:xui_flutter/designer/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
 import '../deprecated/core_array.dart';
@@ -39,12 +40,12 @@ class CoreDesigner extends StatefulWidget {
     return _coreDesigner.view;
   }
 
-  static CWLoader ofLoader() {
+  static CWWidgetLoader ofLoader() {
     return _coreDesigner.view.loader;
   }
 
   static WidgetFactoryEventHandler ofFactory() {
-    return _coreDesigner.view.factory;
+    return ofLoader().ctxLoader.factory;
   }
 
   static late CoreDesigner _coreDesigner;
@@ -129,7 +130,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                 children: [
                   BreadCrumbNavigator(currentRouteStack),
                   const Spacer(),
-                  const Text('ElisView v0.1')
+                  const Text('ElisView v0.2')
                 ]),
           ),
           body: PageStorage(bucket: _bucket, child: nav),
@@ -202,34 +203,53 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDataPan() {
+    var viewAttribute = Container(
+      color: Colors.black26,
+      child: Stack(
+        children: [
+          Positioned(
+              left: 20,
+              top: 20,
+              width: 200,
+              // height: 500,
+              child: Container(
+                  decoration:
+                      BoxDecoration(border: Border.all(color: Colors.grey)),
+                  width: 100,
+                  child: DesignerModel()))
+        ],
+      ),
+    );
+
+    WidgetTab tab = WidgetTab(
+      listTab: const [
+        Tab(text: "Model", icon: Icon(Icons.data_object)),
+        Tab(text: "Data", icon: Icon(Icons.table_chart))
+      ],
+      listTabCont: [
+        Column(children: [
+          Expanded(
+              child: Row(
+            children: [
+              Expanded(child: viewAttribute),
+              SizedBox(
+                width: 300,
+                child: Column(children: AttributDesc.getListAttr),
+              )
+            ],
+          ))
+        ]),
+        Container()
+      ],
+    );
+
     return Row(
       children: [
-        const SizedBox(
+        SizedBox(
           width: 200,
           child: DesignerListModel(),
         ),
-        Expanded(
-            child: Container(
-            color: Colors.black26,
-          child: Stack(
-            children: [
-              Positioned(
-                  left: 20,
-                  top: 20,
-                  width: 200,
-                  // height: 500,
-                  child: Container(
-                      decoration:
-                          BoxDecoration(border: Border.all(color: Colors.grey)),
-                      width: 100,
-                      child: DesignerModel()))
-            ],
-          ),
-        )),
-        Container(
-          width: 300,
-          child: Column(children: AttributDesc.getListAttr),
-        )
+        Expanded(child: tab)
       ],
     );
   }

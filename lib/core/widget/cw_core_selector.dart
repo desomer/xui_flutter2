@@ -22,12 +22,11 @@ class SelectorWidget extends StatefulWidget {
   static String hoverPath = '';
   static SelectorWidgetState? lastStateOver;
 
-
   @override
   State<SelectorWidget> createState() => SelectorWidgetState();
 }
 
-class SelectorWidgetState extends StateCW<SelectorWidget> {
+class SelectorWidgetState extends State<SelectorWidget> {
   Offset dragAnchorStrategy(
       Draggable<Object> d, BuildContext context, Offset point) {
     return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy + 30);

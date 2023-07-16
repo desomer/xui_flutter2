@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
@@ -24,20 +23,14 @@ class CWCollection {
 
   /////////////////////////////////////////////////////////////////////////
   void _initWidget() {
-    addWidget(
-            (CWFrameDesktop),
-            (CWWidgetCtx ctx) =>
-                CWFrameDesktop(key: GlobalKey(debugLabel: ctx.xid), ctx: ctx))
+    addWidget((CWFrameDesktop),
+            (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
         .addAttr('title', CDAttributType.CDtext)
         .addAttr('fill', CDAttributType.CDbool);
 
     CWTab.initFactory(this);
 
-    addWidget((CWTextfield),
-            (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
-        .addAttr('label', CDAttributType.CDtext)
-        .addAttr('bind', CDAttributType.CDtext)
-        .addAttr('providerName', CDAttributType.CDtext);
+    CWTextfield.initFactory(this);
 
     addWidget((CWSwitch),
             (CWWidgetCtx ctx) => CWSwitch(key: ctx.getKey(), ctx: ctx))
@@ -81,12 +74,8 @@ class CWCollection {
 }
 
 class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
-  WidgetFactoryEventHandler(this.collection, this.modeRendering, this.loader);
-
-  LoaderCtx loader;
-  ModeRendering modeRendering;
-  CoreDataCollection collection;
-  CoreDataEntity? cwFactory;
+  WidgetFactoryEventHandler(this.loader);
+  CWWidgetLoaderCtx loader;
 
   Map<String, CWWidget> mapWidgetByXid = <String, CWWidget>{};
   Map<String, CWWidgetCtx> mapConstraintByXid = <String, CWWidgetCtx>{};
@@ -119,7 +108,6 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   @override
   void process(CoreDataCtx ctx) {
     // super.process(ctx);
-
     if (ctx.event!.action.startsWith('browserObjectEnd')) {
       // final String id = ctx.getPathData();
       // final String idParent = ctx.getParentPathData();
@@ -130,9 +118,10 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
         final String implement =
             ctx.event!.entity.getString('implement', def: '')!;
-        final CWWidgetCtx ctxW = CWWidgetCtx(xid, this, xid);
+        final CWWidgetCtx ctxW = CWWidgetCtx(xid, loader, xid);
         ctx.payload = ctxW;
-        final CoreDataObjectBuilder wid = collection.getClass(implement)!;
+        final CoreDataObjectBuilder wid =
+            loader.collectionWidget.getClass(implement)!;
         final CWWidget r = wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
         mapWidgetByXid[xid] = r;
         r.ctx.pathDataCreate = ctx.getPathData();
@@ -144,8 +133,8 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         //mapPathDesignByXid[xid] = path;
         mapWidgetByXid[xid]?.ctx.pathDataDesign = path;
 
-        final CoreDataEntity? prop =
-            ctx.event!.entity.getOneEntity(collection, 'properties');
+        final CoreDataEntity? prop = ctx.event!.entity
+            .getOneEntity(loader.collectionWidget, 'properties');
         if (prop != null) {
           mapWidgetByXid[xid]?.ctx.designEntity = prop;
           CWWidgetEvent ctxWE = CWWidgetEvent();
@@ -158,18 +147,17 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
               .execute(mapWidgetByXid[xid]!.ctx, ctxWE);
         }
 
-        final CoreDataEntity? constraint =
-            ctx.event!.entity.getOneEntity(collection, 'constraint');
+        final CoreDataEntity? constraint = ctx.event!.entity
+            .getOneEntity(loader.collectionWidget, 'constraint');
         if (constraint != null) {
-          CWWidgetCtx ctxConstraint =
-              CWWidgetCtx(xid, this, "?");
+          CWWidgetCtx ctxConstraint = CWWidgetCtx(xid, loader, "?");
           ctxConstraint.designEntity = constraint;
           ctxConstraint.pathDataDesign = ctx.getPathData();
           mapConstraintByXid[xid] = ctxConstraint;
         }
 
         final CoreDataEntity? child =
-            ctx.event!.entity.getOneEntity(collection, 'child');
+            ctx.event!.entity.getOneEntity(loader.collectionWidget, 'child');
         if (child != null) {
           mapChildXidByXid[xid] = child.getString('xid', def: '')!;
           //debugPrint('$xid ==== ${mapChildXidByXid[xid]}');

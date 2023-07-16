@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/core/data/core_provider.dart';
 
 import '../data/core_data.dart';
 import '../../designer/cw_factory.dart';
 import 'cw_core_widget.dart';
 
-
-abstract class CWLoader {
-  CWLoader(LoaderCtx ctx) {
+abstract class CWWidgetLoader {
+  CWWidgetLoader(CWWidgetLoaderCtx ctx) {
     ctxLoader = ctx;
-    cwFactory = ctx.collectionWidget.createEntity('CWFactory');
-    ctxLoader.factory =
-        WidgetFactoryEventHandler(ctx.collectionWidget, ctx.mode, ctx);
-    ctxLoader.entityCWFactory = cwFactory;
-    collection = ctx.collectionWidget;
   }
 
-  late LoaderCtx ctxLoader;
-  late CoreDataEntity cwFactory;
-  late CoreDataCollection collection;
+  late CWWidgetLoaderCtx ctxLoader;
+
+  CoreDataEntity get cwFactory {
+    return ctxLoader.entityCWFactory;
+  }
+
+  CoreDataCollection get collection {
+    return ctxLoader.collectionWidget;
+  }
+
+  CWProvider? getProvider(String name) {
+    return ctxLoader.factory.mapProvider[name];
+  }
 
   setRoot(String implement) {
     cwFactory.setOne(
@@ -84,12 +89,12 @@ abstract class CWLoader {
     final CoreDataEntity aCWFactory = getCWFactory();
     final CoreDataCtx ctx = CoreDataCtx();
 
-    ctx.browseHandler = ctxLoader.factory!;
-    ctxLoader.factory!.cwFactory = aCWFactory;
+    ctx.browseHandler = ctxLoader.factory;
+    ctxLoader.entityCWFactory = aCWFactory;
     aCWFactory.browse(collection, ctx);
 
-    final rootWidget = ctxLoader.factory!.mapWidgetByXid['root']!;
-    ctxLoader.factory!.mapXidByPath['root'] = 'root';
+    final rootWidget = ctxLoader.factory.mapWidgetByXid['root']!;
+    ctxLoader.factory.mapXidByPath['root'] = 'root';
     rootWidget.initSlot('root');
 
     return rootWidget;
@@ -98,15 +103,32 @@ abstract class CWLoader {
   CoreDataEntity getCWFactory();
 }
 
-class LoaderCtx {
+class CWWidgetLoaderCtx {
   late CoreDataCollection collectionWidget;
   late CoreDataCollection collectionAppli;
-  WidgetFactoryEventHandler? factory;
+  late WidgetFactoryEventHandler factory;
   late CoreDataEntity entityCWFactory;
   late ModeRendering mode;
+
+  CWWidgetLoaderCtx from(CWWidgetLoaderCtx ctx) {
+    mode = ModeRendering.view;
+    collectionWidget = ctx.collectionWidget;
+    collectionAppli = ctx.collectionAppli;
+    createFactory();
+    return this;
+  }
+
+  void createFactory() {
+    entityCWFactory = collectionWidget.createEntity('CWFactory');
+    factory = WidgetFactoryEventHandler(this);
+  }
+
+  CWProvider? getProvider(String name) {
+    return factory.mapProvider[name];
+  }
 }
 
-class DesignCtx extends LoaderCtx {
+class DesignCtx {
   late String pathWidget;
   String? xid;
   CWWidget? widget;
@@ -116,7 +138,7 @@ class DesignCtx extends LoaderCtx {
   bool isSlot = false;
   CoreDataEntity? designEntity;
 
-  DesignCtx ofWidgetPath(CWWidgetCtx ctx, String path) {
+  DesignCtx forDesignByPath(CWWidgetCtx ctx, String path) {
     pathWidget = path;
     xid = ctx.factory.mapXidByPath[path];
     widget = ctx.factory.mapWidgetByXid[xid];
@@ -127,9 +149,7 @@ class DesignCtx extends LoaderCtx {
     } else {
       isSlot = true;
     }
-    mode = ModeRendering.view;
-    this.factory = ctx.factory;
-    collectionWidget = ctx.factory.collection;
+
     return this;
   }
 
@@ -152,9 +172,6 @@ class DesignCtx extends LoaderCtx {
     if (widget != null) {
       designEntity = widget!.ctx.designEntity;
     }
-    mode = ModeRendering.view;
-    this.factory = ctx.factory;
-    collectionWidget = ctx.factory.collection;
 
     return this;
   }

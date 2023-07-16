@@ -14,9 +14,9 @@ class DesignerView extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => DesignerViewState();
 
-  late CWLoader loader;
+  late CWWidgetLoader loader;
   WidgetFactoryEventHandler get factory {
-    return loader.ctxLoader.factory!;
+    return loader.ctxLoader.factory;
   }
 
   Widget? rootWidget;
@@ -24,10 +24,14 @@ class DesignerView extends StatefulWidget {
   Widget getRoot() {
     if (rootWidget != null) return rootWidget!;
 
-    LoaderCtx ctx = LoaderCtx();
+    CWWidgetLoaderCtx ctx = CWWidgetLoaderCtx();
     ctx.collectionWidget = CWCollection().collection;
+    ctx.collectionAppli = ctx.collectionWidget;
     ctx.mode = ModeRendering.design;
+    ctx.entityCWFactory = ctx.collectionWidget.createEntity('CWFactory');
+    ctx.factory = WidgetFactoryEventHandler(ctx);
     loader = CWLoaderTest(ctx);
+
     rootWidget = loader.getWidget();
     return rootWidget!;
   }

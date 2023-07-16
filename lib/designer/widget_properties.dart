@@ -31,11 +31,11 @@ class OnMount extends CoreDataAction {
   String path;
 
   @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
-    if (ctx.designEntity!.type == "CWTextfield") {
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    if (ctx!.designEntity!.type == "CWTextfield") {
       String attr = ctx.designEntity!.value["bind"];
       CWTextfield wid = event!.payload! as CWTextfield;
-      print('-------->  $attr on $path = $wid');
+      print('--- OnMount ----->  $attr on $path = $wid');
     }
   }
 }
@@ -45,7 +45,7 @@ class RefreshDesign extends CoreDataAction {
   DesignCtx aCtx;
 
   @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     aCtx.widget!.repaint();
 
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -59,7 +59,7 @@ class RefreshDesignParent extends CoreDataAction {
   DesignCtx aCtx;
 
   @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CWWidget? widget = CoreDesigner.ofView()
         .getWidgetByPath(CWWidgetCtx.getParentPathFrom(aCtx.pathWidget));
     widget?.repaint();
@@ -77,7 +77,7 @@ class MapDesign extends CoreDataAction {
   MapDesign(this.aCtx, this.prop);
 
   @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     debugPrint("set prop on ${aCtx.xid}");
 
     PropBuilder.setDesignOn(aCtx, prop);
@@ -91,11 +91,11 @@ class MapConstraint extends CoreDataAction {
   MapConstraint(this.aCtx, this.prop);
 
   @override
-  execute(CWWidgetCtx ctx, CWWidgetEvent? event) {
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     debugPrint("set constraint on ${aCtx.xid}");
 
     CWWidgetCtx ctxConstraint = CWWidgetCtx(
-        aCtx.xid!, CoreDesigner.ofFactory(), "?");
+        aCtx.xid!, CoreDesigner.ofLoader().ctxLoader, "?");
     ctxConstraint.designEntity = prop;
     CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!] = ctxConstraint;
 

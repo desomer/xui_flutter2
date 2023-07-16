@@ -2,15 +2,18 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-
 class AttributDesc {
   static List<Widget> get getListAttr {
     return [
       CardAttribut("Simple", [
         AttributDesc('Text', Icons.format_quote, "Text"),
-        AttributDesc('Integer', Icons.table_rows_rounded, "Integer"),
-        AttributDesc('Double', Icons.view_week, "Double"),
-        AttributDesc('Date', Icons.tab, "Date")
+        AttributDesc('Integer', Icons.pin, "Integer"),
+        AttributDesc('Double', Icons.percent, "Double"),
+        AttributDesc('Date', Icons.event, "Date")
+      ]),
+      CardAttribut("Link", [
+        AttributDesc('One', Icons.looks_one, "One"),
+        AttributDesc('Many', Icons.data_array_rounded, "Many"),
       ])
     ];
   }
@@ -52,12 +55,14 @@ class CardAttribut extends StatelessWidget {
               width: 50.0,
               child: Icon(cmp.icon),
             ),
-            child: Row(children: [
-              Icon(cmp.icon),
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text(cmp.name))
-            ]),
+            child: InkWell(
+                onTap: () {},
+                child: Row(children: [
+                  Icon(cmp.icon),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(cmp.name))
+                ])),
           ));
     }
 

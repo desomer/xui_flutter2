@@ -9,15 +9,17 @@ import '../../widget/cw_text.dart';
 import '../../widget/cw_textfield.dart';
 
 class FormBuilder {
-  List<Widget> getFormWidget(CWProvider provider, DesignCtx ctxDesign) {
+  static const String providerName = "Form";
+
+  List<Widget> getFormWidget(CWProvider provider, CWWidgetLoaderCtx ctxLoader) {
     var listWidget = <Widget>[];
-    CoreDataEntity entity = provider.getCurrent();
+    CoreDataEntity entity = provider.getEntityByIdx(0);
 
     final CoreDataObjectBuilder builder =
-        ctxDesign.collectionWidget.getClass(entity.type)!;
+        ctxLoader.collectionWidget.getClass(entity.type)!;
     Map<String, dynamic> src = entity.value;
 
-    AttrFormLoader loader = AttrFormLoader(ctxDesign, entity);
+    AttrFormLoader loader = AttrFormLoader(ctxLoader, entity);
 
     for (final CoreDataAttribut attr in builder.attributs) {
       if (attr.type == CDAttributType.CDone) {
@@ -30,15 +32,15 @@ class FormBuilder {
       }
     }
 
-    loader.ctxLoader.factory!.mapProvider[ctxDesign.pathWidget] = provider;
+    loader.ctxLoader.factory.mapProvider[providerName] = provider;
 
     listWidget.add(loader.getWidget());
     return listWidget;
   }
 }
 
-class AttrFormLoader extends CWLoader {
-  AttrFormLoader(DesignCtx ctxDesign, this.entity) : super(ctxDesign) {
+class AttrFormLoader extends CWWidgetLoader {
+  AttrFormLoader(CWWidgetLoaderCtx ctxLoader, this.entity) : super(ctxLoader) {
     setRoot("CWExpandPanel");
   }
 
@@ -50,14 +52,14 @@ class AttrFormLoader extends CWLoader {
       addWidget('Col0Cont$nbAttr', 'attr$nbAttr', CWSwitch, <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
-        'providerName': (ctxLoader as DesignCtx).pathWidget
+        'providerName': FormBuilder.providerName
       });
     } else {
       addWidget(
           'Col0Cont$nbAttr', 'attr$nbAttr', CWTextfield, <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
-        'providerName': (ctxLoader as DesignCtx).pathWidget
+        'providerName': FormBuilder.providerName
       });
 
       // CoreDataEntity ent = cwFactory.getPath(collection, path).getLast();
@@ -69,14 +71,17 @@ class AttrFormLoader extends CWLoader {
 
   @override
   CoreDataEntity getCWFactory() {
+    CWProvider? provider = getProvider(FormBuilder.providerName);
+
     setProp(
         "root",
         ctxLoader.collectionWidget.createEntityByJson(
             'CWExpandPanel', <String, dynamic>{'count': 1}));
 
     // le titre
-    addWidget('rootTitle0', 'title0', CWText,
-        <String, dynamic>{'label': entity.type});
+    addWidget('rootTitle0', 'title0', CWText, <String, dynamic>{
+      'label': provider?.header?.value["label"] ?? entity.type
+    });
 
     // la colonne d'attribut
     addWidget('rootBody0', 'Col0', CWColumn,

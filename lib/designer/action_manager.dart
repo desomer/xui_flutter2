@@ -74,13 +74,13 @@ class DesignActionManager {
     String pathCreate = CoreDesigner.ofLoader()
         .addChild(toCtxSlot.xid, "${toCtxSlot.xid}child", desc.impl);
 
-    final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, toCtxSlot.factory,
+    final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, toCtxSlot.loader,
         '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
 
     CoreDataCtx ctx = CoreDataCtx();
     ctx.payload = ctxW;
     final CoreDataObjectBuilder wid =
-        toCtxSlot.factory.collection.getClass(desc.impl)!;
+        toCtxSlot.loader.collectionWidget.getClass(desc.impl)!;
     final CWWidget newWidget =
         wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
 
@@ -96,13 +96,13 @@ class DesignActionManager {
     String pathCreate = CoreDesigner.ofLoader()
         .addChild(toCtxSlot.xid, child.ctx.xid, cwchild.value["implement"]);
 
-    final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, ctxSlot.factory,
+    final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, ctxSlot.loader,
         '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
 
     CoreDataCtx ctx = CoreDataCtx();
     ctx.payload = ctxW;
     final CoreDataObjectBuilder wid =
-        ctxSlot.factory.collection.getClass(cwchild.value["implement"])!;
+        ctxSlot.loader.collectionWidget.getClass(cwchild.value["implement"])!;
     final CWWidget newWidget =
         wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
 
@@ -119,8 +119,8 @@ class DesignActionManager {
   }
 
   CoreDataEntity _delete(CWWidget child, CWWidgetCtx ctxSlot) {
-    CoreDataPath path = CoreDesigner.ofFactory().cwFactory!.getPath(
-        CoreDesigner.ofFactory().collection, child.ctx.pathDataCreate!);
+    CoreDataPath path = CoreDesigner.ofLoader().ctxLoader.entityCWFactory.getPath(
+        CoreDesigner.ofLoader().ctxLoader.collectionWidget, child.ctx.pathDataCreate!);
     CoreDataEntity cwchild = path.remove();
 
     ctxSlot.factory.mapWidgetByXid.remove(child.ctx.xid);

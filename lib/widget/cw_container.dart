@@ -82,7 +82,7 @@ class CWColumn extends CWContainer {
 class CWColumnState extends StateCW<CWColumn> {
   @override
   Widget build(BuildContext context) {
-    if (widget.ctx.factory.modeRendering == ModeRendering.design) {
+    if (widget.ctx.loader.mode == ModeRendering.design) {
       double lasth = h;
 
       // gestion de la zone de drop Filler

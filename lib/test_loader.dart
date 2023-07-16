@@ -1,7 +1,7 @@
 import 'core/data/core_data.dart';
 import 'core/widget/cw_core_loader.dart';
 
-class CWLoaderTest extends CWLoader {
+class CWLoaderTest extends CWWidgetLoader {
   CWLoaderTest(super.ctx);
 
   @override

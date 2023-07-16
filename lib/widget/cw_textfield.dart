@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../designer/cw_factory.dart';
+import 'cw_list.dart';
 
 class CWTextfield extends CWWidgetMap {
   const CWTextfield({
@@ -13,15 +16,34 @@ class CWTextfield extends CWWidgetMap {
 
   @override
   initSlot(String path) {}
+
+  static initFactory(CWCollection c) {
+    c
+        .addWidget((CWTextfield),
+            (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
+        .addAttr('label', CDAttributType.CDtext)
+        .addAttr('withLabel', CDAttributType.CDbool)
+        .withAction(AttrActionDefault(true))
+        .addAttr('bind', CDAttributType.CDtext)
+        .addAttr('providerName', CDAttributType.CDtext);
+  }
+
+  String? getLabelNull() {
+    return (ctx.designEntity?.getBool("withLabel", true) ?? true)
+        ? super.getLabel()
+        : null;
+  }
 }
 
 class _CWTextfieldState extends StateCW<CWTextfield> {
+  final FocusNode _focus = FocusNode();
   final TextEditingController _controller = TextEditingController();
   String? last;
 
   @override
   void initState() {
     super.initState();
+    widget.initRow(context);
     last = widget.getValue();
     _controller.text = last!;
     _controller.addListener(() {
@@ -30,35 +52,47 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
         widget.setValue(_controller.text);
         last = _controller.text;
       }
-
-      // final String text = _controller.text.toLowerCase();
-      // _controller.value = _controller.value.copyWith(
-      //   text: text,
-      //   selection:
-      //       TextSelection(baseOffset: text.length, extentOffset: text.length),
-      //   composing: TextRange.empty,
-      // );
-      //widget.ctx.entity!.setAttr(widget.ctx.factory.collection, "ok", _controller.text);
     });
+    _focus.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    debugPrint("Focus: ${_focus.hasFocus.toString()} ${widget.ctx.pathWidget}");
+    if (_focus.hasFocus) {
+      InheritedStateContainer? row =
+          context.getInheritedWidgetOfExactType<InheritedStateContainer>();
+
+      if (row != null) {
+        debugPrint("select row ${row.index}");
+        row.selected(widget.ctx);
+      }
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focus.removeListener(_onFocusChange);
+    _focus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+
+    widget.initRow(context);
+    String? label = widget.getLabelNull();
+
     return Container(
-        height: 32,
+        height: label == null ? 24 : 32,
         decoration: BoxDecoration(
             border: Border(
                 bottom: BorderSide(
                     width: 1.0, color: Theme.of(context).dividerColor))),
         child: TextField(
+          focusNode: _focus,
           controller: _controller,
-          style: const TextStyle(color: Colors.red, fontSize: 15),
+          style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
           // keyboardType: TextInputType.number,
           scrollPadding: const EdgeInsets.all(0),
           inputFormatters: <TextInputFormatter>[
@@ -71,10 +105,11 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
           decoration: InputDecoration(
               border: InputBorder.none,
               isDense: true,
-              labelText: widget.getLabel(),
+              labelText: label,
               // labelStyle: const TextStyle(color: Colors.white70),
-              contentPadding: const EdgeInsets.fromLTRB(5, 1, 5, 0)),
-          autofocus: false,
+              contentPadding:
+                  EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
+          autofocus: true,
         ));
   }
 }

@@ -37,6 +37,7 @@ class CWText extends CWWidgetMap {
 class _CWTextState extends StateCW<CWText> {
   @override
   Widget build(BuildContext context) {
+    widget.initRow(context);
     return Text(widget.getLabel());
   }
 }

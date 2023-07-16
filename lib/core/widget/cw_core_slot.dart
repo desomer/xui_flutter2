@@ -34,7 +34,7 @@ class _CWSlotState extends StateCW<CWSlot> {
     Widget? contentWidget = widget.childForced ?? widget.ctx.getWidgetInSlot();
 
     return LayoutBuilder(builder: (context, constraints) {
-      return widget.ctx.factory.modeRendering == ModeRendering.design
+      return widget.ctx.loader.mode == ModeRendering.design
           ? getSelector(contentWidget, _SlotDesign(contentWidget, constraints))
           : getSlotDesign(
               contentWidget, _SlotDesign(contentWidget, constraints));

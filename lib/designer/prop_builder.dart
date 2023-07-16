@@ -22,7 +22,7 @@ class PropBuilder {
     mapEntityByPath.clear();
 
     while (pathWidget.isNotEmpty) {
-      DesignCtx aCtx = DesignCtx().ofWidgetPath(ctx, pathWidget);
+      DesignCtx aCtx = DesignCtx().forDesignByPath(ctx, pathWidget);
 
       mapEntityByPath[pathWidget] = aCtx;
 
@@ -34,16 +34,17 @@ class PropBuilder {
           designEntity?.operation == CDAction.read;
         }
 
-        designEntity ??= PropBuilder.getEmptyEntity(aCtx);
+        designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
 
-        var provider = CWProvider()..add(designEntity);
+        var provider = CWProvider("properties", designEntity.type, null)..add(designEntity);
         provider.addAction(CWProviderAction.onChange, RefreshDesign(aCtx));
         provider.addAction(
-            CWProviderAction.onStateCreate, MapDesign(aCtx, designEntity));
+            CWProviderAction.onNone2Create, MapDesign(aCtx, designEntity));
         provider.addAction(
             CWProviderAction.onMountWidget, OnMount(aCtx, pathWidget));
 
-        listProp.addAll(FormBuilder().getFormWidget(provider, aCtx));
+        CWWidgetLoaderCtx loader = CWWidgetLoaderCtx().from(ctx.loader);
+        listProp.addAll(FormBuilder().getFormWidget(provider, loader));
       }
 
       _addSlotConstraint(aCtx, ctx, pathWidget);
@@ -61,7 +62,7 @@ class PropBuilder {
   }
 
   void _addSlotConstraint(
-      DesignCtx aCtx, CWWidgetCtx slotCtx, String pathWidget) {
+      DesignCtx ctxDesign, CWWidgetCtx slotCtx, String pathWidget) {
     SlotConfig? sc = slotCtx.factory.mapSlotConstraintByPath[pathWidget];
     // hasSlotContraint
     if (sc != null && sc.constraintEntity != null) {
@@ -72,22 +73,27 @@ class PropBuilder {
         constraintEntity?.operation == CDAction.read;
       }
 
-      constraintEntity ??= PropBuilder.getEmptyEntity(aCtxConstraint);
+      constraintEntity ??=
+          PropBuilder.getEmptyEntity(slotCtx.loader, aCtxConstraint);
 
-      var provider = CWProvider()..add(constraintEntity);
-      provider.addAction(CWProviderAction.onChange, RefreshDesignParent(aCtx));
-      provider.addAction(CWProviderAction.onStateCreate,
+      var provider = CWProvider("constraint", constraintEntity.type, null)..add(constraintEntity);
+      provider.addAction(
+          CWProviderAction.onChange, RefreshDesignParent(ctxDesign));
+      provider.addAction(CWProviderAction.onNone2Create,
           MapConstraint(aCtxConstraint, constraintEntity));
-      listProp.addAll(FormBuilder().getFormWidget(provider, aCtxConstraint));
+
+      CWWidgetLoaderCtx loader = CWWidgetLoaderCtx().from(slotCtx.loader);
+      listProp.addAll(FormBuilder().getFormWidget(provider, loader));
     }
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
-  static CoreDataEntity preparePropChange(DesignCtx aCtx) {
+  static CoreDataEntity preparePropChange(
+      CWWidgetLoaderCtx loader, DesignCtx aCtx) {
     var prop = aCtx.widget!.ctx.designEntity;
     if (prop == null) {
-      prop = getEmptyEntity(aCtx);
+      prop = getEmptyEntity(loader, aCtx);
       setDesignOn(aCtx, prop);
     } else {
       prop.operation = CDAction.read;
@@ -95,16 +101,17 @@ class PropBuilder {
     return prop;
   }
 
-  static CoreDataEntity getEmptyEntity(DesignCtx ctx) {
+  static CoreDataEntity getEmptyEntity(
+      CWWidgetLoaderCtx loader, DesignCtx aCtx) {
     CoreDataEntity emptyEntity;
-    if (ctx.isSlot) {
-      SlotConfig sc = ctx.factory!.mapSlotConstraintByPath[ctx.pathWidget]!;
-      emptyEntity = ctx.factory!.collection.createEntity(sc.constraintEntity!);
+    if (aCtx.isSlot) {
+      SlotConfig sc = loader.factory.mapSlotConstraintByPath[aCtx.pathWidget]!;
+      emptyEntity = loader.collectionWidget.createEntity(sc.constraintEntity!);
     } else {
-      CoreDataPath? path = ctx.factory?.cwFactory!
-          .getPath(ctx.factory!.collection, ctx.pathCreate!);
-      String impl = path!.entities.last.value['implement'];
-      emptyEntity = ctx.factory!.collection.createEntity(impl);
+      CoreDataPath? path = loader.entityCWFactory
+          .getPath(loader.collectionWidget, aCtx.pathCreate!);
+      String impl = path.entities.last.value['implement'];
+      emptyEntity = loader.collectionWidget.createEntity(impl);
     }
 
     return emptyEntity;
@@ -123,4 +130,3 @@ class PropBuilder {
     }
   }
 }
-

@@ -282,27 +282,13 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
               BoxSelectedState box = boxkey.currentState as BoxSelectedState;
               box.addSize(details.delta.dy, details.delta.dx);
 
-              DesignCtx aCtx = DesignCtx().forDesign(
-                  CoreDesignerSelector.of().getSelectedSlotContext()!);
-                  
-              CoreDataEntity prop = PropBuilder.preparePropChange(aCtx);
+              var selected = CoreDesignerSelector.of().getSelectedSlotContext();
+
+              DesignCtx aCtx = DesignCtx().forDesign(selected!);
+
+              CoreDataEntity prop =
+                  PropBuilder.preparePropChange(selected.loader, aCtx);
               prop.value["height"] = box.widget.getSize().height.toInt();
-
-              // if (CoreDesignerSelector.of()
-              //         .getSelectedSlotContext()!
-              //         .designEntity !=
-              //     null) {
-              //   // int v = CoreDesignerSelector.of()
-              //   //     .getSelectedSlotContext()!
-              //   //     .designEntity!
-              //   //     .value["height"];
-
-              //   CoreDesignerSelector.of()
-              //       .getSelectedSlotContext()!
-              //       .designEntity!
-              //       .value["height"] = box.widget.getSize().height.toInt();
-              //   //print("v=$v");
-              // }
 
               CoreDesignerSelector.of()
                   .getSelectedSlotContext()!
