@@ -50,8 +50,9 @@ abstract class CWWidget extends StatefulWidget {
   }
 
   void repaint() {
+    //var state = ((key as GlobalKey).currentState as StateCW?);
     ctx.state.repaint();
-//    ((key as GlobalKey).currentState as StateCW?)?.repaint();
+    //state?.repaint();
   }
 }
 
@@ -64,7 +65,9 @@ abstract class StateCW<T extends CWWidget> extends State<T> {
 
   @override
   void initState() {
-    widget.ctx.state = this;
+    if (widget.ctx.xid != "root" || widget is! CWSlot) {
+      widget.ctx.state = this;
+    }
     super.initState();
   }
 }
@@ -208,6 +211,14 @@ class CWWidgetCtx {
   CWWidget? getWidgetInSlot() {
     final String childXid = factory.mapChildXidByXid[xid] ?? '';
     return factory.mapWidgetByXid[childXid];
+  }
+
+  CWWidgetCtx? findByXid(String xid) {
+    return factory.mapWidgetByXid[xid]?.ctx;
+  }
+
+  void changeProp(String name, dynamic val) {
+    designEntity?.value[name] = val;
   }
 }
 

@@ -8,7 +8,7 @@ import '../designer/designer.dart';
 class CWFrameDesktop extends CWWidget {
   CWFrameDesktop({super.key, required super.ctx});
 
-  final keySlot = GlobalKey(debugLabel: "slot main");
+  final keySlotMain = GlobalKey(debugLabel: "slot main");
 
   @override
   State<CWFrameDesktop> createState() => _CWFrameDesktop();
@@ -61,8 +61,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
           CoreDesigner.emit(CDDesignEvent.reselect, null);
         });
       }
-      return CWSlot(
-          key: widget.keySlot,
+      var slot = CWSlot(
+          key: widget.keySlotMain,
           ctx: widget.ctx,
           childForced: MaterialApp(
               debugShowCheckedModeBanner: false,
@@ -76,6 +76,9 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
                     title: Text(widget.getTitle()),
                   ),
                   body: getBody())));
+
+      widget.ctx.inSlot = slot;
+      return slot;
     });
   }
 

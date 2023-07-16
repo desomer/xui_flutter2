@@ -53,10 +53,12 @@ class _CWSlotState extends StateCW<CWSlot> {
           widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     }
 
-    slotConfig!.slot = widget;
-    // init le design Constraint du slot
-    widget.ctx.designEntity ??=
-        widget.ctx.factory.mapConstraintByXid[slotConfig.xid]?.designEntity;
+    if (slotConfig != null) {
+      slotConfig.slot = widget;
+      // init le design Constraint du slot
+      widget.ctx.designEntity ??=
+          widget.ctx.factory.mapConstraintByXid[slotConfig.xid]?.designEntity;
+    }
   }
 
   /////////////////////////////////////////////////////////////////

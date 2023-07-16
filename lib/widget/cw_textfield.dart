@@ -49,6 +49,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     _controller.addListener(() {
       //print('_controller $_controller');
       if (_controller.text != last) {
+        widget.initRow(context);
         widget.setValue(_controller.text);
         last = _controller.text;
       }

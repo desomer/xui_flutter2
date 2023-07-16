@@ -21,8 +21,12 @@ class DesignerListModel extends StatefulWidget {
   }
 
   static late CWProvider provider;
+  static bool isInit = false;
 
   static initModel() {
+    if (isInit) return;
+
+    isInit = true;
     modelCollection.addObject("DataModel")
       ..addAttribut("name", CDAttributType.CDtext)
       ..addAttribut("listAttr", CDAttributType.CDmany);
@@ -82,6 +86,7 @@ class _DesignerListModelState extends State<DesignerListModel> {
     ctx.collectionWidget = CoreDesigner.ofLoader().ctxLoader.collectionWidget;
     ctx.collectionAppli = DesignerListModel.modelCollection;
 
+    DesignerListModel.provider.actions.clear();
     DesignerListModel.provider
         .addAction(CWProviderAction.onInsertNone, OnInsertModel(ctx));
     DesignerListModel.provider.addAction(CWProviderAction.onBuild, OnBuild());
@@ -122,7 +127,10 @@ class OnSelectModel extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    DesignerModel.loaderAttribut.factory.mapWidgetByXid["Col0"]!.repaint();
+    var name = event!.provider?.getSelectedEntity().value["name"];
+
+    DesignerModel.loaderAttribut.findByXid("title0")!.changeProp("label", name);
+    DesignerModel.loaderAttribut.factory.mapWidgetByXid["root"]!.repaint();
   }
 }
 
@@ -145,6 +153,7 @@ class DesignerModel extends StatefulWidget {
 
   static CWWidgetLoaderCtx loaderAttribut = CWWidgetLoaderCtx();
   static bool isInit = false;
+
   static initModel() {
     if (!isInit) {
       isInit = true;
@@ -166,6 +175,11 @@ class _DesignerModelState extends State<DesignerModel> {
         "ModelAttributs",
         CoreDataLoaderProvider(DesignerModel.loaderAttribut,
             DesignerListModel.provider, "listAttr"));
+
+    var name = DesignerListModel.provider.getSelectedEntity().value["name"];
+
+    provider.header = DesignerModel.loaderAttribut.collectionAppli
+        .createEntityByJson("DataModel", {"label": name});
 
     List<Widget> listModel =
         ArrayBuilder().getArrayWidget(provider, DesignerModel.loaderAttribut);

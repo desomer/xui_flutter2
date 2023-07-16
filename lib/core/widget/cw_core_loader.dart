@@ -126,6 +126,11 @@ class CWWidgetLoaderCtx {
   CWProvider? getProvider(String name) {
     return factory.mapProvider[name];
   }
+
+  CWWidgetCtx? findByXid(String name) {
+    return factory.mapWidgetByXid[name]?.ctx;
+  }
+
 }
 
 class DesignCtx {
