@@ -10,19 +10,7 @@ import 'cw_core_loader.dart';
 import 'cw_core_widget.dart';
 
 class SelectorActionWidget extends StatefulWidget {
-  SelectorActionWidget({super.key}) {
-    CoreDesigner.on(CDDesignEvent.select, (arg) {
-      CWWidgetCtx ctx = arg as CWWidgetCtx;
-      ctx.refreshContext();
-      showActionWidget(ctx.inSlot!.key as GlobalKey);
-    });
-
-    CoreDesigner.on(CDDesignEvent.reselect, (arg) {
-      if (arg is GlobalKey) {
-        showActionWidget(arg);
-      }
-    });
-  }
+  SelectorActionWidget({super.key}) {}
 
   static final GlobalKey actionPanKey = GlobalKey(debugLabel: "actionPanKey");
   static final GlobalKey designerKey = GlobalKey(debugLabel: "designerKey");
@@ -30,10 +18,14 @@ class SelectorActionWidget extends StatefulWidget {
   @override
   State<SelectorActionWidget> createState() => SelectorActionWidgetState();
 
-  void showActionWidget(GlobalKey key) {
+  static void showActionWidget(GlobalKey key) {
     // ignore: cast_nullable_to_non_nullable
     final SelectorActionWidgetState st = SelectorActionWidget
         .actionPanKey.currentState as SelectorActionWidgetState;
+
+    if (key.currentContext == null) {
+      return;
+    }
 
     // ignore: invalid_use_of_protected_member
     st.setState(() {
@@ -80,6 +72,12 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   ZoneDesc leftZone = ZoneDesc();
   ZoneDesc deleteZone = ZoneDesc();
   ZoneDesc sizeZone = ZoneDesc();
+
+  @override
+  void dispose() {
+    super.dispose();
+
+  }
 
   @override
   void initState() {

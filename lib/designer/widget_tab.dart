@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 
 class WidgetTab extends StatefulWidget {
-  const WidgetTab({required this.listTab, required this.listTabCont, Key? key})
+  const WidgetTab(
+      {required this.listTab,
+      required this.listTabCont,
+      required this.heightTab,
+      this.onController,
+      Key? key})
       : super(key: key);
 
   final List<Widget> listTab;
   final List<Widget> listTabCont;
+  final double heightTab;
+  final Function? onController;
 
   @override
   State<WidgetTab> createState() {
@@ -26,6 +33,10 @@ class _WidgetTabState extends State<WidgetTab>
         vsync: this,
         length: widget.listTab.length,
         animationDuration: const Duration(milliseconds: 200));
+    
+    if (widget.onController != null) {
+      widget.onController?.call(controllerTab);
+    }
   }
 
   @override
@@ -38,7 +49,7 @@ class _WidgetTabState extends State<WidgetTab>
   Widget build(BuildContext context) {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      double heightTab = 60;
+      double heightTab = widget.heightTab;
       var heightContent = viewportConstraints.maxHeight - heightTab - 2;
 
       // List<Widget> childTab = [];
@@ -70,7 +81,7 @@ class _WidgetTabState extends State<WidgetTab>
               child: Container(
                   color: Theme.of(context).highlightColor,
                   child: TabBar(
-                   // indicatorSize: TabBarIndicatorSize.label,
+                    // indicatorSize: TabBarIndicatorSize.label,
                     controller: controllerTab,
                     indicator: const UnderlineTabIndicator(
                         borderSide:

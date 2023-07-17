@@ -4,6 +4,7 @@ import 'package:flutter_material_color_picker/flutter_material_color_picker.dart
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
+import 'package:xui_flutter/designer/widget_debug.dart';
 import 'package:xui_flutter/designer/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
@@ -32,6 +33,10 @@ class CoreDesigner extends StatefulWidget {
     of()._eventListener.emit(event.toString(), payload);
   }
 
+  static removeListener(CDDesignEvent event, Function(dynamic) fct) {
+    of()._eventListener.removeEventListener(event.toString(), (argument) {});
+  }
+
   static CoreDesigner of() {
     return _coreDesigner;
   }
@@ -57,6 +62,7 @@ class CoreDesigner extends StatefulWidget {
       GlobalKey(debugLabel: "CoreDesignerdesignerKey");
 
   final _eventListener = EventListener();
+  late TabController controllerTabRight;
 
   final ScrollController scrollComponentController = ScrollController(
     initialScrollOffset: 0.0,
@@ -67,8 +73,6 @@ class CoreDesigner extends StatefulWidget {
     initialScrollOffset: 0.0,
     keepScrollOffset: true,
   );
-
-  late TabController controllerTabRight;
 
   @override
   State<CoreDesigner> createState() => _CoreDesignerState();
@@ -85,21 +89,11 @@ class _CoreDesignerState extends State<CoreDesigner>
   @override
   void initState() {
     super.initState();
-    widget.controllerTabRight = TabController(
-        vsync: this,
-        length: 2,
-        animationDuration: const Duration(milliseconds: 200));
 
     Future.delayed(const Duration(milliseconds: 500), () {
       CWWidget wid = CoreDesigner.of().view.factory.mapWidgetByXid['root']!;
       CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
     });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    widget.controllerTabRight.dispose();
   }
 
   @override
@@ -210,18 +204,17 @@ class _CoreDesignerState extends State<CoreDesigner>
           Positioned(
               left: 20,
               top: 20,
-              width: 200,
-              // height: 500,
+              width: 300,
               child: Container(
                   decoration:
                       BoxDecoration(border: Border.all(color: Colors.grey)),
-                  width: 100,
-                  child: DesignerModel()))
+                  child: const DesignerModel()))
         ],
       ),
     );
 
     WidgetTab tab = WidgetTab(
+      heightTab: 60,
       listTab: const [
         Tab(text: "Model", icon: Icon(Icons.data_object)),
         Tab(text: "Data", icon: Icon(Icons.table_chart))
@@ -255,10 +248,7 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDebugPan() {
-    return Container(
-      color: Colors.white,
-      // child: JsonViewer(CoreDesigner.ofLoader().cwFactory.value)
-    );
+    return const WidgetDebug();
   }
 
   Column getTestPan() {
@@ -277,26 +267,15 @@ class _CoreDesignerState extends State<CoreDesigner>
     ]);
   }
 
-  // Widget getDesignerText2() {
-  //   return Container(
-  //       transform: Matrix4.translationValues(0, -10, 0),
-  //       height: 45,
-  //       decoration: const BoxDecoration(
-  //           border:
-  //               Border(bottom: BorderSide(width: 1.0, color: Colors.black))),
-  //       child: const TextField(
-  //         style: TextStyle(color: Colors.red, fontSize: 15),
-  //         decoration: InputDecoration(
-  //           border: InputBorder.none,
-  //           labelText: 'b',
-  //           //     contentPadding: EdgeInsets.symmetric(horizontal: 0)
-  //         ),
-  //         autofocus: false,
-  //       ));
-  // }
-
   Widget getDesignPan() {
     return Row(children: [
+      const SizedBox(
+        width: 300,
+        child: WidgetTab(
+            heightTab: 40,
+            listTab: [Tab(icon: Icon(Icons.near_me)), Tab(icon: Icon(Icons.query_stats))],
+            listTabCont: [Text("navigation"), Text("Query")]),
+      ),
       Expanded(child: widget.view),
       SizedBox(
           //  margin: new EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
@@ -339,50 +318,16 @@ class _CoreDesignerState extends State<CoreDesigner>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: ComponentDesc.getListComponent))); // const Steps());
 
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      return Column(children: <Widget>[
-        getTabActionLayout(listTab),
-        Container(
-            padding: const EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-                border:
-                    Border.all(color: Theme.of(context).secondaryHeaderColor)),
-            height: viewportConstraints.maxHeight - 40 - 2,
-            child: TabBarView(
-                controller: widget.controllerTabRight, children: listTabCont))
-      ]);
-    });
-  }
-
-  Widget getTabActionLayout(List<Widget> listTab) {
-    return SizedBox(
-      height: 40,
-      child: ColoredBox(
-          color: Colors.transparent,
-          child: Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                  color: Theme.of(context).highlightColor,
-                  child: TabBar(
-                    controller: widget.controllerTabRight,
-                    indicator: const UnderlineTabIndicator(
-                        borderSide:
-                            BorderSide(width: 4, color: Colors.deepOrange),
-                        insets: EdgeInsets.only(left: 0, right: 0, bottom: 0)),
-                    isScrollable: true,
-                    //labelPadding: EdgeInsets.only(left: 0, right: 0),
-                    tabs: listTab,
-                  )))),
-    );
+    return WidgetTab(
+        heightTab: 40,
+        onController: (TabController a) {
+          widget.controllerTabRight = a;
+        },
+        listTab: listTab,
+        listTabCont: listTabCont);
   }
 }
-
-// class Component {
-//   Component(this.name, this.icon);
-//   String name;
-//   Icon icon;
-// }
+/////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////
 // ignore: must_be_immutable

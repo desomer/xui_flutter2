@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 // import 'package:rich_clipboard/rich_clipboard.dart';
 
+import '../core/widget/cw_core_selector_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
 import 'prop_builder.dart';
@@ -10,13 +11,28 @@ class CoreDesignerSelector {
   PropBuilder propBuilder = PropBuilder();
   String _lastSelectedPath = '';
 
-
   static final CoreDesignerSelector _current = CoreDesignerSelector();
   static CoreDesignerSelector of() {
     return _current;
   }
 
+
+
   CoreDesignerSelector() {
+    debugPrint("init event listener");
+
+    CoreDesigner.on(CDDesignEvent.select, (arg) {
+      CWWidgetCtx ctx = arg as CWWidgetCtx;
+      ctx.refreshContext();
+      SelectorActionWidget.showActionWidget(ctx.inSlot!.key as GlobalKey);
+    });
+
+    CoreDesigner.on(CDDesignEvent.reselect, (arg) {
+      if (arg is GlobalKey) {
+        SelectorActionWidget.showActionWidget(arg);
+      }
+    });
+
     CoreDesigner.on(CDDesignEvent.select, (arg) {
       CWWidgetCtx ctx = arg as CWWidgetCtx;
       propBuilder.buildWidgetProperties(ctx, 1);

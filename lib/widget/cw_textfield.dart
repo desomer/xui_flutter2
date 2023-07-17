@@ -35,6 +35,13 @@ class CWTextfield extends CWWidgetMap {
   }
 }
 
+extension TextEditingControllerExt on TextEditingController {
+  void selectAll() {
+    if (text.isEmpty) return;
+    selection = TextSelection(baseOffset: 0, extentOffset: text.length);
+  }
+}
+
 class _CWTextfieldState extends StateCW<CWTextfield> {
   final FocusNode _focus = FocusNode();
   final TextEditingController _controller = TextEditingController();
@@ -47,7 +54,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     last = widget.getValue();
     _controller.text = last!;
     _controller.addListener(() {
-      //print('_controller $_controller');
+
       if (_controller.text != last) {
         widget.initRow(context);
         widget.setValue(_controller.text);
@@ -91,6 +98,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
                 bottom: BorderSide(
                     width: 1.0, color: Theme.of(context).dividerColor))),
         child: TextField(
+          onTap: _controller.selectAll,
           focusNode: _focus,
           controller: _controller,
           style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),

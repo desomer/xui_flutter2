@@ -41,7 +41,7 @@ class DesignerListModel extends StatefulWidget {
         modelCollection.createEntityByJson("DataModel", {"name": "Customers"});
 
     CoreDataEntity entity2 =
-        modelCollection.createEntityByJson("DataModel", {"name": "Animal"});
+        modelCollection.createEntityByJson("DataModel", {"name": "Pets"});
 
     entity1.addMany(
         modelCollection,
@@ -181,6 +181,10 @@ class _DesignerModelState extends State<DesignerModel> {
     provider.header = DesignerModel.loaderAttribut.collectionAppli
         .createEntityByJson("DataModel", {"label": name});
 
+    provider.addAction(CWProviderAction.onBuild, OnBuildEdit(["name"]));
+    provider.addAction(
+        CWProviderAction.onInsertNone, OnAddAttr(provider, this));
+
     List<Widget> listModel =
         ArrayBuilder().getArrayWidget(provider, DesignerModel.loaderAttribut);
     listModel.add(WidgetDrag(provider: provider));
@@ -188,5 +192,40 @@ class _DesignerModelState extends State<DesignerModel> {
     return Column(
       children: listModel,
     );
+  }
+}
+
+class OnAddAttr extends CoreDataAction {
+  OnAddAttr(this.provider, this.widget);
+  CWProvider provider;
+  State widget;
+
+  @override
+  execute(Object? ctx, CWWidgetEvent? event) {
+    CoreDataEntity selected = DesignerListModel
+        .provider.content[DesignerListModel.provider.idxSelected];
+    List<dynamic>? result = selected.value["listAttr"];
+
+    CoreDataEntity entity = DesignerListModel.modelCollection
+        .createEntityByJson("ModelAttributs", {"name": "?", "type": event!.payload!.toString().toUpperCase()});
+    result!.add(entity.value);
+    widget.setState(() {});
+  }
+}
+
+class OnBuildEdit extends CoreDataAction {
+  OnBuildEdit(this.editName);
+  List<String> editName;
+
+  @override
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    CoreDataAttribut attr = event!.payload as CoreDataAttribut;
+    for (var element in editName) {
+      if (element == attr.name) {
+        event.ret = event.loader!.collectionWidget
+            .createEntityByJson((CWTextfield).toString(), {"withLabel": false});
+        return;
+      }
+    }
   }
 }

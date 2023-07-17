@@ -22,8 +22,9 @@ class CoreDataLoaderProvider extends CoreDataLoader {
       List<dynamic>? result = selected.value[attribut];
       if (result != null) {
         for (Map<String, dynamic> element in result) {
-          ret.add(loader.collectionAppli
-              .createEntityByJson(element[r'$type'], element));
+          var ent = loader.collectionAppli.createEntity(element[r'$type']);
+          ent.value = element;
+          ret.add(ent);
         }
       }
     }

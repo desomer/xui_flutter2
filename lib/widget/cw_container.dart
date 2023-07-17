@@ -65,7 +65,7 @@ class CWColumn extends CWContainer {
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
-        .withAction(AttrActionDefault(false));
+        .withAction(AttrActionDefault(true));
 
     c.collection
         .addObject('CWColConstraint')
@@ -118,7 +118,7 @@ class CWColumnState extends StateCW<CWColumn> {
       final List<Widget> listSlot = [];
       final nb = widget.getNbChild();
       for (var i = 0; i < nb; i++) {
-        listSlot.add(widget.getCell(i, false,
+        listSlot.add(widget.getCell(i, true,
             canFill: viewportConstraints.hasBoundedHeight));
       }
       listStack.add(Column(
