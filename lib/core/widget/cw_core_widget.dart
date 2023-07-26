@@ -126,6 +126,10 @@ abstract class CWWidgetMap extends CWWidget {
   String getLabel() {
     return ctx.designEntity?.getString('label') ?? '[empty]';
   }
+
+  int getCount() {
+    return ctx.designEntity?.getInt('count', 3) ?? 3;
+  }
 }
 
 class CWWidgetCtx {

@@ -111,7 +111,7 @@ class CWColumnState extends StateCW<CWColumn> {
 
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      print("viewportConstraints ${viewportConstraints.hasBoundedHeight}");
+      debugPrint("viewportConstraints ${viewportConstraints.hasBoundedHeight}");
 
       final List<Widget> listStack = [];
 

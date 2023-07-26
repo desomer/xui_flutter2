@@ -22,7 +22,7 @@ class CoreDataLoaderProvider extends CoreDataLoader {
       List<dynamic>? result = selected.value[attribut];
       if (result != null) {
         for (Map<String, dynamic> element in result) {
-          var ent = loader.collectionAppli.createEntity(element[r'$type']);
+          var ent = loader.collectionDataModel.createEntity(element[r'$type']);
           ent.value = element;
           ret.add(ent);
         }

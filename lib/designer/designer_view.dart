@@ -5,6 +5,7 @@ import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_selector_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../test_loader.dart';
+import 'application_manager.dart';
 import 'cw_factory.dart';
 
 // ignore: must_be_immutable
@@ -24,15 +25,8 @@ class DesignerView extends StatefulWidget {
   Widget getRoot() {
     if (rootWidget != null) return rootWidget!;
 
-    CWWidgetLoaderCtx ctx = CWWidgetLoaderCtx();
-    ctx.collectionWidget = CWCollection().collection;
-    ctx.collectionAppli = ctx.collectionWidget;
-    ctx.mode = ModeRendering.design;
-    ctx.entityCWFactory = ctx.collectionWidget.createEntity('CWFactory');
-    ctx.factory = WidgetFactoryEventHandler(ctx);
-    loader = CWLoaderTest(ctx);
-
-    rootWidget = loader.getWidget();
+    loader = CWLoaderTest(CWApplication.of().loaderDesigner);
+    rootWidget = loader.getWidget("root", "root");
     return rootWidget!;
   }
 

@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
+import 'package:xui_flutter/designer/application_manager.dart';
 
 import 'core/data/core_data.dart';
 import 'deprecated/_core_widget.dart';
@@ -35,6 +36,8 @@ void main() async {
   //   myErrorsHandler.onError(error, stack);
   //   return true;
   // };
+
+  CWApplication.of().initDesigner();
 
   runApp(CoreDesigner());
 

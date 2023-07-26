@@ -51,11 +51,16 @@ class _WidgetDragState extends State<WidgetDrag> {
 }
 
 class WidgetAddBtn extends StatefulWidget {
-  const WidgetAddBtn({required this.provider, required this.loader, Key? key})
+  const WidgetAddBtn(
+      {required this.provider,
+      required this.loader,
+      required this.repaintXid,
+      Key? key})
       : super(key: key);
 
   final CWProvider provider;
   final CWWidgetLoaderCtx loader;
+  final String repaintXid;
 
   @override
   State<WidgetAddBtn> createState() => _WidgetAddBtnState();
@@ -71,7 +76,7 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
           ctxWE.provider = widget.provider;
           widget.provider.doAction(null, ctxWE, CWProviderAction.onInsertNone);
           Future.delayed(const Duration(milliseconds: 100), () {
-            widget.loader.factory.mapWidgetByXid["Col0"]!.repaint();
+            widget.loader.factory.mapWidgetByXid[widget.repaintXid]!.repaint();
           });
         },
         child: Container(

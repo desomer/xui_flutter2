@@ -10,7 +10,7 @@ import 'cw_core_loader.dart';
 import 'cw_core_widget.dart';
 
 class SelectorActionWidget extends StatefulWidget {
-  SelectorActionWidget({super.key}) {}
+  const SelectorActionWidget({super.key});
 
   static final GlobalKey actionPanKey = GlobalKey(debugLabel: "actionPanKey");
   static final GlobalKey designerKey = GlobalKey(debugLabel: "designerKey");
@@ -76,7 +76,6 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   @override
   void dispose() {
     super.dispose();
-
   }
 
   @override
@@ -192,6 +191,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
         left: z.left,
         bottom: z.bottom,
         right: z.right,
+        // ignore: sized_box_for_whitespace
         child: Container(
             width: z.width,
             height: z.height,

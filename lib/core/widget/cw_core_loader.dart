@@ -24,12 +24,12 @@ abstract class CWWidgetLoader {
     return ctxLoader.factory.mapProvider[name];
   }
 
-  setRoot(String implement) {
+  setRoot(String xid, String implement) {
     cwFactory.setOne(
         collection,
         'child',
         collection.createEntityByJson('CWChild',
-            <String, dynamic>{'xid': 'root', 'implement': implement}));
+            <String, dynamic>{'xid': xid, 'implement': implement}));
   }
 
   String setProp(String xid, CoreDataEntity prop) {
@@ -85,7 +85,7 @@ abstract class CWWidgetLoader {
         collection.createEntityByJson(type.toString(), v));
   }
 
-  Widget getWidget() {
+  Widget getWidget(String path, String xid) {
     final CoreDataEntity aCWFactory = getCWFactory();
     final CoreDataCtx ctx = CoreDataCtx();
 
@@ -93,9 +93,9 @@ abstract class CWWidgetLoader {
     ctxLoader.entityCWFactory = aCWFactory;
     aCWFactory.browse(collection, ctx);
 
-    final rootWidget = ctxLoader.factory.mapWidgetByXid['root']!;
-    ctxLoader.factory.mapXidByPath['root'] = 'root';
-    rootWidget.initSlot('root');
+    final rootWidget = ctxLoader.factory.mapWidgetByXid[xid]!;
+    ctxLoader.factory.mapXidByPath[path] = xid;
+    rootWidget.initSlot(path);
 
     return rootWidget;
   }
@@ -105,7 +105,7 @@ abstract class CWWidgetLoader {
 
 class CWWidgetLoaderCtx {
   late CoreDataCollection collectionWidget;
-  late CoreDataCollection collectionAppli;
+  late CoreDataCollection collectionDataModel;
   late WidgetFactoryEventHandler factory;
   late CoreDataEntity entityCWFactory;
   late ModeRendering mode;
@@ -113,7 +113,7 @@ class CWWidgetLoaderCtx {
   CWWidgetLoaderCtx from(CWWidgetLoaderCtx ctx) {
     mode = ModeRendering.view;
     collectionWidget = ctx.collectionWidget;
-    collectionAppli = ctx.collectionAppli;
+    collectionDataModel = ctx.collectionDataModel;
     createFactory();
     return this;
   }
@@ -131,6 +131,9 @@ class CWWidgetLoaderCtx {
     return factory.mapWidgetByXid[name]?.ctx;
   }
 
+  CWWidget? findWidgetByXid(String name) {
+    return factory.mapWidgetByXid[name];
+  }
 }
 
 class DesignCtx {

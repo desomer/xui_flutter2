@@ -80,12 +80,12 @@ class CWProvider {
       CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
     dynamic v = val;
     CoreDataAttribut? attr = getDisplayedEntity().getAttrByName(
-        ctx.loader.collectionAppli, ctx.designEntity!.getString(propName)!);
+        ctx.loader.collectionDataModel, ctx.designEntity!.getString(propName)!);
     if (attr?.type == CDAttributType.CDint) {
       v = int.tryParse(val);
     }
-    getDisplayedEntity().setAttr(
-        ctx.loader.collectionAppli, ctx.designEntity!.getString(propName)!, v);
+    getDisplayedEntity().setAttr(ctx.loader.collectionDataModel,
+        ctx.designEntity!.getString(propName)!, v);
 
     if (getDisplayedEntity().operation == CDAction.none) {
       getDisplayedEntity().operation = CDAction.create;

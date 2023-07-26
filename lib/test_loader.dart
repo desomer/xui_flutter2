@@ -6,7 +6,7 @@ class CWLoaderTest extends CWWidgetLoader {
 
   @override
   CoreDataEntity getCWFactory() {
-    setRoot('CWFrameDesktop');
+    setRoot('root','CWFrameDesktop');
     setProp(
         'root',
         ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',

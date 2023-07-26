@@ -34,14 +34,14 @@ class FormBuilder {
 
     loader.ctxLoader.factory.mapProvider[providerName] = provider;
 
-    listWidget.add(loader.getWidget());
+    listWidget.add(loader.getWidget("root", "root"));
     return listWidget;
   }
 }
 
 class AttrFormLoader extends CWWidgetLoader {
   AttrFormLoader(CWWidgetLoaderCtx ctxLoader, this.entity) : super(ctxLoader) {
-    setRoot("CWExpandPanel");
+    setRoot("root","CWExpandPanel");
   }
 
   int nbAttr = 0;

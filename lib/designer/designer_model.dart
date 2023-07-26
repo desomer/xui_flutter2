@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:xui_flutter/core/data/core_data_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/builder/array_builder.dart';
 import 'package:xui_flutter/designer/designer.dart';
 import 'package:xui_flutter/designer/widget_create.dart';
@@ -20,89 +20,80 @@ class DesignerListModel extends StatefulWidget {
     return _DesignerListModelState();
   }
 
-  static late CWProvider provider;
+  //static late CWProvider provider;
   static bool isInit = false;
 
   static initModel() {
     if (isInit) return;
-
     isInit = true;
-    modelCollection.addObject("DataModel")
-      ..addAttribut("name", CDAttributType.CDtext)
-      ..addAttribut("listAttr", CDAttributType.CDmany);
+    CWApplication.of().initModel();
 
-    modelCollection.addObject("ModelAttributs")
-      ..addAttribut("name", CDAttributType.CDtext)
-      ..addAttribut("type", CDAttributType.CDtext);
+    // modelCollection.addObject("DataModel")
+    //   ..addAttribut("name", CDAttributType.CDtext)
+    //   ..addAttribut("listAttr", CDAttributType.CDmany);
 
-    provider = CWProvider("DataModel", "DataModel", null);
+    // modelCollection.addObject("ModelAttributs")
+    //   ..addAttribut("name", CDAttributType.CDtext)
+    //   ..addAttribut("type", CDAttributType.CDtext);
 
-    CoreDataEntity entity1 =
-        modelCollection.createEntityByJson("DataModel", {"name": "Customers"});
+    // provider = CWProvider("DataModel", "DataModel", null);
 
-    CoreDataEntity entity2 =
-        modelCollection.createEntityByJson("DataModel", {"name": "Pets"});
+    // CoreDataEntity entity1 =
+    //     modelCollection.createEntityByJson("DataModel", {"name": "Customers"});
 
-    entity1.addMany(
-        modelCollection,
-        "listAttr",
-        modelCollection.createEntityByJson(
-            "ModelAttributs", {"name": "first name", "type": "TEXT"}));
-    entity1.addMany(
-        modelCollection,
-        "listAttr",
-        modelCollection.createEntityByJson(
-            "ModelAttributs", {"name": "last name", "type": "TEXT"}));
+    // CoreDataEntity entity2 =
+    //     modelCollection.createEntityByJson("DataModel", {"name": "Pets"});
 
-    entity2.addMany(
-        modelCollection,
-        "listAttr",
-        modelCollection.createEntityByJson(
-            "ModelAttributs", {"name": "Name", "type": "TEXT"}));
-    entity2.addMany(
-        modelCollection,
-        "listAttr",
-        modelCollection.createEntityByJson(
-            "ModelAttributs", {"name": "Category", "type": "TEXT"}));
-    entity2.addMany(
-        modelCollection,
-        "listAttr",
-        modelCollection.createEntityByJson(
-            "ModelAttributs", {"name": "breed", "type": "TEXT"}));
+    // entity1.addMany(
+    //     modelCollection,
+    //     "listAttr",
+    //     modelCollection.createEntityByJson(
+    //         "ModelAttributs", {"name": "First name", "type": "TEXT"}));
+    // entity1.addMany(
+    //     modelCollection,
+    //     "listAttr",
+    //     modelCollection.createEntityByJson(
+    //         "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
 
-    DesignerListModel.provider
-      ..add(entity1)
-      ..add(entity2);
+    // entity2.addMany(
+    //     modelCollection,
+    //     "listAttr",
+    //     modelCollection.createEntityByJson(
+    //         "ModelAttributs", {"name": "Name", "type": "TEXT"}));
+    // entity2.addMany(
+    //     modelCollection,
+    //     "listAttr",
+    //     modelCollection.createEntityByJson(
+    //         "ModelAttributs", {"name": "Category", "type": "TEXT"}));
+    // entity2.addMany(
+    //     modelCollection,
+    //     "listAttr",
+    //     modelCollection.createEntityByJson(
+    //         "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
+
+    // DesignerListModel.provider
+    //   ..add(entity1)
+    //   ..add(entity2);
   }
 
-  static CoreDataCollection modelCollection = CoreDataCollection();
+  //static CoreDataCollection modelCollection = CoreDataCollection();
 }
 
 class _DesignerListModelState extends State<DesignerListModel> {
   @override
   Widget build(BuildContext context) {
-    CWWidgetLoaderCtx ctx = CWWidgetLoaderCtx();
-    ctx.mode = ModeRendering.view;
-    ctx.collectionWidget = CoreDesigner.ofLoader().ctxLoader.collectionWidget;
-    ctx.collectionAppli = DesignerListModel.modelCollection;
+    // CWApplication.of().loaderModel.collectionWidget =
+    //     CoreDesigner.ofLoader().ctxLoader.collectionWidget;
 
-    DesignerListModel.provider.actions.clear();
-    DesignerListModel.provider
-        .addAction(CWProviderAction.onInsertNone, OnInsertModel(ctx));
-    DesignerListModel.provider.addAction(CWProviderAction.onBuild, OnBuild());
-
-    DesignerListModel.provider
-        .addAction(CWProviderAction.onSelected, OnSelectModel(ctx));
-
-    DesignerListModel.provider.header = ctx.collectionAppli
-        .createEntityByJson("DataModel", {"label": "Entity"});
-
-    DesignerListModel.provider.idxSelected = 0;
-
-    List<Widget> listModel =
-        ArrayBuilder().getArrayWidget(DesignerListModel.provider, ctx);
-    listModel
-        .add(WidgetAddBtn(provider: DesignerListModel.provider, loader: ctx));
+    List<Widget> listModel = ArrayBuilder().getArrayWidget("root",
+        CWApplication.of().dataModelProvider,
+        CWApplication.of().loaderModel,
+        AttrRowLoader);
+    listModel.add(WidgetAddBtn(
+      provider: CWApplication.of().dataModelProvider,
+      loader: CWApplication.of().loaderModel,
+      repaintXid: "Col0",
+    ));
     return Column(
       children: listModel,
     );
@@ -115,22 +106,34 @@ class OnInsertModel extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    CoreDataEntity newModel =
-        loader.collectionAppli.createEntityByJson("DataModel", {"name": "?"});
+    CoreDataEntity newModel = loader.collectionDataModel
+        .createEntityByJson("DataModel", {"name": "?"});
     event!.provider!.content.add(newModel);
   }
 }
 
 class OnSelectModel extends CoreDataAction {
-  OnSelectModel(this.loader);
-  CWWidgetLoaderCtx loader;
+  OnSelectModel();
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     var name = event!.provider?.getSelectedEntity().value["name"];
 
-    DesignerModel.loaderAttribut.findByXid("title0")!.changeProp("label", name);
-    DesignerModel.loaderAttribut.factory.mapWidgetByXid["root"]!.repaint();
+    CWApplication.of()
+        .loaderAttribut
+        .findByXid("rootAttrTitle0")!
+        .changeProp("label", name);
+
+    CWApplication.of()
+        .loaderData
+        .findByXid("rootDataTitle0")
+        ?.changeProp("label", name);
+
+    // ignore: invalid_use_of_protected_member
+    CoreDesigner.of().dataKey.currentState?.setState(() {});
+
+    CWApplication.of().loaderAttribut.findWidgetByXid("rootAttr")?.repaint();
+    //CWApplication.of().loaderData.findWidgetByXid("root")?.repaint();
   }
 }
 
@@ -150,44 +153,36 @@ class DesignerModel extends StatefulWidget {
 
   @override
   State<DesignerModel> createState() => _DesignerModelState();
-
-  static CWWidgetLoaderCtx loaderAttribut = CWWidgetLoaderCtx();
-  static bool isInit = false;
-
-  static initModel() {
-    if (!isInit) {
-      isInit = true;
-      loaderAttribut.mode = ModeRendering.view;
-      loaderAttribut.collectionWidget =
-          CoreDesigner.ofLoader().ctxLoader.collectionWidget;
-      loaderAttribut.collectionAppli = DesignerListModel.modelCollection;
-    }
-  }
 }
 
 class _DesignerModelState extends State<DesignerModel> {
   @override
   Widget build(BuildContext context) {
-    DesignerModel.initModel();
+    // CWApplication.of().loaderAttribut.collectionWidget =
+    //     CoreDesigner.ofLoader().ctxLoader.collectionWidget;
 
-    var provider = CWProvider(
-        "ModelAttributs",
-        "ModelAttributs",
-        CoreDataLoaderProvider(DesignerModel.loaderAttribut,
-            DesignerListModel.provider, "listAttr"));
+    var name =
+        CWApplication.of().dataModelProvider.getSelectedEntity().value["name"];
 
-    var name = DesignerListModel.provider.getSelectedEntity().value["name"];
-
-    provider.header = DesignerModel.loaderAttribut.collectionAppli
+    CWApplication.of().dataAttributProvider.header = CWApplication.of()
+        .loaderAttribut
+        .collectionDataModel
         .createEntityByJson("DataModel", {"label": name});
 
-    provider.addAction(CWProviderAction.onBuild, OnBuildEdit(["name"]));
-    provider.addAction(
-        CWProviderAction.onInsertNone, OnAddAttr(provider, this));
+    CWApplication.of().dataAttributProvider.actions.clear();
+    CWApplication.of()
+        .dataAttributProvider
+        .addAction(CWProviderAction.onBuild, OnBuildEdit(["name"]));
+    CWApplication.of().dataAttributProvider.addAction(
+        CWProviderAction.onInsertNone,
+        OnAddAttr(CWApplication.of().dataAttributProvider, this));
 
-    List<Widget> listModel =
-        ArrayBuilder().getArrayWidget(provider, DesignerModel.loaderAttribut);
-    listModel.add(WidgetDrag(provider: provider));
+    List<Widget> listModel = ArrayBuilder().getArrayWidget("rootAttr",
+        CWApplication.of().dataAttributProvider,
+        CWApplication.of().loaderAttribut,
+        AttrRowLoader);
+    listModel
+        .add(WidgetDrag(provider: CWApplication.of().dataAttributProvider));
 
     return Column(
       children: listModel,
@@ -202,13 +197,16 @@ class OnAddAttr extends CoreDataAction {
 
   @override
   execute(Object? ctx, CWWidgetEvent? event) {
-    CoreDataEntity selected = DesignerListModel
-        .provider.content[DesignerListModel.provider.idxSelected];
+    CoreDataEntity selected = CWApplication.of()
+        .dataModelProvider
+        .content[CWApplication.of().dataModelProvider.idxSelected];
     List<dynamic>? result = selected.value["listAttr"];
 
-    CoreDataEntity entity = DesignerListModel.modelCollection
-        .createEntityByJson("ModelAttributs", {"name": "?", "type": event!.payload!.toString().toUpperCase()});
+    CoreDataEntity entity = CWApplication.of().collection.createEntityByJson(
+        "ModelAttributs",
+        {"name": "?", "type": event!.payload!.toString().toUpperCase()});
     result!.add(entity.value);
+    // ignore: invalid_use_of_protected_member
     widget.setState(() {});
   }
 }
@@ -221,7 +219,7 @@ class OnBuildEdit extends CoreDataAction {
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CoreDataAttribut attr = event!.payload as CoreDataAttribut;
     for (var element in editName) {
-      if (element == attr.name) {
+      if (element == attr.name || element == "*") {
         event.ret = event.loader!.collectionWidget
             .createEntityByJson((CWTextfield).toString(), {"withLabel": false});
         return;

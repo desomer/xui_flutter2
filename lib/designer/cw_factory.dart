@@ -1,3 +1,4 @@
+import 'package:xui_flutter/widget/cw_array.dart';
 import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
@@ -46,6 +47,7 @@ class CWCollection {
     CWColumn.initFactory(this);
     CWRow.initFactory(this);
     CWList.initFactory(this);
+    CWArray.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -83,7 +85,6 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
 
   Map<String, String> mapChildXidByXid = <String, String>{};
   Map<String, String> mapXidByPath = <String, String>{};
-  //Map<String, String> mapPathDesignByXid = <String, String>{};
 
   Map<String, CWProvider> mapProvider = <String, CWProvider>{};
 

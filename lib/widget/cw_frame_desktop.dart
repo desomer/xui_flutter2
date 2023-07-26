@@ -44,7 +44,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
 
   @override
   void didChangeMetrics() {
-    print("physical Size ${View.of(context).physicalSize}");
+    debugPrint("physical Size ${View.of(context).physicalSize}");
   }
 
   double lastHeight = -1;
@@ -93,7 +93,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     } else {
       return NotificationListener<ScrollNotification>(
           onNotification: (scrollNotification) {
-            print("onNotification $scrollNotification");
+            debugPrint("onNotification $scrollNotification");
             return false;
           },
           child: SingleChildScrollView(

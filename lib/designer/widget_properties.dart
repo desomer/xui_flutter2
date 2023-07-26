@@ -35,7 +35,7 @@ class OnMount extends CoreDataAction {
     if (ctx!.designEntity!.type == "CWTextfield") {
       String attr = ctx.designEntity!.value["bind"];
       CWTextfield wid = event!.payload! as CWTextfield;
-      print('--- OnMount ----->  $attr on $path = $wid');
+      debugPrint('--- OnMount ----->  $attr on $path = $wid');
     }
   }
 }

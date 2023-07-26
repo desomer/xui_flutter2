@@ -12,6 +12,7 @@ import '../deprecated/core_array.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
 import 'cw_factory.dart';
+import 'designer_data.dart';
 import 'designer_model.dart';
 import 'designer_view.dart';
 import 'widget_model_attribut.dart';
@@ -60,6 +61,9 @@ class CoreDesigner extends StatefulWidget {
   final GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
   final GlobalKey designerKey =
       GlobalKey(debugLabel: "CoreDesignerdesignerKey");
+
+  final GlobalKey dataKey = GlobalKey(debugLabel: "CoreDesigner.dataKey");
+
 
   final _eventListener = EventListener();
   late TabController controllerTabRight;
@@ -124,7 +128,13 @@ class _CoreDesignerState extends State<CoreDesigner>
                 children: [
                   BreadCrumbNavigator(currentRouteStack),
                   const Spacer(),
-                  const Text('ElisView v0.2')
+                  const Text('ElisView v0.2'),
+                  const SizedBox(width: 5),
+                  IconButton(
+                    iconSize: 30,
+                    icon: const Icon(Icons.apps),
+                    onPressed: () {},
+                  )
                 ]),
           ),
           body: PageStorage(bucket: _bucket, child: nav),
@@ -213,6 +223,48 @@ class _CoreDesignerState extends State<CoreDesigner>
       ),
     );
 
+    WidgetTab tabAttributDesc = WidgetTab(heightTab: 30, listTab: const [
+      Tab(text: "Description"),
+      Tab(text: "Constraints")
+    ], listTabCont: [
+      Center(
+        child: Container(
+          width: 100,
+          height: 100,
+          decoration: const BoxDecoration(boxShadow: [
+            BoxShadow(
+              offset: Offset(-20, 20),
+              color: Colors.red,
+              blurRadius: 15,
+              spreadRadius: -10,
+            ),
+            BoxShadow(
+              offset: Offset(-20, -20),
+              color: Colors.orange,
+              blurRadius: 15,
+              spreadRadius: -10,
+            ),
+            BoxShadow(
+              offset: Offset(20, -20),
+              color: Colors.blue,
+              blurRadius: 15,
+              spreadRadius: -10,
+            ),
+            BoxShadow(
+              offset: Offset(25, 25),
+              color: Colors.deepPurple,
+              blurRadius: 15,
+              spreadRadius: -10,
+            )
+          ],
+           //color: Colors.grey.shade800
+           ), 
+          child: Card(color: Colors.grey.shade800, elevation: 3,),
+        ),
+      ),
+      Container()
+    ]);
+
     WidgetTab tab = WidgetTab(
       heightTab: 60,
       listTab: const [
@@ -224,15 +276,25 @@ class _CoreDesignerState extends State<CoreDesigner>
           Expanded(
               child: Row(
             children: [
-              Expanded(child: viewAttribute),
+              Expanded(
+                  child: Column(
+                children: [
+                  Expanded(child: viewAttribute),
+                  SizedBox(
+                    height: 200,
+                    child: tabAttributDesc,
+                  )
+                ],
+              )), // ),
               SizedBox(
                 width: 300,
                 child: Column(children: AttributDesc.getListAttr),
               )
             ],
-          ))
+          )),
+          //
         ]),
-        Container()
+        DesignerData(key: widget.dataKey)
       ],
     );
 
@@ -271,10 +333,13 @@ class _CoreDesignerState extends State<CoreDesigner>
     return Row(children: [
       const SizedBox(
         width: 300,
-        child: WidgetTab(
-            heightTab: 40,
-            listTab: [Tab(icon: Icon(Icons.near_me)), Tab(icon: Icon(Icons.query_stats))],
-            listTabCont: [Text("navigation"), Text("Query")]),
+        child: WidgetTab(heightTab: 40, listTab: [
+          Tab(icon: Icon(Icons.near_me)),
+          Tab(icon: Icon(Icons.query_stats))
+        ], listTabCont: [
+          Text("navigation"),
+          Text("Query")
+        ]),
       ),
       Expanded(child: widget.view),
       SizedBox(

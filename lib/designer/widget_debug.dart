@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_json_viewer/flutter_json_viewer.dart';
 import 'package:xui_flutter/designer/widget_tab.dart';
 
+import '../deprecated/widget_table.dart';
+import 'application_manager.dart';
 import 'designer.dart';
-import 'designer_model.dart';
 
 class WidgetDebug extends StatefulWidget {
   const WidgetDebug({Key? key}) : super(key: key);
@@ -17,18 +18,20 @@ class _WidgetDebugState extends State<WidgetDebug> {
   Widget build(BuildContext context) {
     List mdl = [];
 
-    for (var element in DesignerListModel.provider.content) {
+    for (var element in CWApplication.of().dataModelProvider.content) {
       mdl.add(element.value);
     }
 
-    return WidgetTab(heightTab: 40, listTab: [
+    return WidgetTab(heightTab: 40, listTab: const [
       Tab(text: "Design"),
-      Tab(text: "Model")
+      Tab(text: "Model"),
+      Tab(text: "Data")
     ], listTabCont: [
       Container(
           color: Colors.white,
           child: JsonViewer(CoreDesigner.ofLoader().cwFactory.value)),
       Container(color: Colors.white, child: JsonViewer(mdl)),
+      const WidgetTable()
     ]);
   }
 }
