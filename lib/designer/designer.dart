@@ -64,7 +64,6 @@ class CoreDesigner extends StatefulWidget {
 
   final GlobalKey dataKey = GlobalKey(debugLabel: "CoreDesigner.dataKey");
 
-
   final _eventListener = EventListener();
   late TabController controllerTabRight;
 
@@ -231,35 +230,39 @@ class _CoreDesignerState extends State<CoreDesigner>
         child: Container(
           width: 100,
           height: 100,
-          decoration: const BoxDecoration(boxShadow: [
-            BoxShadow(
-              offset: Offset(-20, 20),
-              color: Colors.red,
-              blurRadius: 15,
-              spreadRadius: -10,
-            ),
-            BoxShadow(
-              offset: Offset(-20, -20),
-              color: Colors.orange,
-              blurRadius: 15,
-              spreadRadius: -10,
-            ),
-            BoxShadow(
-              offset: Offset(20, -20),
-              color: Colors.blue,
-              blurRadius: 15,
-              spreadRadius: -10,
-            ),
-            BoxShadow(
-              offset: Offset(25, 25),
-              color: Colors.deepPurple,
-              blurRadius: 15,
-              spreadRadius: -10,
-            )
-          ],
-           //color: Colors.grey.shade800
-           ), 
-          child: Card(color: Colors.grey.shade800, elevation: 3,),
+          decoration: const BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                offset: Offset(-20, 20),
+                color: Colors.red,
+                blurRadius: 15,
+                spreadRadius: -10,
+              ),
+              BoxShadow(
+                offset: Offset(-20, -20),
+                color: Colors.orange,
+                blurRadius: 15,
+                spreadRadius: -10,
+              ),
+              BoxShadow(
+                offset: Offset(20, -20),
+                color: Colors.blue,
+                blurRadius: 15,
+                spreadRadius: -10,
+              ),
+              BoxShadow(
+                offset: Offset(25, 25),
+                color: Colors.deepPurple,
+                blurRadius: 15,
+                spreadRadius: -10,
+              )
+            ],
+            //color: Colors.grey.shade800
+          ),
+          child: Card(
+            color: Colors.grey.shade800,
+            elevation: 3,
+          ),
         ),
       ),
       Container()

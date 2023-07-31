@@ -43,18 +43,41 @@ extension TextEditingControllerExt on TextEditingController {
 }
 
 class _CWTextfieldState extends StateCW<CWTextfield> {
-  final FocusNode _focus = FocusNode();
+  late FocusNode _focus;
   final TextEditingController _controller = TextEditingController();
   String? last;
+  String? lastOnFocus;
+
+  FocusNode initFocusNode() {
+    InheritedStateContainer? row =
+        context.getInheritedWidgetOfExactType<InheritedStateContainer>();
+    if (row != null && row.rowState != null) {
+      var f = row.rowState!.mapFocus[widget.hashCode.toString()];
+      if (f == null) {
+        f = FocusNode();
+        row.rowState!.mapFocus[widget.hashCode.toString()] = f;
+      } else {
+        if (f.hasFocus) {
+          f.unfocus();
+          Future.delayed(const Duration(milliseconds: 100), () {
+            f!.requestFocus();
+          });
+        }
+      }
+      return f;
+    }
+
+    return FocusNode();
+  }
 
   @override
   void initState() {
     super.initState();
+    _focus = initFocusNode();
     widget.initRow(context);
     last = widget.getValue();
     _controller.text = last!;
     _controller.addListener(() {
-
       if (_controller.text != last) {
         widget.initRow(context);
         widget.setValue(_controller.text);
@@ -69,10 +92,18 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     if (_focus.hasFocus) {
       InheritedStateContainer? row =
           context.getInheritedWidgetOfExactType<InheritedStateContainer>();
-
       if (row != null) {
-        debugPrint("select row ${row.index}");
+        // debugPrint("select row ${row.index}");
         row.selected(widget.ctx);
+      }
+      lastOnFocus = _controller.text;
+      _controller.selectAll();
+    } else {
+      // repaint toute la ligne si changement
+      if (lastOnFocus != _controller.text) {
+        context
+            .getInheritedWidgetOfExactType<InheritedStateContainer>()
+            ?.repaintRow(widget.ctx);
       }
     }
   }
@@ -81,13 +112,12 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   void dispose() {
     _controller.dispose();
     _focus.removeListener(_onFocusChange);
-    _focus.dispose();
+//    _focus.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
     widget.initRow(context);
     String? label = widget.getLabelNull();
 

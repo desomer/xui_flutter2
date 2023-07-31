@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_json_viewer/flutter_json_viewer.dart';
 import 'package:xui_flutter/designer/widget_tab.dart';
 
-import '../deprecated/widget_table.dart';
 import 'application_manager.dart';
 import 'designer.dart';
 
@@ -22,6 +21,12 @@ class _WidgetDebugState extends State<WidgetDebug> {
       mdl.add(element.value);
     }
 
+    Map<String, dynamic> data = {};
+
+    for (var element in CWApplication.of().listData.entries) {
+      data[element.key] =  element.value.value;
+    }    
+
     return WidgetTab(heightTab: 40, listTab: const [
       Tab(text: "Design"),
       Tab(text: "Model"),
@@ -31,7 +36,7 @@ class _WidgetDebugState extends State<WidgetDebug> {
           color: Colors.white,
           child: JsonViewer(CoreDesigner.ofLoader().cwFactory.value)),
       Container(color: Colors.white, child: JsonViewer(mdl)),
-      const WidgetTable()
+      Container(color: Colors.white, child: JsonViewer(data)),
     ]);
   }
 }

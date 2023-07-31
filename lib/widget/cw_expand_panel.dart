@@ -75,27 +75,35 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
           CWSlot(key: GlobalKey(), ctx: widget.createChildCtx("Body", i))));
     }
 
-    return ExpandableNotifier(
-      controller: ctrl,
-      child: ScrollOnExpand(
-        child: Column(
-          children: listInfo.map<ExpandablePanel>((ExpandInfo step) {
-            return ExpandablePanel(
-              theme: const ExpandableThemeData(
-                animationDuration: Duration(milliseconds: 100),
-                headerAlignment: ExpandablePanelHeaderAlignment.center,
-                tapHeaderToExpand: false,
-                tapBodyToExpand: false,
-                tapBodyToCollapse: false,
-                hasIcon: false,
-              ),
-              header: getHeader(step),
-              collapsed: Container(),
-              expanded: step.body,
-            );
-          }).toList(),
+    return LayoutBuilder(builder: (context, constraints) {
+      // print('CWExpandPanelState $constraints ${widget.ctx.xid}');
+      return ExpandableNotifier(
+        controller: ctrl,
+        child: ScrollOnExpand(
+          child: Column(
+            children: listInfo.map<ExpandablePanel>((ExpandInfo step) {
+              var sizedBox = step.body;
+              if (constraints.maxHeight!=double.infinity) {
+                sizedBox=  SizedBox(height: constraints.maxHeight - 28, child: step.body);
+              }
+
+              return ExpandablePanel(
+                theme: const ExpandableThemeData(
+                  animationDuration: Duration(milliseconds: 100),
+                  headerAlignment: ExpandablePanelHeaderAlignment.center,
+                  tapHeaderToExpand: false,
+                  tapBodyToExpand: false,
+                  tapBodyToCollapse: false,
+                  hasIcon: false,
+                ),
+                header: getHeader(step),
+                collapsed: Container(),
+                expanded: sizedBox,
+              );
+            }).toList(),
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 }

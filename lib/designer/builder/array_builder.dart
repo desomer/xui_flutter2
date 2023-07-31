@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/widget/cw_array.dart';
 
 import '../../core/data/core_data.dart';
@@ -11,7 +12,7 @@ import '../../widget/cw_text.dart';
 
 class ArrayBuilder {
   List<Widget> getArrayWidget(String name, CWProvider provider,
-      CWWidgetLoaderCtx ctxDesign, Type type) {
+      CWWidgetLoaderCtx ctxDesign, Type type, BoxConstraints constraints) {
     var listWidget = <Widget>[];
 
     final CoreDataObjectBuilder builder =
@@ -20,24 +21,54 @@ class ArrayBuilder {
 
     ColRowLoader loader = (type == AttrArrayLoader)
         ? AttrArrayLoader(name, ctxDesign, provider)
-        : AttrRowLoader(name, ctxDesign, provider);
+        : AttrListLoader(name, ctxDesign, provider);
 
     loader.ctxLoader.factory.mapProvider[provider.name] = provider;
 
-    for (final CoreDataAttribut attr in builder.attributs) {
+    List<CoreDataEntity> listMdel =
+        CWApplication.of().dataModelProvider.content;
+    CoreDataEntity? aModelToDisplay;
+
+    if (type == AttrArrayLoader) {
+      // recherche du model pour afficher les bon label
+      for (var element in listMdel) {
+        if (element.value["_id_"] == builder.name) {
+          aModelToDisplay = element;
+          break;
+        }
+      }
+    }
+
+    var allAttribut = builder.getAllAttribut();
+    for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.CDone) {
         // if (src[attr.name] != null) {
         //   // lien one2one
         // }
       } else if (attr.type == CDAttributType.CDmany) {
       } else {
-        loader.addAttr(attr);
+        String nameAttr = attr.name;
+
+        if (aModelToDisplay != null) {
+          // recherche le label de l'attribut
+          List<dynamic> listAttr = aModelToDisplay.value["listAttr"];
+          for (Map<String, dynamic> attrModel in listAttr) {
+            if (attrModel["_id_"] == attr.name) {
+              nameAttr = attrModel["name"];
+              break;
+            }
+          }
+        }
+
+        loader.addAttr(attr, nameAttr);
       }
     }
 
     loader.addRow();
 
-    listWidget.add(loader.getWidget(name, name));
+    listWidget.add(Container(
+        constraints: BoxConstraints(maxHeight: constraints.maxHeight - 32),
+        child: loader.getWidget(name, name)));
     return listWidget;
   }
 }
@@ -46,7 +77,7 @@ abstract class ColRowLoader extends CWWidgetLoader {
   ColRowLoader(this.name, super.ctx);
   String name;
 
-  void addAttr(CoreDataAttribut attribut);
+  void addAttr(CoreDataAttribut attribut, String nameAttr);
   void addRow() {}
 }
 
@@ -60,33 +91,40 @@ class AttrArrayLoader extends ColRowLoader {
   CWProvider provider;
 
   @override
-  void addAttr(CoreDataAttribut attribut) {
+  void addAttr(CoreDataAttribut attribut, String nameAttr) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onBuild.toString();
     ctxWE.provider = provider;
     ctxWE.payload = attribut;
     ctxWE.loader = ctxLoader;
 
-    addWidget('${name}Col0Header$nbAttr', '${name}Head$nbAttr', CWText, <String, dynamic>{
-      'label': attribut.name,
-    });
-
     provider.doAction(null, ctxWE, CWProviderAction.onBuild);
-    if (ctxWE.ret != null) {
-      CoreDataEntity widget = ctxWE.ret;
-      widget.value.addAll(<String, dynamic>{
-        'bind': attribut.name,
-        'providerName': provider.name
+
+    if (ctxWE.retAction != "None") {
+      if (ctxWE.ret != null) {
+        CoreDataEntity widget = ctxWE.ret;
+        widget.value.addAll(<String, dynamic>{
+          'bind': attribut.name,
+          'providerName': provider.name
+        });
+        addChildProp('${name}Col0Cont$nbAttr', '${name}Info$nbAttr',
+            widget.type, widget);
+      } else {
+        // type text par defaut
+        addWidget('${name}Col0Cont$nbAttr', '${name}Info$nbAttr',
+            CWText, <String, dynamic>{
+          'bind': attribut.name,
+          'providerName': provider.name
+        });
+      }
+
+      addWidget('${name}Col0Header$nbAttr', '${name}Head$nbAttr',
+          CWText, <String, dynamic>{
+        'label': nameAttr,
       });
-      addChildProp('${name}Col0Cont$nbAttr', '${name}Info$nbAttr', widget.type, widget);
-    } else {
-      // type text par defaut
-      addWidget('${name}Col0Cont$nbAttr', '${name}Info$nbAttr', CWText, <String, dynamic>{
-        'bind': attribut.name,
-        'providerName': provider.name
-      });
+
+      nbAttr++;
     }
-    nbAttr++;
   }
 
   @override
@@ -110,8 +148,8 @@ class AttrArrayLoader extends ColRowLoader {
 }
 
 /////////////////////////////////////////////////////////////////////////
-class AttrRowLoader extends ColRowLoader {
-  AttrRowLoader(name, CWWidgetLoaderCtx ctxDesign, this.provider)
+class AttrListLoader extends ColRowLoader {
+  AttrListLoader(name, CWWidgetLoaderCtx ctxDesign, this.provider)
       : super(name, ctxDesign) {
     setRoot(name, "CWExpandPanel");
   }
@@ -120,7 +158,7 @@ class AttrRowLoader extends ColRowLoader {
   CWProvider provider;
 
   @override
-  void addAttr(CoreDataAttribut attribut) {
+  void addAttr(CoreDataAttribut attribut, String nameAttr) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onBuild.toString();
     ctxWE.provider = provider;
@@ -128,27 +166,32 @@ class AttrRowLoader extends ColRowLoader {
     ctxWE.loader = ctxLoader;
 
     provider.doAction(null, ctxWE, CWProviderAction.onBuild);
-    if (ctxWE.ret != null) {
-      CoreDataEntity widget = ctxWE.ret;
-      widget.value.addAll(<String, dynamic>{
-        'bind': attribut.name,
-        'providerName': provider.name
-      });
-      addChildProp('${name}RowCont$nbAttr', '${name}Info$nbAttr', widget.type, widget);
-    } else {
-      // type text par defaut
-      addWidget('${name}RowCont$nbAttr', '${name}Info$nbAttr', CWText, <String, dynamic>{
-        'bind': attribut.name,
-        'providerName': provider.name
-      });
+    if (ctxWE.retAction != "None") {
+      if (ctxWE.ret != null) {
+        CoreDataEntity widget = ctxWE.ret;
+        widget.value.addAll(<String, dynamic>{
+          'bind': attribut.name,
+          'providerName': provider.name
+        });
+        addChildProp(
+            '${name}RowCont$nbAttr', '${name}Info$nbAttr', widget.type, widget);
+      } else {
+        // type text par defaut
+        addWidget('${name}RowCont$nbAttr', '${name}Info$nbAttr',
+            CWText, <String, dynamic>{
+          'bind': attribut.name,
+          'providerName': provider.name
+        });
+      }
+      nbAttr++;
     }
-    nbAttr++;
   }
 
   @override
   void addRow() {
     // la colonne d'attribut
-    addWidget('${name}Col0Cont', '${name}Row', CWRow, <String, dynamic>{"count": nbAttr});
+    addWidget('${name}Col0Cont', '${name}Row', CWRow,
+        <String, dynamic>{"count": nbAttr});
   }
 
   @override

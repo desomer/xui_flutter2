@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/cw_factory.dart';
-import 'cw_list.dart';
+import '../designer/widget_crud.dart';
+import 'cw_row.dart';
 
 class CWArray extends CWWidgetMap {
-  const CWArray({super.key, required super.ctx});
+  CWArray({super.key, required super.ctx});
 
   @override
   State<CWArray> createState() => _CwArrayState();
 
   @override
   initSlot(String path) {
-    final nb = getCount();
+    final nb = getCountChildren();
     for (var i = 0; i < nb; i++) {
       addSlotPath(
           '$path[].Header$i',
@@ -35,54 +37,61 @@ class CWArray extends CWWidgetMap {
         .addObject('CWColArrayConstraint')
         .addAttr('width', CDAttributType.CDint);
   }
+
+  final Map<int, State> listState = {};
 }
 
 class _CwArrayState extends StateCW<CWArray> {
+  final ScrollController horizontal = ScrollController();
+  final ScrollController vertical = ScrollController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    horizontal.dispose();
+    vertical.dispose();
+  }
+
+  final double minWidth = 100.0;
+
   @override
   Widget build(BuildContext context) {
-    final List<Widget> listHeader = [];
+    return LayoutBuilder(builder: (context, constraint) {
+      final List<Widget> listHeader = [];
 
-    final nb = widget.getCount();
-    for (var i = 0; i < nb; i++) {
-      listHeader.add(getHeader(i));
-    }
+      final nb = widget.getCountChildren();
+      final w = constraint.maxWidth.clamp(minWidth * nb + 24 + 9, 50000.0);
+      final maxWidth = (w - 24 - 9) / nb;
 
-    listHeader.add(const SizedBox(
-      width: 24,
-    ));
+      for (var i = 0; i < nb; i++) {
+        listHeader.add(getHeader(i, maxWidth));
+      }
 
-    return Column(children: [
-      Container(color: Colors.grey.shade800, child: Row(children: listHeader)),
-      ListView.builder(
+      // header delete
+      listHeader.add(const SizedBox(
+        width: 24,
+      ));
+
+      var listView = ListView.builder(
           scrollDirection: Axis.vertical,
+          controller: vertical,
           shrinkWrap: true,
           itemCount: widget.getItemsCount(),
           itemBuilder: (context, index) {
-            final List<Widget> listConts = [];
-            for (var i = 0; i < nb; i++) {
-              listConts.add(getCell(
-                  CWSlot(
-                      key: widget.ctx.getSlotKey('Cont$i$index'),
-                      ctx: widget.createInArrayCtx('Cont$i', null)),
-                  i));
+            List<Widget> listConts = getRow(nb, index, maxWidth);
+
+            getARow() {
+              return getRow(nb, index, maxWidth);
             }
 
-            listConts.add(InkWell(
-              child: const Padding(
-                padding: EdgeInsets.all(2),
-                child: Icon(Icons.delete_forever, size: 20),
-              ),
-              onTap: () {},
-            ));
-
             widget.setIdx(index);
-            var rowState = InheritedStateContainer(
-                key: ValueKey(index),
-                index: index,
-                data: this,
-                child: Row(
-                  children: listConts,
-                ));
+            var rowState = CWArrayRow(
+              key: ValueKey(index),
+              rowIdx: index,
+              stateArray: this,
+              getRow: getARow,
+              children: listConts,
+            );
 
             return GestureDetector(
                 // la row
@@ -95,38 +104,85 @@ class _CwArrayState extends StateCW<CWArray> {
                             bottom:
                                 BorderSide(width: 1.0, color: Colors.grey))),
                     child: rowState));
-          })
-    ]);
+          });
+
+      const int heightHeader = 28;
+      return SizedBox(
+          width: w,
+          height: constraint.maxHeight,
+          child: Scrollbar(
+              thumbVisibility: true,
+              trackVisibility: true,
+              controller: horizontal,
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  controller: horizontal,
+                  child: SizedBox(
+                      width: w,
+                      child: Column(children: [
+                        Container(
+                            color: Colors.grey.shade800,
+                            child: Row(children: listHeader)),
+                        Scrollbar(
+                            thumbVisibility: true,
+                            trackVisibility: true,
+                            controller: vertical,
+                            child: SizedBox(
+                                height: constraint.maxHeight - heightHeader,
+                                child: listView)),
+                        const SizedBox(height: 9) // zone scrollbar
+                      ])))
+              //)
+              )
+          //)
+          );
+    });
   }
 
-  Widget getHeader(int i) {
+  List<Widget> getRow(int nbCol, int idxRow, double maxWidth) {
+    final List<Widget> listConts = [];
+    CWProvider? provider = CWProvider.of(widget.ctx);
+    for (var i = 0; i < nbCol; i++) {
+      dynamic content = "";
+      var createInArrayCtx = widget.createInArrayCtx('Cont$i', null);
+      var w = createInArrayCtx.getWidgetInSlot();
+      if (w is CWWidgetMap) {
+        if (provider != null) {
+          provider.idxDisplayed = idxRow;
+          content = w.getValue();
+        }
+      }
+
+      listConts.add(getCell(
+          CWSlot(
+              key: widget.ctx.getSlotKey('Cont$i$idxRow', content.toString()),
+              ctx: createInArrayCtx),
+          i,
+          maxWidth));
+    }
+
+    // delete
+    listConts.add(const WidgetDeleteBtn());
+    return listConts;
+  }
+
+  Widget getHeader(int i, double maxWidth) {
     return getCell(
         CWSlot(
-            key: widget.ctx.getSlotKey('Header$i'),
+            key: widget.ctx.getSlotKey('Header$i', ''),
             ctx: widget.createInArrayCtx('Header$i', null)),
-        i);
+        i,
+        maxWidth);
   }
 
-  Widget getCell(Widget cell, int numCol) {
-    if (numCol == 0) {
-      return SizedBox(
-          width: 200,
-          child: Container(
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                  border:
-                      Border(right: BorderSide(color: Colors.black, width: 1))),
-              child: cell));
-    } else {
-      return Flexible(
-          flex: 1,
-          fit: FlexFit.tight,
-          child: Container(
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                  border:
-                      Border(right: BorderSide(color: Colors.black, width: 1))),
-              child: cell));
-    }
+  Widget getCell(Widget cell, int numCol, double max) {
+    return SizedBox(
+        width: max.clamp(minWidth, 500),
+        child: Container(
+            alignment: Alignment.center,
+            decoration: const BoxDecoration(
+                border:
+                    Border(right: BorderSide(color: Colors.black, width: 1))),
+            child: cell));
   }
 }

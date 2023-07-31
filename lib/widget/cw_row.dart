@@ -1,0 +1,105 @@
+import 'package:flutter/material.dart';
+import 'package:xui_flutter/core/data/core_data.dart';
+
+import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_widget.dart';
+import 'cw_array.dart';
+import 'cw_list.dart';
+
+class CWArrayRow extends StatefulWidget {
+  const CWArrayRow(
+      {required this.rowIdx,
+      required this.children,
+      required this.stateArray,
+      required this.getRow,
+      required Key? key})
+      : super(key: key);
+  final int rowIdx;
+  final List<Widget> children;
+  final StateCW<CWArray> stateArray;
+  final Function getRow;
+
+  @override
+  State<CWArrayRow> createState() => CwRowState();
+
+  void selected(CWWidgetCtx ctx) {
+    CWWidgetEvent ctxWE = CWWidgetEvent();
+    ctxWE.action = CWProviderAction.onSelected.toString();
+    CWProvider? provider = CWProvider.of(stateArray.widget.ctx);
+    if (provider != null) {
+      ctxWE.provider = provider;
+      ctxWE.payload = rowIdx;
+      ctxWE.loader = stateArray.widget.ctx.loader;
+      if (provider.idxSelected != rowIdx) {
+        provider.idxSelected = rowIdx;
+        provider.doAction(ctx, ctxWE, CWProviderAction.onSelected);
+      }
+    }
+  }
+}
+
+class CwRowState extends State<CWArrayRow> {
+  @override
+  void initState() {
+    super.initState();
+    //widget.stateArray.widget.listState[widget.rowIdx] = this;
+    //print("add row ${widget.rowIdx}");
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    //print("remove row ${widget.rowIdx}");
+    //widget.stateArray.widget.listState.remove(widget.rowIdx);
+    for (var element in mapFocus.entries) {
+      element.value.dispose();
+    }
+  }
+
+  Map<String, FocusNode> mapFocus = {};
+
+  @override
+  Widget build(BuildContext context) {
+    var rowState = InheritedStateContainer(
+        key: ValueKey(widget.rowIdx),
+        index: widget.rowIdx,
+        arrayState: widget.stateArray,
+        rowState: this,
+        child: Stack(children: [
+          Row(
+            children: widget.getRow(),
+          ),
+          IgnorePointer(child: LayoutBuilder(
+            builder: (context, constraints) {
+              CWProvider? provider =
+                  CWProvider.of(widget.stateArray.widget.ctx);
+              CoreDataEntity r = provider!.content[widget.rowIdx];
+
+              return CustomPaint(
+                size: Size(constraints.maxWidth, 20),
+                painter: r.operation == CDAction.delete ? MyPainter() : null,
+              );
+            },
+          ))
+        ]));
+    return rowState;
+  }
+}
+
+class MyPainter extends CustomPainter {
+  //         <-- CustomPainter class
+  @override
+  void paint(Canvas canvas, Size size) {
+    const p1 = Offset(5, 14);
+    final p2 = Offset(size.width - 30, 14);
+    final paint = Paint()
+      ..color = Colors.grey.shade800
+      ..strokeWidth = 2;
+    canvas.drawLine(p1, p2, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}

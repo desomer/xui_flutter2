@@ -38,6 +38,6 @@ class _CWTextState extends StateCW<CWText> {
   @override
   Widget build(BuildContext context) {
     widget.initRow(context);
-    return Text(widget.getLabel());
+    return Text(softWrap: false, overflow: TextOverflow.fade, widget.getLabel());
   }
 }

@@ -5,8 +5,8 @@ import 'core_data.dart';
 
 enum CWProviderAction {
   onNone2Create,
-  onChange,
   onInsertNone,
+  onChange,
   onBuild,
   onMountWidget,
   onSelected
@@ -87,9 +87,15 @@ class CWProvider {
     getDisplayedEntity().setAttr(ctx.loader.collectionDataModel,
         ctx.designEntity!.getString(propName)!, v);
 
-    if (getDisplayedEntity().operation == CDAction.none) {
-      getDisplayedEntity().operation = CDAction.create;
+    var displayedEntity = getDisplayedEntity();
+    var rowOperation = displayedEntity.operation;
+
+    if (rowOperation == CDAction.none) {
+      displayedEntity.operation = CDAction.create;
       doAction(ctx, event, CWProviderAction.onNone2Create);
+    }
+    if (rowOperation == CDAction.read) {
+      displayedEntity.operation == CDAction.update;
     }
     doAction(ctx, event, CWProviderAction.onChange);
   }

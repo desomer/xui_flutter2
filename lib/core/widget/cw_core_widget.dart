@@ -81,7 +81,7 @@ abstract class CWWidgetMap extends CWWidget {
       InheritedStateContainer? row =
           context.getInheritedWidgetOfExactType<InheritedStateContainer>();
       if (row != null) {
-        // print("row.index = ${row.index}");
+        //print("row.index = ${row.index}");
         provider.idxDisplayed = row.index!;
       }
     }
@@ -100,7 +100,12 @@ abstract class CWWidgetMap extends CWWidget {
   void setValue(dynamic val) {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
-      provider.setValueOf(ctx, null, "bind", val);
+      CWWidgetEvent ctxWE = CWWidgetEvent();
+      ctxWE.action = CWProviderAction.onChange.toString();
+      ctxWE.provider = provider;
+      ctxWE.payload = null;
+      ctxWE.loader = ctx.loader;
+      provider.setValueOf(ctx, ctxWE, "bind", val);
     }
   }
 
@@ -127,8 +132,8 @@ abstract class CWWidgetMap extends CWWidget {
     return ctx.designEntity?.getString('label') ?? '[empty]';
   }
 
-  int getCount() {
-    return ctx.designEntity?.getInt('count', 3) ?? 3;
+  int getCountChildren() {
+    return ctx.designEntity?.getInt('count', 1) ?? 1;
   }
 }
 
@@ -149,18 +154,16 @@ class CWWidgetCtx {
   }
 
   Key? getKey() {
+    //TODO a retirer customAlphabet  mais bug affichage des attributs
     return loader.mode == ModeRendering.design
         ? GlobalKey(debugLabel: xid)
-        : ValueKey("$xid${customAlphabet('1234567890abcdef', 10)}");
-    // : (force
-    //     ? GlobalStringKey(customAlphabet('1234567890abcdef', 10))
-    //     : null);
+        : ValueKey('$xid${customAlphabet('1234567890abcdef', 10)}');
   }
 
-  Key? getSlotKey(String prefix) {
+  Key? getSlotKey(String prefix, String change) {
     return loader.mode == ModeRendering.design
         ? GlobalKey(debugLabel: "$xid$prefix")
-        : ValueKey("$xid$prefix${customAlphabet('1234567890abcdef', 10)}");
+        : ValueKey("$xid$prefix$change");
   }
 
   static String getParentPathFrom(String path) {
@@ -221,6 +224,10 @@ class CWWidgetCtx {
     return factory.mapWidgetByXid[xid]?.ctx;
   }
 
+  CWWidget? findWidgetByXid(String xid) {
+    return factory.mapWidgetByXid[xid];
+  }
+
   void changeProp(String name, dynamic val) {
     designEntity?.value[name] = val;
   }
@@ -232,4 +239,5 @@ class CWWidgetEvent {
   CWProvider? provider;
   CWWidgetLoaderCtx? loader;
   dynamic ret;
+  String? retAction;
 }

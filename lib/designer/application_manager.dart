@@ -4,6 +4,7 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'cw_factory.dart';
+import 'designer_data.dart';
 import 'designer_model.dart';
 
 class CWApplication {
@@ -13,6 +14,7 @@ class CWApplication {
   }
 
   CWWidgetLoaderCtx loaderDesigner = CWWidgetLoaderCtx();
+
   CWWidgetLoaderCtx loaderModel = CWWidgetLoaderCtx();
   CWWidgetLoaderCtx loaderAttribut = CWWidgetLoaderCtx();
   CWWidgetLoaderCtx loaderData = CWWidgetLoaderCtx();
@@ -21,7 +23,11 @@ class CWApplication {
 
   CWProvider dataModelProvider =
       CWProvider("DataModelProvider", "DataModel", null);
+
   late CWProvider dataAttributProvider;
+  late CWProvider dataProvider;
+
+  Map<String, CoreDataEntity> listData = {};
 
   initDesigner() {
     loaderDesigner.collectionWidget = CWCollection().collection;
@@ -49,68 +55,118 @@ class CWApplication {
     loaderAttribut.collectionDataModel = collection;
 
     loaderData.mode = ModeRendering.view;
+    loaderData.collectionDataModel = collection;
 
-    collection.addObject("DataModel")
-      ..addAttribut("name", CDAttributType.CDtext)
-      ..addAttribut("listAttr", CDAttributType.CDmany);
+    collection
+        .addObject("DataEntity")
+        .addAttr("_id_", CDAttributType.CDtext)
+        .withAction(AttrActionDefaultUUID())
+        .addAttr("_createAt_", CDAttributType.CDdate)
+        .addAttr("_updateAt_", CDAttributType.CDdate);
 
-    collection.addObject("ModelAttributs")
-      ..addAttribut("name", CDAttributType.CDtext)
-      ..addAttribut("type", CDAttributType.CDtext);
+    collection
+        .addObject("DataModel")
+        .addAttr("name", CDAttributType.CDtext)
+        .addAttr("listAttr", CDAttributType.CDmany)
+        .addGroup(collection.getClass("DataEntity")!);
 
-    CoreDataEntity entity1 =
+    collection.addObject("DataHeader").addAttr("label", CDAttributType.CDtext);
+
+    collection
+        .addObject("DataContainer")
+        .addAttr("name", CDAttributType.CDtext)
+        .addAttr("listData", CDAttributType.CDmany);
+
+    collection
+        .addObject("ModelAttributs")
+        .addAttr("_id_", CDAttributType.CDtext)
+        .withAction(AttrActionDefaultUUID())        
+        .addAttr("name", CDAttributType.CDtext)
+        .addAttr("type", CDAttributType.CDtext);
+
+
+
+    initProvider();
+
+    //////////////////////////////////
+    initPetStore();
+  }
+
+  void initPetStore() {
+    CoreDataEntity modelCustomer =
         collection.createEntityByJson("DataModel", {"name": "Customers"});
 
-    CoreDataEntity entity2 =
+    CoreDataEntity modelPets =
         collection.createEntityByJson("DataModel", {"name": "Pets"});
 
-    entity1.addMany(
+    //////////////////////////////////////////
+    modelCustomer.addMany(
         collection,
         "listAttr",
         collection.createEntityByJson(
             "ModelAttributs", {"name": "First name", "type": "TEXT"}));
-    entity1.addMany(
+    modelCustomer.addMany(
         collection,
         "listAttr",
         collection.createEntityByJson(
             "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
-
-    entity2.addMany(
+    /////////////////////////////////////////////////
+    modelPets.addMany(
         collection,
         "listAttr",
         collection.createEntityByJson(
             "ModelAttributs", {"name": "Name", "type": "TEXT"}));
-    entity2.addMany(
+    modelPets.addMany(
         collection,
         "listAttr",
         collection.createEntityByJson(
             "ModelAttributs", {"name": "Category", "type": "TEXT"}));
-    entity2.addMany(
+    modelPets.addMany(
         collection,
         "listAttr",
         collection.createEntityByJson(
             "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
 
-    initProvider(entity1, entity2);
+    /////////////////////////////////////
+    dataModelProvider
+      ..add(modelCustomer)
+      ..add(modelPets);
   }
 
-  void initProvider(CoreDataEntity entity1, CoreDataEntity entity2) {
+  void initProvider() {
     dataModelProvider.header =
-        collection.createEntityByJson("DataModel", {"label": "Entity"});
+        collection.createEntityByJson("DataHeader", {"label": "Entity"});
 
-    dataModelProvider
-      ..add(entity1)
-      ..add(entity2);
     dataModelProvider.idxSelected = 0;
 
     dataModelProvider.addAction(
         CWProviderAction.onInsertNone, OnInsertModel(loaderModel));
-    dataModelProvider.addAction(CWProviderAction.onBuild, OnBuild());
-
+    dataModelProvider.addAction(CWProviderAction.onBuild, OnBuildEdit(["name"], false));
     dataModelProvider.addAction(CWProviderAction.onSelected, OnSelectModel());
 
     //----------------------------------------------
     dataAttributProvider = CWProvider("DataAttrProvider", "ModelAttributs",
-        CoreDataLoaderProvider(loaderAttribut, dataModelProvider, "listAttr"));
+        CoreDataLoaderNested(loaderAttribut, dataModelProvider, "listAttr"));
+
+    dataAttributProvider.header =
+        collection.createEntityByJson("DataHeader", {"label": "?"});
+
+    dataAttributProvider.addAction(
+        CWProviderAction.onBuild, OnBuildEdit(["name"], false));
+    dataAttributProvider.addAction(
+        CWProviderAction.onInsertNone, OnAddAttr(dataAttributProvider));
+    //-------------------------------------------------------
+    dataProvider = CWProvider("DataProvider", "?",
+        CoreDataLoaderMap(loaderData, listData, "listData"));
+    dataProvider.header =
+        collection.createEntityByJson("DataHeader", {"label": "?"});
+
+    dataProvider.addAction(CWProviderAction.onBuild, OnBuildEdit(["*"], true));
+    dataProvider.addAction(
+        CWProviderAction.onInsertNone, OnInsertData());
+    dataProvider.addAction(
+        CWProviderAction.onNone2Create, SetDate("_createAt_"));
+    dataProvider.addAction(
+        CWProviderAction.onChange, SetDate("_updateAt_"));
   }
 }

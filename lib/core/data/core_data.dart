@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:json_patch/json_patch.dart';
+import 'package:nanoid/nanoid.dart';
 
 import 'core_event.dart';
 
@@ -27,15 +28,36 @@ class CoreDataCollection {
     return getClass(cls)!.createEntity();
   }
 }
+//////////////////////////////////////////////////////////////////////
+
+enum CDActionData { defValue }
 
 ///----------------------------------------------------
 class CoreDataObjectBuilder {
   CoreDataObjectBuilder(this.name);
 
   late String name;
-  List<CoreDataAttribut> attributs = <CoreDataAttribut>[];
-  Map<String, CoreDataAttribut> attributsByName = <String, CoreDataAttribut>{};
-  Map<String, CoreDataBrowseAction> actions = <String, CoreDataBrowseAction>{};
+  final List<CoreDataAttribut> _attributs = <CoreDataAttribut>[];
+  final Map<String, CoreDataAttribut> attributsByName =
+      <String, CoreDataAttribut>{};
+  final Map<String, CoreDataBrowseAction> actions =
+      <String, CoreDataBrowseAction>{};
+
+  final List<CoreDataObjectBuilder> groupAttributs = <CoreDataObjectBuilder>[];
+
+  CoreDataObjectBuilder addGroup(CoreDataObjectBuilder group) {
+    groupAttributs.add(group);
+    return this;
+  }
+
+  getAllAttribut() {
+    List<CoreDataAttribut> ret = <CoreDataAttribut>[];
+    ret.addAll(_attributs);
+    for (var element in groupAttributs) {
+      ret.addAll(element.getAllAttribut());
+    }
+    return ret;
+  }
 
   CoreDataObjectBuilder addObjectAction(String name, Function action) {
     actions[name] = CoreDataActionGetter(action);
@@ -47,7 +69,7 @@ class CoreDataObjectBuilder {
     final CoreDataAttribut ret = CoreDataAttribut(name);
     ret.type = type;
     ret.typeName = tname;
-    attributs.add(ret);
+    _attributs.add(ret);
     attributsByName[name] = ret;
     return ret;
   }
@@ -72,16 +94,18 @@ class CoreDataObjectBuilder {
   CoreDataEntity createEntity() {
     final CoreDataEntity ret = CoreDataEntity(name);
 
-    for (final CoreDataAttribut attr in attributs) {
-      if (attr.actions["default"] != null) {
-        for (var element in attr.actions["default"]!) {
+    var allAttribut = getAllAttribut();
+
+    for (final CoreDataAttribut attr in allAttribut) {
+      if (attr.actions[CDActionData.defValue.toString()] != null) {
+        for (var element in attr.actions[CDActionData.defValue.toString()]!) {
           CoreDataCtx ctx = CoreDataCtx();
           ctx.payload = CoreAttrCtx(ret, attr);
           element.execute(ctx);
         }
       }
     }
-    ret.operation = CDAction.none;
+    ret._operation = CDAction.none;
     ret.value[r'$type'] = name;
 
     return ret;
@@ -102,8 +126,18 @@ class AttrAction {
 class AttrActionDefault extends AttrAction {
   dynamic val;
   AttrActionDefault(this.val)
-      : super('default', (CoreAttrCtx event) {
+      : super(CDActionData.defValue.toString(), (CoreAttrCtx event) {
           event.entity.value[event.attr.name] = val;
+        });
+}
+
+class AttrActionDefaultUUID extends AttrAction {
+  AttrActionDefaultUUID()
+      : super(CDActionData.defValue.toString(), (CoreAttrCtx event) {
+          if (event.entity.value[event.attr.name] == null) {
+            event.entity.value[event.attr.name] =
+                customAlphabet('1234567890abcdef', 10);
+          }
         });
 }
 
@@ -112,12 +146,25 @@ class CoreDataEntity {
   CoreDataEntity(this.type);
 
   String type; // type de l'entity
-  CDAction operation = CDAction.inherit;
+  CDAction _operation = CDAction.inherit;
   Map<String, dynamic> value = <String, dynamic>{};
   Map<String, dynamic>? original;
   List<Iterable<Map<String, dynamic>>>? patch;
   List<Iterable<Map<String, dynamic>>>? patchRedo;
   Map<String, dynamic> custom = <String, dynamic>{};
+
+  CDAction get operation {
+    int? v = value["_operation_"];
+    if (v != null) {
+      _operation = CDAction.values[v];
+    }
+    return _operation;
+  }
+
+  set operation(CDAction v) {
+    _operation = v;
+    value["_operation_"] = v.index;
+  }
 
   @override
   String toString() {
@@ -131,8 +178,7 @@ class CoreDataEntity {
 
   CoreDataEntity setAttr(
       CoreDataCollection collection, String attrName, dynamic v) {
-    final CoreDataObjectBuilder builder = collection.getClass(type)!;
-    final CoreDataAttribut? attr = builder.attributsByName[attrName];
+    final CoreDataAttribut? attr = getAttrByName(collection, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
       value[attrName] = v;
@@ -144,14 +190,19 @@ class CoreDataEntity {
   CoreDataAttribut? getAttrByName(
       CoreDataCollection collection, String attrName) {
     final CoreDataObjectBuilder builder = collection.getClass(type)!;
-    final CoreDataAttribut? attr = builder.attributsByName[attrName];
+    CoreDataAttribut? attr = builder.attributsByName[attrName];
+    if (attr == null) {
+      for (var group in builder.groupAttributs) {
+        attr = group.attributsByName[attrName];
+        if (attr != null) return attr;
+      }
+    }
     return attr;
   }
 
   CoreDataEntity setOne(
       CoreDataCollection collection, String attrName, CoreDataEntity v) {
-    final CoreDataObjectBuilder builder = collection.getClass(type)!;
-    final CoreDataAttribut? attr = builder.attributsByName[attrName];
+    final CoreDataAttribut? attr = getAttrByName(collection, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
       value[attrName] = v.value;
@@ -162,8 +213,7 @@ class CoreDataEntity {
 
   CoreDataEntity addMany(
       CoreDataCollection collection, String attrName, CoreDataEntity v) {
-    final CoreDataObjectBuilder builder = collection.getClass(type)!;
-    final CoreDataAttribut? attr = builder.attributsByName[attrName];
+    final CoreDataAttribut? attr = getAttrByName(collection, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
       if (value[attrName] == null) {
@@ -267,7 +317,8 @@ class CoreDataEntity {
 
     browserObject(ctx, collection, 'browserObject', builder, att, src);
 
-    for (final CoreDataAttribut attr in builder.attributs) {
+    var allAttribut = builder.getAllAttribut();
+    for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.CDone) {
         if (src[attr.name] != null) {
           ctx.pathData.add(attr);
@@ -353,7 +404,8 @@ class CoreDataEntity {
       Map<String, dynamic> dest, Map<String, dynamic> src) {
     dest[_TypeAttr] = src[_TypeAttr];
     final CoreDataObjectBuilder builder = collection.getClass(type)!;
-    for (final CoreDataAttribut attr in builder.attributs) {
+    var allAttribut = builder.getAllAttribut();
+    for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.CDone) {
         // un one
         if (src[attr.name] != null) {

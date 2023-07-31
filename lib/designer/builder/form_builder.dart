@@ -20,8 +20,8 @@ class FormBuilder {
     Map<String, dynamic> src = entity.value;
 
     AttrFormLoader loader = AttrFormLoader(ctxLoader, entity);
-
-    for (final CoreDataAttribut attr in builder.attributs) {
+    var allAttribut = builder.getAllAttribut();
+    for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.CDone) {
         if (src[attr.name] != null) {
           // lien one2one
@@ -41,7 +41,7 @@ class FormBuilder {
 
 class AttrFormLoader extends CWWidgetLoader {
   AttrFormLoader(CWWidgetLoaderCtx ctxLoader, this.entity) : super(ctxLoader) {
-    setRoot("root","CWExpandPanel");
+    setRoot("root", "CWExpandPanel");
   }
 
   int nbAttr = 0;

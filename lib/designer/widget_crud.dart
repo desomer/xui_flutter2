@@ -1,9 +1,11 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
+import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../widget/cw_list.dart';
 
 class WidgetDrag extends StatefulWidget {
   const WidgetDrag({required this.provider, Key? key}) : super(key: key);
@@ -74,6 +76,7 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
           CWWidgetEvent ctxWE = CWWidgetEvent();
           ctxWE.action = CWProviderAction.onInsertNone.toString();
           ctxWE.provider = widget.provider;
+          ctxWE.loader = widget.loader;
           widget.provider.doAction(null, ctxWE, CWProviderAction.onInsertNone);
           Future.delayed(const Duration(milliseconds: 100), () {
             widget.loader.factory.mapWidgetByXid[widget.repaintXid]!.repaint();
@@ -91,5 +94,32 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
                 style: TextStyle(color: Colors.grey),
               ))),
         ));
+  }
+}
+
+class WidgetDeleteBtn extends StatefulWidget {
+  const WidgetDeleteBtn({Key? key}) : super(key: key);
+
+  @override
+  State<WidgetDeleteBtn> createState() => _WidgetDeleteBtnState();
+}
+
+class _WidgetDeleteBtnState extends State<WidgetDeleteBtn> {
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      child: const Padding(
+        padding: EdgeInsets.all(2),
+        child: Icon(Icons.delete_forever, size: 20),
+      ),
+      onTap: () {
+        var r =
+            context.getInheritedWidgetOfExactType<InheritedStateContainer>();
+
+        var provider = CWProvider.of(r!.arrayState.widget.ctx);
+        provider!.content[r.index!].operation = CDAction.delete;
+        r.repaintRow(r.arrayState.widget.ctx);
+      },
+    );
   }
 }

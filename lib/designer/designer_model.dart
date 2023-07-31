@@ -4,7 +4,7 @@ import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/builder/array_builder.dart';
 import 'package:xui_flutter/designer/designer.dart';
-import 'package:xui_flutter/designer/widget_create.dart';
+import 'package:xui_flutter/designer/widget_crud.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import '../core/data/core_data.dart';
@@ -20,83 +20,34 @@ class DesignerListModel extends StatefulWidget {
     return _DesignerListModelState();
   }
 
-  //static late CWProvider provider;
   static bool isInit = false;
-
   static initModel() {
     if (isInit) return;
     isInit = true;
     CWApplication.of().initModel();
-
-    // modelCollection.addObject("DataModel")
-    //   ..addAttribut("name", CDAttributType.CDtext)
-    //   ..addAttribut("listAttr", CDAttributType.CDmany);
-
-    // modelCollection.addObject("ModelAttributs")
-    //   ..addAttribut("name", CDAttributType.CDtext)
-    //   ..addAttribut("type", CDAttributType.CDtext);
-
-    // provider = CWProvider("DataModel", "DataModel", null);
-
-    // CoreDataEntity entity1 =
-    //     modelCollection.createEntityByJson("DataModel", {"name": "Customers"});
-
-    // CoreDataEntity entity2 =
-    //     modelCollection.createEntityByJson("DataModel", {"name": "Pets"});
-
-    // entity1.addMany(
-    //     modelCollection,
-    //     "listAttr",
-    //     modelCollection.createEntityByJson(
-    //         "ModelAttributs", {"name": "First name", "type": "TEXT"}));
-    // entity1.addMany(
-    //     modelCollection,
-    //     "listAttr",
-    //     modelCollection.createEntityByJson(
-    //         "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
-
-    // entity2.addMany(
-    //     modelCollection,
-    //     "listAttr",
-    //     modelCollection.createEntityByJson(
-    //         "ModelAttributs", {"name": "Name", "type": "TEXT"}));
-    // entity2.addMany(
-    //     modelCollection,
-    //     "listAttr",
-    //     modelCollection.createEntityByJson(
-    //         "ModelAttributs", {"name": "Category", "type": "TEXT"}));
-    // entity2.addMany(
-    //     modelCollection,
-    //     "listAttr",
-    //     modelCollection.createEntityByJson(
-    //         "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
-
-    // DesignerListModel.provider
-    //   ..add(entity1)
-    //   ..add(entity2);
   }
-
-  //static CoreDataCollection modelCollection = CoreDataCollection();
 }
 
 class _DesignerListModelState extends State<DesignerListModel> {
   @override
   Widget build(BuildContext context) {
-    // CWApplication.of().loaderModel.collectionWidget =
-    //     CoreDesigner.ofLoader().ctxLoader.collectionWidget;
+    return LayoutBuilder(builder: (context, constraints) {
+      List<Widget> listModel = ArrayBuilder().getArrayWidget(
+          "root",
+          CWApplication.of().dataModelProvider,
+          CWApplication.of().loaderModel,
+          AttrListLoader,
+          constraints);
 
-    List<Widget> listModel = ArrayBuilder().getArrayWidget("root",
-        CWApplication.of().dataModelProvider,
-        CWApplication.of().loaderModel,
-        AttrRowLoader);
-    listModel.add(WidgetAddBtn(
-      provider: CWApplication.of().dataModelProvider,
-      loader: CWApplication.of().loaderModel,
-      repaintXid: "Col0",
-    ));
-    return Column(
-      children: listModel,
-    );
+      listModel.add(WidgetAddBtn(
+        provider: CWApplication.of().dataModelProvider,
+        loader: CWApplication.of().loaderModel,
+        repaintXid: "rootCol0",
+      ));
+      return Column(
+        children: listModel,
+      );
+    });
   }
 }
 
@@ -107,7 +58,7 @@ class OnInsertModel extends CoreDataAction {
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CoreDataEntity newModel = loader.collectionDataModel
-        .createEntityByJson("DataModel", {"name": "?"});
+        .createEntityByJson("DataModel", {"name": "?", "listAttr": []});
     event!.provider!.content.add(newModel);
   }
 }
@@ -131,21 +82,19 @@ class OnSelectModel extends CoreDataAction {
 
     // ignore: invalid_use_of_protected_member
     CoreDesigner.of().dataKey.currentState?.setState(() {});
-
     CWApplication.of().loaderAttribut.findWidgetByXid("rootAttr")?.repaint();
-    //CWApplication.of().loaderData.findWidgetByXid("root")?.repaint();
   }
 }
 
-class OnBuild extends CoreDataAction {
-  OnBuild();
+// class OnBuild extends CoreDataAction {
+//   OnBuild();
 
-  @override
-  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    event!.ret = event.loader!.collectionWidget
-        .createEntityByJson((CWTextfield).toString(), {"withLabel": false});
-  }
-}
+//   @override
+//   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+//     event!.ret = event.loader!.collectionWidget
+//         .createEntityByJson((CWTextfield).toString(), {"withLabel": false});
+//   }
+// }
 
 //////////////////////////////////////////////////////////////////////////////////
 class DesignerModel extends StatefulWidget {
@@ -158,66 +107,58 @@ class DesignerModel extends StatefulWidget {
 class _DesignerModelState extends State<DesignerModel> {
   @override
   Widget build(BuildContext context) {
-    // CWApplication.of().loaderAttribut.collectionWidget =
-    //     CoreDesigner.ofLoader().ctxLoader.collectionWidget;
+    CWProvider providerAttr = CWApplication.of().dataAttributProvider;
 
     var name =
         CWApplication.of().dataModelProvider.getSelectedEntity().value["name"];
 
-    CWApplication.of().dataAttributProvider.header = CWApplication.of()
-        .loaderAttribut
-        .collectionDataModel
-        .createEntityByJson("DataModel", {"label": name});
+    providerAttr.header!.value["label"] = name;
 
-    CWApplication.of().dataAttributProvider.actions.clear();
-    CWApplication.of()
-        .dataAttributProvider
-        .addAction(CWProviderAction.onBuild, OnBuildEdit(["name"]));
-    CWApplication.of().dataAttributProvider.addAction(
-        CWProviderAction.onInsertNone,
-        OnAddAttr(CWApplication.of().dataAttributProvider, this));
-
-    List<Widget> listModel = ArrayBuilder().getArrayWidget("rootAttr",
-        CWApplication.of().dataAttributProvider,
-        CWApplication.of().loaderAttribut,
-        AttrRowLoader);
-    listModel
-        .add(WidgetDrag(provider: CWApplication.of().dataAttributProvider));
-
-    return Column(
-      children: listModel,
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      List<Widget> listModel = ArrayBuilder().getArrayWidget(
+          "rootAttr",
+          providerAttr,
+          CWApplication.of().loaderAttribut,
+          AttrListLoader,
+          constraints);
+      listModel.add(WidgetDrag(provider: providerAttr));
+      return Column(children: listModel);
+    });
   }
 }
 
 class OnAddAttr extends CoreDataAction {
-  OnAddAttr(this.provider, this.widget);
+  OnAddAttr(this.provider);
   CWProvider provider;
-  State widget;
 
   @override
   execute(Object? ctx, CWWidgetEvent? event) {
-    CoreDataEntity selected = CWApplication.of()
-        .dataModelProvider
-        .content[CWApplication.of().dataModelProvider.idxSelected];
-    List<dynamic>? result = selected.value["listAttr"];
-
+    // ajout d'un nouveau attribut au model
     CoreDataEntity entity = CWApplication.of().collection.createEntityByJson(
         "ModelAttributs",
         {"name": "?", "type": event!.payload!.toString().toUpperCase()});
-    result!.add(entity.value);
-    // ignore: invalid_use_of_protected_member
-    widget.setState(() {});
+
+    CWApplication.of().dataAttributProvider.loader!.addData(entity);
+
+    CWApplication.of().loaderAttribut.findWidgetByXid("rootAttr")?.repaint();
   }
 }
 
 class OnBuildEdit extends CoreDataAction {
-  OnBuildEdit(this.editName);
+  OnBuildEdit(this.editName, this.displayPrivate);
   List<String> editName;
+  bool displayPrivate;
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CoreDataAttribut attr = event!.payload as CoreDataAttribut;
+    if (attr.name.startsWith("_")) {
+      if (!displayPrivate) {
+        event.retAction = "None";
+      }
+      return;
+    }
+
     for (var element in editName) {
       if (element == attr.name || element == "*") {
         event.ret = event.loader!.collectionWidget

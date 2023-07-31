@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_data_loader.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
 import 'builder/array_builder.dart';
-import 'designer_model.dart';
-import 'widget_create.dart';
+import 'widget_crud.dart';
 
 class DesignerData extends StatefulWidget {
   const DesignerData({Key? key}) : super(key: key);
@@ -20,73 +20,79 @@ class _DesignerDataState extends State<DesignerData> {
   @override
   Widget build(BuildContext context) {
     CWWidgetLoaderCtx loader = CWApplication.of().loaderData;
-    loader.collectionDataModel = CoreDataCollection();
 
     var selectedEntity =
         CWApplication.of().dataModelProvider.getSelectedEntity();
 
-    var name = selectedEntity.value["name"];
+    var idData = selectedEntity.value["_id_"];
 
-    initDataModel(loader, selectedEntity, name);
-    CWProvider provider = getDataProvider(loader, name);
+    initDataModelWithAttr(loader, selectedEntity, idData);
+    CWProvider provider = getDataProvider(loader, idData, selectedEntity.value["name"]);
 
-    List<Widget> listModel =
-        ArrayBuilder().getArrayWidget("rootData", provider, loader, AttrArrayLoader);
-    listModel.add(WidgetAddBtn(
-      provider: provider,
-      loader: loader,
-      repaintXid: "rootDataCol0",
-    ));
+    return LayoutBuilder(builder: (context, constraints) {
+      List<Widget> listData = ArrayBuilder()
+          .getArrayWidget("rootData", provider, loader, AttrArrayLoader, constraints);
 
-    return SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          children: listModel,
-        ));
+      listData.add(WidgetAddBtn(
+        provider: provider,
+        loader: loader,
+        repaintXid: "rootDataCol0",
+      ));
+
+      return  Column(
+        children: listData,
+      );
+    });
   }
 
-  void initDataModel(
+  void initDataModelWithAttr(
       CWWidgetLoaderCtx loader, CoreDataEntity selectedEntity, name) {
     var listAttr = selectedEntity.value["listAttr"];
 
-    loader.collectionDataModel.addObject("DataModel")
-      ..addAttribut("name", CDAttributType.CDtext)
-      ..addAttribut("listAttr", CDAttributType.CDmany);
-
     CoreDataObjectBuilder data = loader.collectionDataModel.addObject(name);
-    for (var element in listAttr??[]) {
-      data.addAttribut(element["name"], CDAttributType.CDtext);
+    for (var element in listAttr ?? []) {
+      data.addAttribut(element["_id_"], CDAttributType.CDtext);
     }
+    data.addGroup(loader.collectionDataModel.getClass("DataEntity")!);
   }
 
-  CWProvider getDataProvider(CWWidgetLoaderCtx loader, name) {
-    CWProvider provider = CWProvider("ListData", name, null);
+  CWProvider getDataProvider(CWWidgetLoaderCtx loader, idData, label) {
+    CWProvider providerData = CWApplication.of().dataProvider;
+    providerData.type = idData;
+    CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
+    dataLoader.setName(idData);
+    providerData.header!.value["label"] = label;
 
-    provider.content
-        .add(loader.collectionDataModel.createEntityByJson(name, {}));
-
-    provider.header = loader.collectionDataModel
-        .createEntityByJson("DataModel", {"label": name});
-
-    provider.actions.clear();
-    provider.addAction(CWProviderAction.onBuild, OnBuildEdit(["*"]));
-    provider.addAction(
-        CWProviderAction.onInsertNone, OnInsertData(loader, name));
-
-    provider.idxSelected = 0;
-    return provider;
+    providerData.idxSelected = 0;
+    return providerData;
   }
 }
 
 class OnInsertData extends CoreDataAction {
-  OnInsertData(this.loader, this.type);
-  CWWidgetLoaderCtx loader;
-  String type;
+  OnInsertData();
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    CoreDataEntity newModel =
-        loader.collectionDataModel.createEntityByJson(type, {});
-    event!.provider!.content.add(newModel);
+    CoreDataEntity newRow = event!.loader!.collectionDataModel
+        .createEntityByJson(event.provider!.type, {});
+
+    if (event.provider?.loader != null) {
+      event.provider?.loader?.addData(newRow);
+    } else {
+      event.provider!.content.add(newRow);
+    }
+  }
+}
+
+class SetDate extends CoreDataAction {
+  SetDate(this.name);
+  String name;
+
+  @override
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    event!.provider!.getSelectedEntity().setAttr(
+        ctx!.loader.collectionDataModel,
+        name,
+        DateTime.timestamp().toIso8601String());
   }
 }
