@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/core/data/core_data_query.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
@@ -11,26 +12,19 @@ import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 
 class DesignerListModel extends StatefulWidget {
-  DesignerListModel({Key? key}) : super(key: key) {
-    DesignerListModel.initModel();
-  }
+  const DesignerListModel({Key? key}) : super(key: key);
 
   @override
   State<DesignerListModel> createState() {
     return _DesignerListModelState();
-  }
-
-  static bool isInit = false;
-  static initModel() {
-    if (isInit) return;
-    isInit = true;
-    CWApplication.of().initModel();
   }
 }
 
 class _DesignerListModelState extends State<DesignerListModel> {
   @override
   Widget build(BuildContext context) {
+    //DesignerListModel.initModel();
+
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listModel = ArrayBuilder().getArrayWidget(
           "root",
@@ -59,7 +53,7 @@ class OnInsertModel extends CoreDataAction {
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CoreDataEntity newModel = loader.collectionDataModel
         .createEntityByJson("DataModel", {"name": "?", "listAttr": []});
-    event!.provider!.content.add(newModel);
+    event!.provider!.loader!.addData(newModel);
   }
 }
 
@@ -68,7 +62,10 @@ class OnSelectModel extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    var name = event!.provider?.getSelectedEntity().value["name"];
+    CacheResultQuery.saveCache(CWApplication.of().dataProvider); 
+    CacheResultQuery.saveCache(CWApplication.of().dataModelProvider);
+
+    var name = event!.provider?.getSelectedEntity()!.value["name"];
 
     CWApplication.of()
         .loaderAttribut
@@ -86,16 +83,6 @@ class OnSelectModel extends CoreDataAction {
   }
 }
 
-// class OnBuild extends CoreDataAction {
-//   OnBuild();
-
-//   @override
-//   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-//     event!.ret = event.loader!.collectionWidget
-//         .createEntityByJson((CWTextfield).toString(), {"withLabel": false});
-//   }
-// }
-
 //////////////////////////////////////////////////////////////////////////////////
 class DesignerModel extends StatefulWidget {
   const DesignerModel({Key? key}) : super(key: key);
@@ -109,10 +96,13 @@ class _DesignerModelState extends State<DesignerModel> {
   Widget build(BuildContext context) {
     CWProvider providerAttr = CWApplication.of().dataAttributProvider;
 
-    var name =
-        CWApplication.of().dataModelProvider.getSelectedEntity().value["name"];
-
-    providerAttr.header!.value["label"] = name;
+    if (CWApplication.of().dataModelProvider.idxSelected > -1) {
+      var name = CWApplication.of()
+              .dataModelProvider
+              .getSelectedEntity()
+              ?.value["name"] ?? "?";
+      providerAttr.header!.value["label"] = name;
+    }
 
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listModel = ArrayBuilder().getArrayWidget(

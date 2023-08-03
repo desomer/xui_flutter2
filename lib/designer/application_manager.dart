@@ -1,3 +1,5 @@
+import 'package:localstorage/localstorage.dart';
+
 import '../core/data/core_data.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_provider.dart';
@@ -80,69 +82,91 @@ class CWApplication {
     collection
         .addObject("ModelAttributs")
         .addAttr("_id_", CDAttributType.CDtext)
-        .withAction(AttrActionDefaultUUID())        
+        .withAction(AttrActionDefaultUUID())
         .addAttr("name", CDAttributType.CDtext)
         .addAttr("type", CDAttributType.CDtext);
 
-
-
-    initProvider();
-
-    //////////////////////////////////
-    initPetStore();
+    _initProvider();
   }
 
-  void initPetStore() {
-    CoreDataEntity modelCustomer =
-        collection.createEntityByJson("DataModel", {"name": "Customers"});
+  Future<int> initPetStore() async {
+    final LocalStorage storage = LocalStorage('listModel.json');
+    await storage.ready;
+    await Future.delayed(const Duration(seconds: 5));
+    var items = storage.getItem('data');
+    items = null;
 
-    CoreDataEntity modelPets =
-        collection.createEntityByJson("DataModel", {"name": "Pets"});
+    if (items == null) {
+      CoreDataEntity modelCustomer =
+          collection.createEntityByJson("DataModel", {"name": "Customers"});
 
-    //////////////////////////////////////////
-    modelCustomer.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "First name", "type": "TEXT"}));
-    modelCustomer.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
-    /////////////////////////////////////////////////
-    modelPets.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Name", "type": "TEXT"}));
-    modelPets.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Category", "type": "TEXT"}));
-    modelPets.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
+      CoreDataEntity modelPets =
+          collection.createEntityByJson("DataModel", {"name": "Pets"});
 
-    /////////////////////////////////////
-    dataModelProvider
-      ..add(modelCustomer)
-      ..add(modelPets);
+      //////////////////////////////////////////
+      modelCustomer.addMany(
+          collection,
+          "listAttr",
+          collection.createEntityByJson(
+              "ModelAttributs", {"name": "First name", "type": "TEXT"}));
+      modelCustomer.addMany(
+          collection,
+          "listAttr",
+          collection.createEntityByJson(
+              "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
+      /////////////////////////////////////////////////
+      modelPets.addMany(
+          collection,
+          "listAttr",
+          collection.createEntityByJson(
+              "ModelAttributs", {"name": "Name", "type": "TEXT"}));
+      modelPets.addMany(
+          collection,
+          "listAttr",
+          collection.createEntityByJson(
+              "ModelAttributs", {"name": "Category", "type": "TEXT"}));
+      modelPets.addMany(
+          collection,
+          "listAttr",
+          collection.createEntityByJson(
+              "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
+      /////////////////////////////////////
+      // dataModelProvider
+      //   ..add(modelCustomer)
+      //   ..add(modelPets);
+
+      CoreDataEntity modelContainer = collection.createEntityByJson(
+          "DataContainer", {"idData": "models", "listData": []});
+
+      modelContainer.addMany(collection, "listData", modelCustomer);
+      modelContainer.addMany(collection, "listData", modelPets);
+
+      Map<String, CoreDataEntity> listModel = {"models": modelContainer};
+
+      storage.setItem('data', listModel["models"]!.value);
+      return dataModelProvider.getItemsCount();
+    } else {
+      return 0;
+    }
   }
 
-  void initProvider() {
+  Map<String, CoreDataEntity> listModel = {};
+
+  void _initProvider() {
     dataModelProvider.header =
         collection.createEntityByJson("DataHeader", {"label": "Entity"});
 
-    dataModelProvider.idxSelected = 0;
+    //dataModelProvider.idxSelected = 0;
 
     dataModelProvider.addAction(
         CWProviderAction.onInsertNone, OnInsertModel(loaderModel));
-    dataModelProvider.addAction(CWProviderAction.onBuild, OnBuildEdit(["name"], false));
+    dataModelProvider.addAction(
+        CWProviderAction.onBuild, OnBuildEdit(["name"], false));
     dataModelProvider.addAction(CWProviderAction.onSelected, OnSelectModel());
+
+    dataModelProvider.loader =
+          CoreDataLoaderMap(loaderModel, listModel, "listData")
+            ..setMapName("models");    
 
     //----------------------------------------------
     dataAttributProvider = CWProvider("DataAttrProvider", "ModelAttributs",
@@ -162,11 +186,9 @@ class CWApplication {
         collection.createEntityByJson("DataHeader", {"label": "?"});
 
     dataProvider.addAction(CWProviderAction.onBuild, OnBuildEdit(["*"], true));
-    dataProvider.addAction(
-        CWProviderAction.onInsertNone, OnInsertData());
+    dataProvider.addAction(CWProviderAction.onInsertNone, OnInsertData());
     dataProvider.addAction(
         CWProviderAction.onNone2Create, SetDate("_createAt_"));
-    dataProvider.addAction(
-        CWProviderAction.onChange, SetDate("_updateAt_"));
+    dataProvider.addAction(CWProviderAction.onChange, SetDate("_updateAt_"));
   }
 }

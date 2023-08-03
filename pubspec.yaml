@@ -51,6 +51,7 @@ dependencies:
   nanoid: ^1.0.0
   rich_clipboard: ^1.0.1
   device_preview: ^1.1.0
+  skeletonizer: ^0.4.0
 
 window_size:
     git:

@@ -38,6 +38,7 @@ void main() async {
   // };
 
   CWApplication.of().initDesigner();
+  CWApplication.of().initModel();
 
   runApp(CoreDesigner());
 

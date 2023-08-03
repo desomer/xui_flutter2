@@ -7,6 +7,7 @@ import '../../designer/cw_factory.dart';
 import '../../designer/selector_manager.dart';
 import '../../widget/cw_list.dart';
 import '../data/core_data.dart';
+import '../data/core_data_query.dart';
 import '../data/core_provider.dart';
 
 enum ModeRendering { design, view }
@@ -109,16 +110,49 @@ abstract class CWWidgetMap extends CWWidget {
     }
   }
 
-  int getItemsCount() {
+  Future<int> getItemsCountAsync() async {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
-      if (provider.loader != null) {
-        provider.content.clear();
-        provider.content.addAll(provider.loader!.getData(null));
-      }
-      return provider.content.length;
+      return await provider.getItemsCount();
     }
     return -1;
+  }
+
+  int getItemsCountSync() {
+    CWProvider? provider = CWProvider.of(ctx);
+    if (provider != null) {
+      return provider.getItemsCountSync();
+    }
+    return -1;
+  }
+
+  setProviderDataOK(CWProvider? provider, int ok) {
+    if (provider != null &&
+        provider.loader != null &&
+        !provider.loader!.isSync()) {
+      CacheResultQuery.setCache(provider, ok);
+    }
+  }
+
+  dynamic initFutureDataOrNot(CWProvider? provider) {
+    bool isSync = true;
+    if (provider != null &&
+        provider.loader != null &&
+        !provider.loader!.isSync()) {
+      isSync = false;
+      String idCache = provider.name + provider.type;
+      var cacheNbRow = CacheResultQuery.cacheNbData[idCache];
+      if (cacheNbRow != null && cacheNbRow != -1) {
+        var result = CacheResultQuery.cacheDataValue[idCache];
+        provider.content = result!;
+        return cacheNbRow;
+      }
+    }
+    if (isSync) {
+      return getItemsCountSync();
+    } else {
+      return getItemsCountAsync();
+    }
   }
 
   void setIdx(int idx) {

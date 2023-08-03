@@ -3,6 +3,7 @@ import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/cw_factory.dart';
 import 'cw_row.dart';
@@ -62,22 +63,6 @@ class InheritedStateContainer extends InheritedWidget {
   }
 
   void repaintRow(CWWidgetCtx ctx) {
-
-    // if (rowState?.mounted ?? false) {
-    //   //ignore: invalid_use_of_protected_member
-    //   rowState?.setState(() {});
-    // }
-
-
-    // WidgetFactoryEventHandler f = arrayState.widget.ctx.factory;
-    // int nbCol = arrayState.widget.getCountChildren();
-    // for (var i = 0; i < nbCol; i++) {
-    //   String p = "${arrayState.widget.ctx.pathWidget}[].Cont$i";
-    //   String xid = f.mapXidByPath[p] ?? "?";
-    //   CWWidget? w = ctx.findWidgetByXid(xid);
-    //   w?.repaint();
-    // }
-
     if (rowState?.mounted ?? false) {
       //ignore: invalid_use_of_protected_member
       rowState?.setState(() {});
@@ -86,12 +71,11 @@ class InheritedStateContainer extends InheritedWidget {
 }
 
 class _CwListState extends StateCW<CWList> {
-  @override
-  Widget build(BuildContext context) {
+  getListView(int nbRow) {
     return ListView.builder(
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
-        itemCount: widget.getItemsCount(),
+        itemCount: nbRow,
         itemBuilder: (context, index) {
           widget.setIdx(index);
           var rowState = InheritedStateContainer(
@@ -107,5 +91,22 @@ class _CwListState extends StateCW<CWList> {
               },
               child: rowState);
         });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx));
+
+    getContent(int ok) {
+      var provider = CWProvider.of(widget.ctx);
+      widget.setProviderDataOK(provider, ok);
+      return getListView(ok);
+    }
+
+    if (futureData is Future) {
+      return CWFutureWidget(futureData: futureData, getContent: getContent, nbCol: 1,);
+    } else {
+      return getContent(futureData as int);
+    }
   }
 }

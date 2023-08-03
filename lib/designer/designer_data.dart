@@ -23,15 +23,17 @@ class _DesignerDataState extends State<DesignerData> {
 
     var selectedEntity =
         CWApplication.of().dataModelProvider.getSelectedEntity();
+    if (selectedEntity == null) return const Text('empty data');
 
     var idData = selectedEntity.value["_id_"];
 
     initDataModelWithAttr(loader, selectedEntity, idData);
-    CWProvider provider = getDataProvider(loader, idData, selectedEntity.value["name"]);
+    CWProvider provider =
+        getDataProvider(loader, idData, selectedEntity.value["name"]);
 
     return LayoutBuilder(builder: (context, constraints) {
-      List<Widget> listData = ArrayBuilder()
-          .getArrayWidget("rootData", provider, loader, AttrArrayLoader, constraints);
+      List<Widget> listData = ArrayBuilder().getArrayWidget(
+          "rootData", provider, loader, AttrArrayLoader, constraints);
 
       listData.add(WidgetAddBtn(
         provider: provider,
@@ -39,7 +41,7 @@ class _DesignerDataState extends State<DesignerData> {
         repaintXid: "rootDataCol0",
       ));
 
-      return  Column(
+      return Column(
         children: listData,
       );
     });
@@ -60,7 +62,7 @@ class _DesignerDataState extends State<DesignerData> {
     CWProvider providerData = CWApplication.of().dataProvider;
     providerData.type = idData;
     CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-    dataLoader.setName(idData);
+    dataLoader.setMapName(idData);
     providerData.header!.value["label"] = label;
 
     providerData.idxSelected = 0;
@@ -76,11 +78,7 @@ class OnInsertData extends CoreDataAction {
     CoreDataEntity newRow = event!.loader!.collectionDataModel
         .createEntityByJson(event.provider!.type, {});
 
-    if (event.provider?.loader != null) {
-      event.provider?.loader?.addData(newRow);
-    } else {
-      event.provider!.content.add(newRow);
-    }
+    event.provider!.addNew(newRow);
   }
 }
 
@@ -90,7 +88,7 @@ class SetDate extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    event!.provider!.getSelectedEntity().setAttr(
+    event!.provider!.getSelectedEntity()!.setAttr(
         ctx!.loader.collectionDataModel,
         name,
         DateTime.timestamp().toIso8601String());

@@ -73,6 +73,7 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
   Widget build(BuildContext context) {
     return InkWell(
         onTap: () {
+
           CWWidgetEvent ctxWE = CWWidgetEvent();
           ctxWE.action = CWProviderAction.onInsertNone.toString();
           ctxWE.provider = widget.provider;

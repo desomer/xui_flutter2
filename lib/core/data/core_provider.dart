@@ -2,6 +2,7 @@ import 'package:xui_flutter/core/data/core_data_loader.dart';
 
 import '../widget/cw_core_widget.dart';
 import 'core_data.dart';
+import 'core_data_query.dart';
 
 enum CWProviderAction {
   onNone2Create,
@@ -30,6 +31,15 @@ class CWProvider {
     if (idxDisplayed == -1) idxDisplayed = 0;
   }
 
+  addNew(CoreDataEntity newRow) {
+    if (loader != null) {
+      loader?.addData(newRow);
+    }
+    add(newRow);
+
+    CacheResultQuery.notifNewRow(this);
+  }
+
   CoreDataEntity getEntityByIdx(idx) {
     return content[idx];
   }
@@ -38,7 +48,12 @@ class CWProvider {
     return content[idxDisplayed];
   }
 
-  CoreDataEntity getSelectedEntity() {
+  CoreDataEntity? getSelectedEntity() {
+    if (idxSelected == -1) return null;
+    if (idxSelected >= content.length) {
+      idxSelected = -1;
+      return null;
+    }
     return content[idxSelected];
   }
 
@@ -99,6 +114,23 @@ class CWProvider {
     }
     doAction(ctx, event, CWProviderAction.onChange);
   }
+
+  Future<int> getItemsCount() async {
+    if (loader != null) {
+      var result = await loader!.getData(null);
+      content=result;
+      CacheResultQuery.setCacheValue(this, content);
+    }
+    return content.length;
+  }
+
+  int getItemsCountSync() {
+    if (loader != null) {
+      var result = loader!.getDataSync(null);
+      content=result;
+    }
+    return content.length;
+  }  
 }
 
 abstract class CoreDataAction {

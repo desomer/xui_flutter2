@@ -127,7 +127,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                 children: [
                   BreadCrumbNavigator(currentRouteStack),
                   const Spacer(),
-                  const Text('ElisView v0.2'),
+                  const Text('ElisView v0.2.1'),
                   const SizedBox(width: 5),
                   IconButton(
                     iconSize: 30,
@@ -171,6 +171,8 @@ class _CoreDesignerState extends State<CoreDesigner>
                           onPressed: () {},
                         )),
                   ]),
+                  const Spacer(),
+                  const Text("Desomer G."),
                   IconButton(
                     icon: const Icon(Icons.help),
                     onPressed: () {},
@@ -303,7 +305,7 @@ class _CoreDesignerState extends State<CoreDesigner>
 
     return Row(
       children: [
-        SizedBox(
+        const SizedBox(
           width: 200,
           child: DesignerListModel(),
         ),
