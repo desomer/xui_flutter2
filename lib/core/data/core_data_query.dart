@@ -12,15 +12,31 @@ class CacheResultQuery {
     cacheNbData[idCache] = nbrow;
     debugPrint("set cache $idCache as $nbrow");
     if (nbrow == -1) {
-      provider.loader?.saveData();
+      saveCache(provider);
     }
   }
 
   static saveCache(CWProvider provider) {
     String idCache = provider.name + provider.type;
+    List<CoreDataEntity> contentDeleted = [];
+    List<dynamic> contentToSave = [];
+
+    for (CoreDataEntity row in provider.content) {
+      if (row.operation == CDAction.delete) {
+        contentDeleted.add(row);
+      } else {
+        contentToSave.add(row.value);
+      }
+    }
+
+    for (CoreDataEntity rowDeleted in contentDeleted) {
+      provider.content.remove(rowDeleted);
+      cacheNbData[idCache] = cacheNbData[idCache]! - 1;
+    }
+
     debugPrint("save cache $idCache");
-    provider.loader?.saveData();
-  }  
+    provider.loader?.saveData(contentToSave);
+  }
 
   static setCacheValue(CWProvider provider, List<CoreDataEntity> rows) {
     String idCache = provider.name + provider.type;

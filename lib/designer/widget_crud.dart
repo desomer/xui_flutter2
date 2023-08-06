@@ -28,10 +28,10 @@ class _WidgetDragState extends State<WidgetDrag> {
       return true;
     }, onAccept: (item) {
       CWWidgetEvent ctxWE = CWWidgetEvent();
-      ctxWE.action = CWProviderAction.onInsertNone.toString();
+      ctxWE.action = CWProviderAction.onStateNone.toString();
       ctxWE.provider = widget.provider;
       ctxWE.payload = item;
-      widget.provider.doAction(null, ctxWE, CWProviderAction.onInsertNone);
+      widget.provider.doAction(null, ctxWE, CWProviderAction.onStateNone);
     });
   }
 
@@ -56,13 +56,13 @@ class WidgetAddBtn extends StatefulWidget {
   const WidgetAddBtn(
       {required this.provider,
       required this.loader,
-      required this.repaintXid,
+      this.repaintXid,
       Key? key})
       : super(key: key);
 
   final CWProvider provider;
   final CWWidgetLoaderCtx loader;
-  final String repaintXid;
+  final String? repaintXid;
 
   @override
   State<WidgetAddBtn> createState() => _WidgetAddBtnState();
@@ -73,15 +73,8 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
   Widget build(BuildContext context) {
     return InkWell(
         onTap: () {
-
-          CWWidgetEvent ctxWE = CWWidgetEvent();
-          ctxWE.action = CWProviderAction.onInsertNone.toString();
-          ctxWE.provider = widget.provider;
-          ctxWE.loader = widget.loader;
-          widget.provider.doAction(null, ctxWE, CWProviderAction.onInsertNone);
-          Future.delayed(const Duration(milliseconds: 100), () {
-            widget.loader.factory.mapWidgetByXid[widget.repaintXid]!.repaint();
-          });
+          widget.provider.doEvent(CWProviderAction.onStateNone, widget.loader,
+              repaintXid: widget.repaintXid);
         },
         child: Container(
           margin: const EdgeInsets.all(4),
@@ -119,6 +112,8 @@ class _WidgetDeleteBtnState extends State<WidgetDeleteBtn> {
 
         var provider = CWProvider.of(r!.arrayState.widget.ctx);
         provider!.content[r.index!].operation = CDAction.delete;
+        provider.doEvent(
+            CWProviderAction.onStateDelete, r.arrayState.widget.ctx.loader);
         r.repaintRow(r.arrayState.widget.ctx);
       },
     );

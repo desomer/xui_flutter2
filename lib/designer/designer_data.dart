@@ -7,6 +7,7 @@ import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
 import 'builder/array_builder.dart';
+import 'cw_factory.dart';
 import 'widget_crud.dart';
 
 class DesignerData extends StatefulWidget {
@@ -30,6 +31,8 @@ class _DesignerDataState extends State<DesignerData> {
     initDataModelWithAttr(loader, selectedEntity, idData);
     CWProvider provider =
         getDataProvider(loader, idData, selectedEntity.value["name"]);
+
+    loader.factory = WidgetFactoryEventHandler(loader);
 
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listData = ArrayBuilder().getArrayWidget(
@@ -62,7 +65,7 @@ class _DesignerDataState extends State<DesignerData> {
     CWProvider providerData = CWApplication.of().dataProvider;
     providerData.type = idData;
     CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-    dataLoader.setMapName(idData);
+    dataLoader.setMapID(idData); // choix de la map a afficher
     providerData.header!.value["label"] = label;
 
     providerData.idxSelected = 0;

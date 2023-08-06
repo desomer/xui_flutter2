@@ -28,30 +28,16 @@ abstract class CWWidgetLoader {
     cwFactory.setOne(
         collection,
         'child',
-        collection.createEntityByJson('CWChild',
-            <String, dynamic>{'xid': xid, 'implement': implement}));
+        collection.createEntityByJson(
+            'CWChild', <String, dynamic>{'xid': xid, 'implement': implement}));
   }
 
   String setProp(String xid, CoreDataEntity prop) {
-    cwFactory.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', xid)
-            .setOne(collection, 'properties', prop));
-    return "designs[${(cwFactory.value["designs"] as List).length - 1}].properties";
+    return ctxLoader.setProp(xid, prop);
   }
 
   String setConstraint(String xid, CoreDataEntity prop) {
-    cwFactory.addMany(
-        collection,
-        'designs',
-        collection
-            .createEntity('CWDesign')
-            .setAttr(collection, 'xid', xid)
-            .setOne(collection, 'constraint', prop));
-    return "designs[${(cwFactory.value["designs"] as List).length - 1}].constraint";
+    return ctxLoader.setConstraint(xid, prop);
   }
 
   String addChildProp(
@@ -133,6 +119,34 @@ class CWWidgetLoaderCtx {
 
   CWWidget? findWidgetByXid(String name) {
     return factory.mapWidgetByXid[name];
+  }
+
+  String setProp(String xid, CoreDataEntity prop) {
+    entityCWFactory.addMany(
+        collectionWidget,
+        'designs',
+        collectionWidget
+            .createEntity('CWDesign')
+            .setAttr(collectionWidget, 'xid', xid)
+            .setOne(collectionWidget, 'properties', prop));
+    return "designs[${(entityCWFactory.value["designs"] as List).length - 1}].properties";
+  }
+
+  String setConstraint(String xid, CoreDataEntity prop) {
+    entityCWFactory.addMany(
+        collectionWidget,
+        'designs',
+        collectionWidget
+            .createEntity('CWDesign')
+            .setAttr(collectionWidget, 'xid', xid)
+            .setOne(collectionWidget, 'constraint', prop));
+    return "designs[${(entityCWFactory.value["designs"] as List).length - 1}].constraint";
+  }
+
+  CoreDataEntity addConstraint(String xid, String type) {
+    var constraint = collectionWidget.createEntity(type);
+    setConstraint(xid, constraint);
+    return constraint;
   }
 }
 

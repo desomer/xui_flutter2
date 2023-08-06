@@ -1,60 +1,47 @@
 import 'package:flutter/foundation.dart';
-import 'package:localstorage/localstorage.dart';
+
 import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 
+import '../store/nosql/localstorage.dart';
 import 'core_provider.dart';
 
 abstract class CoreDataLoader {
   addData(CoreDataEntity data);
   Future<List<CoreDataEntity>> getData(CoreDataEntity? filters);
   List<CoreDataEntity> getDataSync(CoreDataEntity? filters);
-  saveData();
   bool isSync();
+  saveData(dynamic content);
+  deleteAll();
 }
 
 class CoreDataLoaderMap extends CoreDataLoader {
   CWWidgetLoaderCtx loader;
   Map<String, CoreDataEntity> dicoResultQuery;
+  final Map<String, Future<List<CoreDataEntity>>> _currentLoading = {};
   String attribut;
+  String? idQuery;
   CoreDataLoaderMap(this.loader, this.dicoResultQuery, this.attribut);
-  String? namedata;
-
-  setMapName(String name) {
-    namedata = name;
-  }
-
-  Future<CoreDataEntity> getDataFromQuery(String idData) async {
-    if (dicoResultQuery[idData] == null) {
-      final LocalStorage storage = LocalStorage('$idData.json');
-      await storage.ready;
-      await Future.delayed(const Duration(seconds: 2));
-      var items = storage.getItem('data');
-      if (items == null) {
-        dicoResultQuery[idData] = loader.collectionDataModel.createEntityByJson(
-            "DataContainer", {"idData": idData, "listData": []});
-        storage.setItem('data', dicoResultQuery[idData]!.value);
-      } else {
-        dicoResultQuery[idData] = loader.collectionDataModel
-            .createEntityByJson("DataContainer", items);
-      }
-    }
-    debugPrint("getDataFromQuery $idData = ${dicoResultQuery[idData]!}");
-    return dicoResultQuery[idData]!;
-  }
+  StoreDriver? storage = LocalstorageDriver();
 
   @override
   addData(CoreDataEntity data) {
-    CoreDataEntity resultQuery = dicoResultQuery[namedata]!;
+    CoreDataEntity resultQuery = dicoResultQuery[idQuery]!;
     List<dynamic>? result = resultQuery.value[attribut];
     result?.add(data.value);
   }
 
   @override
   Future<List<CoreDataEntity>> getData(CoreDataEntity? filters) async {
-    await getDataFromQuery(namedata!);
+    _currentLoading[idQuery!] =
+        _currentLoading[idQuery] ?? getDataCached(filters);
+    return _currentLoading[idQuery]!;
+  }
+
+  Future<List<CoreDataEntity>> getDataCached(CoreDataEntity? filters) async {
+    await getDataFromQuery(idQuery!);
     List<CoreDataEntity> ret = [];
-    CoreDataEntity? selected = dicoResultQuery[namedata];
+    CoreDataEntity? selected = dicoResultQuery[idQuery];
     if (selected != null) {
       List<dynamic>? result = selected.value[attribut];
       if (result != null) {
@@ -68,13 +55,28 @@ class CoreDataLoaderMap extends CoreDataLoader {
     return ret;
   }
 
-  @override
-  saveData() async {
-    if (dicoResultQuery[namedata] != null) {
-      final LocalStorage storage = LocalStorage('$namedata.json');
-      await storage.ready;
-      storage.setItem('data', dicoResultQuery[namedata]!.value);
+  Future<CoreDataEntity> getDataFromQuery(String idDataInMap) async {
+    if (dicoResultQuery[idDataInMap] == null) {
+      dynamic items;
+
+      if (storage != null) {
+        items = await storage!.getAllData(idDataInMap);
+      }
+      if (items == null) {
+        dicoResultQuery[idDataInMap] = loader.collectionDataModel
+            .createEntityByJson(
+                "DataContainer", {"idData": idDataInMap, "listData": []});
+        if (storage != null) {
+          await storage!.setData('data', dicoResultQuery[idDataInMap]!.value);
+        }
+      } else {
+        dicoResultQuery[idDataInMap] = loader.collectionDataModel
+            .createEntityByJson("DataContainer", items);
+      }
     }
+    debugPrint(
+        "getDataFromQuery $idDataInMap = ${dicoResultQuery[idDataInMap]!}");
+    return dicoResultQuery[idDataInMap]!;
   }
 
   @override
@@ -85,6 +87,23 @@ class CoreDataLoaderMap extends CoreDataLoader {
   @override
   bool isSync() {
     return false;
+  }
+
+  @override
+  saveData(dynamic content) async {
+    if (dicoResultQuery[idQuery] != null && storage != null) {
+      dicoResultQuery[idQuery]!.value["listData"] = content;
+      storage!.setData(idQuery!, dicoResultQuery[idQuery]!.value);
+    }
+  }
+
+  setMapID(String name) {
+    idQuery = name;
+  }
+
+  @override
+  deleteAll() {
+    storage!.deleteTable(idQuery!);
   }
 }
 
@@ -110,9 +129,6 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  saveData() {}
-
-  @override
   List<CoreDataEntity> getDataSync(CoreDataEntity? filters) {
     List<CoreDataEntity> ret = [];
     if (provider.idxSelected >= 0 &&
@@ -134,4 +150,10 @@ class CoreDataLoaderNested extends CoreDataLoader {
   bool isSync() {
     return true;
   }
+
+  @override
+  saveData(dynamic content) {}
+  
+  @override
+  deleteAll() {}
 }

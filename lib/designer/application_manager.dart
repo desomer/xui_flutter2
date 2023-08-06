@@ -1,7 +1,8 @@
-import 'package:localstorage/localstorage.dart';
+import 'package:flutter/material.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_data_loader.dart';
+import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -18,7 +19,6 @@ class CWApplication {
   CWWidgetLoaderCtx loaderDesigner = CWWidgetLoaderCtx();
 
   CWWidgetLoaderCtx loaderModel = CWWidgetLoaderCtx();
-  CWWidgetLoaderCtx loaderAttribut = CWWidgetLoaderCtx();
   CWWidgetLoaderCtx loaderData = CWWidgetLoaderCtx();
 
   CoreDataCollection collection = CoreDataCollection();
@@ -42,8 +42,36 @@ class CWApplication {
     loaderModel.collectionWidget = loaderDesigner.collectionWidget;
     loaderModel.createFactory();
 
-    loaderAttribut.collectionWidget = loaderDesigner.collectionWidget;
-    loaderAttribut.createFactory();
+    deleteModel(CWWidgetEvent e) async {
+      dataModelProvider.getSelectedEntity()!.operation = CDAction.delete;
+      CacheResultQuery.saveCache(dataModelProvider);
+      dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
+          repaintXid: "rootModelCol0");
+      // supprime les datas    
+      dataProvider.loader!.deleteAll();
+    }
+
+    dataModelProvider.addUserAction(
+        "delete", CoreDataActionFunction(deleteModel));
+
+    // custom du loader
+    var c = CWApplication.of().loaderModel.collectionWidget;
+    CWApplication.of()
+        .loaderModel
+        .addConstraint('rootAttrExpTitle0', 'CWExpandConstraint')
+        .addMany(
+            c,
+            "actions",
+            c.createEntityByJson("CWAction", {
+              "_idAction_": "delete@DataModelProvider",
+              "label": "Delete table",
+              "icon": Icons.delete_forever
+            }));
+
+    CWApplication.of().loaderModel.setProp(
+        "rootAttr",
+        c.createEntityByJson(
+            'CWLoader', {'providerName': "DataModelProvider"}));
 
     loaderData.collectionWidget = loaderDesigner.collectionWidget;
     loaderData.createFactory();
@@ -52,9 +80,6 @@ class CWApplication {
   initModel() {
     loaderModel.mode = ModeRendering.view;
     loaderModel.collectionDataModel = collection;
-
-    loaderAttribut.mode = ModeRendering.view;
-    loaderAttribut.collectionDataModel = collection;
 
     loaderData.mode = ModeRendering.view;
     loaderData.collectionDataModel = collection;
@@ -90,13 +115,13 @@ class CWApplication {
   }
 
   Future<int> initPetStore() async {
-    final LocalStorage storage = LocalStorage('listModel.json');
-    await storage.ready;
-    await Future.delayed(const Duration(seconds: 5));
-    var items = storage.getItem('data');
-    items = null;
+    // final LocalStorage storage = LocalStorage('listModel.json');
+    // await storage.ready;
+    // await Future.delayed(const Duration(seconds: 5));
+    // var items = storage.getItem('data');
+    // var items;
 
-    if (items == null) {
+    // if (items == null) {
       CoreDataEntity modelCustomer =
           collection.createEntityByJson("DataModel", {"name": "Customers"});
 
@@ -141,13 +166,13 @@ class CWApplication {
       modelContainer.addMany(collection, "listData", modelCustomer);
       modelContainer.addMany(collection, "listData", modelPets);
 
-      Map<String, CoreDataEntity> listModel = {"models": modelContainer};
+      //Map<String, CoreDataEntity> listModel = {"models": modelContainer};
 
-      storage.setItem('data', listModel["models"]!.value);
+      // storage.setItem('data', listModel["models"]!.value);
       return dataModelProvider.getItemsCount();
-    } else {
-      return 0;
-    }
+    // } else {
+    //   return 0;
+    // }
   }
 
   Map<String, CoreDataEntity> listModel = {};
@@ -156,39 +181,40 @@ class CWApplication {
     dataModelProvider.header =
         collection.createEntityByJson("DataHeader", {"label": "Entity"});
 
-    //dataModelProvider.idxSelected = 0;
-
     dataModelProvider.addAction(
-        CWProviderAction.onInsertNone, OnInsertModel(loaderModel));
+        CWProviderAction.onStateNone, OnInsertModel(loaderModel));
     dataModelProvider.addAction(
-        CWProviderAction.onBuild, OnBuildEdit(["name"], false));
-    dataModelProvider.addAction(CWProviderAction.onSelected, OnSelectModel());
+        CWProviderAction.onMapWidget, OnBuildEdit(["name"], false));
+    dataModelProvider.addAction(
+        CWProviderAction.onRowSelected, OnSelectModel());
 
     dataModelProvider.loader =
-          CoreDataLoaderMap(loaderModel, listModel, "listData")
-            ..setMapName("models");    
+        CoreDataLoaderMap(loaderModel, listModel, "listData")
+          ..setMapID("models");
 
     //----------------------------------------------
     dataAttributProvider = CWProvider("DataAttrProvider", "ModelAttributs",
-        CoreDataLoaderNested(loaderAttribut, dataModelProvider, "listAttr"));
+        CoreDataLoaderNested(loaderModel, dataModelProvider, "listAttr"));
 
     dataAttributProvider.header =
         collection.createEntityByJson("DataHeader", {"label": "?"});
 
     dataAttributProvider.addAction(
-        CWProviderAction.onBuild, OnBuildEdit(["name"], false));
+        CWProviderAction.onMapWidget, OnBuildEdit(["name"], false));
     dataAttributProvider.addAction(
-        CWProviderAction.onInsertNone, OnAddAttr(dataAttributProvider));
+        CWProviderAction.onStateNone, OnAddAttr(dataAttributProvider));
     //-------------------------------------------------------
     dataProvider = CWProvider("DataProvider", "?",
         CoreDataLoaderMap(loaderData, listData, "listData"));
     dataProvider.header =
         collection.createEntityByJson("DataHeader", {"label": "?"});
 
-    dataProvider.addAction(CWProviderAction.onBuild, OnBuildEdit(["*"], true));
-    dataProvider.addAction(CWProviderAction.onInsertNone, OnInsertData());
     dataProvider.addAction(
-        CWProviderAction.onNone2Create, SetDate("_createAt_"));
-    dataProvider.addAction(CWProviderAction.onChange, SetDate("_updateAt_"));
+        CWProviderAction.onMapWidget, OnBuildEdit(["*"], true));
+    dataProvider.addAction(CWProviderAction.onStateNone, OnInsertData());
+    dataProvider.addAction(
+        CWProviderAction.onStateNone2Create, SetDate("_createAt_"));
+    dataProvider.addAction(
+        CWProviderAction.onValueChanged, SetDate("_updateAt_"));
   }
 }

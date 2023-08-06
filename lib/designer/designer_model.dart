@@ -23,11 +23,10 @@ class DesignerListModel extends StatefulWidget {
 class _DesignerListModelState extends State<DesignerListModel> {
   @override
   Widget build(BuildContext context) {
-    //DesignerListModel.initModel();
 
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listModel = ArrayBuilder().getArrayWidget(
-          "root",
+          "rootModel",
           CWApplication.of().dataModelProvider,
           CWApplication.of().loaderModel,
           AttrListLoader,
@@ -36,7 +35,7 @@ class _DesignerListModelState extends State<DesignerListModel> {
       listModel.add(WidgetAddBtn(
         provider: CWApplication.of().dataModelProvider,
         loader: CWApplication.of().loaderModel,
-        repaintXid: "rootCol0",
+        repaintXid: "rootModelCol0",
       ));
       return Column(
         children: listModel,
@@ -53,7 +52,7 @@ class OnInsertModel extends CoreDataAction {
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CoreDataEntity newModel = loader.collectionDataModel
         .createEntityByJson("DataModel", {"name": "?", "listAttr": []});
-    event!.provider!.loader!.addData(newModel);
+    event!.provider?.addNew(newModel);
   }
 }
 
@@ -62,13 +61,13 @@ class OnSelectModel extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    CacheResultQuery.saveCache(CWApplication.of().dataProvider); 
+    CacheResultQuery.saveCache(CWApplication.of().dataProvider);
     CacheResultQuery.saveCache(CWApplication.of().dataModelProvider);
 
     var name = event!.provider?.getSelectedEntity()!.value["name"];
 
     CWApplication.of()
-        .loaderAttribut
+        .loaderModel
         .findByXid("rootAttrTitle0")!
         .changeProp("label", name);
 
@@ -79,7 +78,7 @@ class OnSelectModel extends CoreDataAction {
 
     // ignore: invalid_use_of_protected_member
     CoreDesigner.of().dataKey.currentState?.setState(() {});
-    CWApplication.of().loaderAttribut.findWidgetByXid("rootAttr")?.repaint();
+    CWApplication.of().loaderModel.findWidgetByXid("rootAttrExp")?.repaint();
   }
 }
 
@@ -100,7 +99,8 @@ class _DesignerModelState extends State<DesignerModel> {
       var name = CWApplication.of()
               .dataModelProvider
               .getSelectedEntity()
-              ?.value["name"] ?? "?";
+              ?.value["name"] ??
+          "?";
       providerAttr.header!.value["label"] = name;
     }
 
@@ -108,7 +108,7 @@ class _DesignerModelState extends State<DesignerModel> {
       List<Widget> listModel = ArrayBuilder().getArrayWidget(
           "rootAttr",
           providerAttr,
-          CWApplication.of().loaderAttribut,
+          CWApplication.of().loaderModel,
           AttrListLoader,
           constraints);
       listModel.add(WidgetDrag(provider: providerAttr));
@@ -130,7 +130,7 @@ class OnAddAttr extends CoreDataAction {
 
     CWApplication.of().dataAttributProvider.loader!.addData(entity);
 
-    CWApplication.of().loaderAttribut.findWidgetByXid("rootAttr")?.repaint();
+    CWApplication.of().loaderModel.findWidgetByXid("rootAttrExp")?.repaint();
   }
 }
 

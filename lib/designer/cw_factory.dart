@@ -1,4 +1,5 @@
 import 'package:xui_flutter/widget/cw_array.dart';
+import 'package:xui_flutter/widget/cw_loader.dart';
 import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
@@ -39,10 +40,8 @@ class CWCollection {
         .addAttr('bind', CDAttributType.CDtext)
         .addAttr('providerName', CDAttributType.CDtext);
 
-    addWidget((CWExpandPanel),
-            (CWWidgetCtx ctx) => CWExpandPanel(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint);
-
+    CWLoader.initFactory(this);
+    CWExpandPanel.initFactory(this);
     CWText.initFactory(this);
     CWColumn.initFactory(this);
     CWRow.initFactory(this);
@@ -117,15 +116,18 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
 
       if (ctx.event!.builder.name == 'CWChild') {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
-        final String implement =
-            ctx.event!.entity.getString('implement', def: '')!;
-        final CWWidgetCtx ctxW = CWWidgetCtx(xid, loader, xid);
-        ctx.payload = ctxW;
-        final CoreDataObjectBuilder wid =
-            loader.collectionWidget.getClass(implement)!;
-        final CWWidget r = wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
-        mapWidgetByXid[xid] = r;
-        r.ctx.pathDataCreate = ctx.getPathData();
+        if (mapWidgetByXid[xid] == null) {   // ne recreer pas 2 fois un cmp si plusieur getWidget
+          final String implement =
+              ctx.event!.entity.getString('implement', def: '')!;
+          final CWWidgetCtx ctxW = CWWidgetCtx(xid, loader, xid);
+          ctx.payload = ctxW;
+          final CoreDataObjectBuilder wid =
+              loader.collectionWidget.getClass(implement)!;
+          final CWWidget r =
+              wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
+          mapWidgetByXid[xid] = r;
+          r.ctx.pathDataCreate = ctx.getPathData();
+        }
         //debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidgetByXid[xid]!}');
       }
       if (ctx.event!.builder.name == 'CWDesign') {
@@ -139,11 +141,11 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         if (prop != null) {
           mapWidgetByXid[xid]?.ctx.designEntity = prop;
           CWWidgetEvent ctxWE = CWWidgetEvent();
-          ctxWE.action = CWProviderAction.onMountWidget.name;
+          ctxWE.action = CWProviderAction.onFactoryMountWidget.name;
           ctxWE.payload = mapWidgetByXid[xid];
 
           mapProvider[mapProvider.keys.firstOrNull]
-              ?.actions[CWProviderAction.onMountWidget]
+              ?.actions[CWProviderAction.onFactoryMountWidget]
               ?.first
               .execute(mapWidgetByXid[xid]!.ctx, ctxWE);
         }

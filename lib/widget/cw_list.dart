@@ -9,7 +9,10 @@ import '../designer/cw_factory.dart';
 import 'cw_row.dart';
 
 class CWList extends CWWidgetMap {
-  const CWList({super.key, required super.ctx});
+  CWList({super.key, required super.ctx})
+  {
+    print("create list ${ctx.xid} h=$hashCode");
+  }
 
   @override
   State<CWList> createState() => _CwListState();
@@ -49,7 +52,7 @@ class InheritedStateContainer extends InheritedWidget {
 
   void selected(CWWidgetCtx ctx) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
-    ctxWE.action = CWProviderAction.onSelected.toString();
+    ctxWE.action = CWProviderAction.onRowSelected.toString();
     CWProvider? provider = CWProvider.of(arrayState.widget.ctx);
     if (provider != null) {
       ctxWE.provider = provider;
@@ -57,7 +60,7 @@ class InheritedStateContainer extends InheritedWidget {
       ctxWE.loader = arrayState.widget.ctx.loader;
       if (provider.idxSelected != index) {
         provider.idxSelected = index!;
-        provider.doAction(ctx, ctxWE, CWProviderAction.onSelected);
+        provider.doAction(ctx, ctxWE, CWProviderAction.onRowSelected);
       }
     }
   }
@@ -71,6 +74,12 @@ class InheritedStateContainer extends InheritedWidget {
 }
 
 class _CwListState extends StateCW<CWList> {
+  @override
+  void initState() {
+    super.initState();
+    print("h ${widget.hashCode} xid=${widget.ctx.xid} state = ${widget.ctx.state}");
+  }
+
   getListView(int nbRow) {
     return ListView.builder(
         scrollDirection: Axis.vertical,
@@ -104,7 +113,11 @@ class _CwListState extends StateCW<CWList> {
     }
 
     if (futureData is Future) {
-      return CWFutureWidget(futureData: futureData, getContent: getContent, nbCol: 1,);
+      return CWFutureWidget(
+        futureData: futureData,
+        getContent: getContent,
+        nbCol: 1,
+      );
     } else {
       return getContent(futureData as int);
     }

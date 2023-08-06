@@ -247,6 +247,20 @@ class CoreDataEntity {
     return val;
   }
 
+  // CoreDataEntity? getManyEntity(CoreDataCollection collection, String attrName) {
+  //   if (value[attrName] == null) {
+  //     return null;
+  //   }
+
+  //   final List<Map<String, dynamic>> v = value[attrName] as List<Map<String, dynamic>>;
+
+  //   final CoreDataObjectBuilder builder =
+  //       collection.getClass(getType(null, v))!;
+  //   final CoreDataEntity val = builder.getEntityModel();
+  //   val.value = v;
+  //   return val;
+  // }  
+
   String? getString(String attr, {String? def}) {
     final dynamic v = value[attr];
     if (v == null) {

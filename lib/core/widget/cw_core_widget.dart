@@ -102,7 +102,7 @@ abstract class CWWidgetMap extends CWWidget {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
       CWWidgetEvent ctxWE = CWWidgetEvent();
-      ctxWE.action = CWProviderAction.onChange.toString();
+      ctxWE.action = CWProviderAction.onValueChanged.toString();
       ctxWE.provider = provider;
       ctxWE.payload = null;
       ctxWE.loader = ctx.loader;
@@ -268,6 +268,7 @@ class CWWidgetCtx {
 }
 
 class CWWidgetEvent {
+  CWWidgetCtx? widgetCtx;
   String? action;
   dynamic payload;
   CWProvider? provider;

@@ -24,7 +24,7 @@ class CWArrayRow extends StatefulWidget {
 
   void selected(CWWidgetCtx ctx) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
-    ctxWE.action = CWProviderAction.onSelected.toString();
+    ctxWE.action = CWProviderAction.onRowSelected.toString();
     CWProvider? provider = CWProvider.of(stateArray.widget.ctx);
     if (provider != null) {
       ctxWE.provider = provider;
@@ -32,7 +32,7 @@ class CWArrayRow extends StatefulWidget {
       ctxWE.loader = stateArray.widget.ctx.loader;
       if (provider.idxSelected != rowIdx) {
         provider.idxSelected = rowIdx;
-        provider.doAction(ctx, ctxWE, CWProviderAction.onSelected);
+        provider.doAction(ctx, ctxWE, CWProviderAction.onRowSelected);
       }
     }
   }

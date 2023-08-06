@@ -101,9 +101,9 @@ class _CWSlotState extends StateCW<CWSlot> {
     } else {
       //bool hasBoundedHeight = slotDesign.constraints.hasBoundedHeight;
 
-      const slot = Center(
+      var slot = Center(
           child: Text(
-        'Slot', //${widget.ctx.xid}
+        'Slot ${widget.ctx.xid}', //${widget.ctx.xid}
         style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
       ));
 

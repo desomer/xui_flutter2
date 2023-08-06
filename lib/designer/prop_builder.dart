@@ -36,12 +36,14 @@ class PropBuilder {
 
         designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
 
-        var provider = CWProvider("properties", designEntity.type, null)..add(designEntity);
-        provider.addAction(CWProviderAction.onChange, RefreshDesign(aCtx));
+        var provider = CWProvider("properties", designEntity.type, null)
+          ..add(designEntity);
         provider.addAction(
-            CWProviderAction.onNone2Create, MapDesign(aCtx, designEntity));
+            CWProviderAction.onValueChanged, RefreshDesign(aCtx));
         provider.addAction(
-            CWProviderAction.onMountWidget, OnMount(aCtx, pathWidget));
+            CWProviderAction.onStateNone2Create, MapDesign(aCtx, designEntity));
+        provider.addAction(
+            CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
 
         CWWidgetLoaderCtx loader = CWWidgetLoaderCtx().from(ctx.loader);
         listProp.addAll(FormBuilder().getFormWidget(provider, loader));
@@ -76,10 +78,11 @@ class PropBuilder {
       constraintEntity ??=
           PropBuilder.getEmptyEntity(slotCtx.loader, aCtxConstraint);
 
-      var provider = CWProvider("constraint", constraintEntity.type, null)..add(constraintEntity);
+      var provider = CWProvider("constraint", constraintEntity.type, null)
+        ..add(constraintEntity);
       provider.addAction(
-          CWProviderAction.onChange, RefreshDesignParent(ctxDesign));
-      provider.addAction(CWProviderAction.onNone2Create,
+          CWProviderAction.onValueChanged, RefreshDesignParent(ctxDesign));
+      provider.addAction(CWProviderAction.onStateNone2Create,
           MapConstraint(aCtxConstraint, constraintEntity));
 
       CWWidgetLoaderCtx loader = CWWidgetLoaderCtx().from(slotCtx.loader);

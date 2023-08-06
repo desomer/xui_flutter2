@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:xui_flutter/designer/application_manager.dart';
-
 import 'core/data/core_data.dart';
 import 'deprecated/_core_widget.dart';
 import 'designer/designer.dart';
@@ -24,21 +23,22 @@ class MyErrorsHandler {
   }
 }
 
+// mongo    gauthierdesomer   xRyLG1bVzc8IproW
+
 void main() async {
   var myErrorsHandler = MyErrorsHandler();
 
   await myErrorsHandler.initialize();
 
-  // FlutterError.onError = (details) {
-  //   myErrorsHandler.onErrorDetails(details);
-  // };
-  // PlatformDispatcher.instance.onError = (error, stack) {
-  //   myErrorsHandler.onError(error, stack);
-  //   return true;
-  // };
-
   CWApplication.of().initDesigner();
   CWApplication.of().initModel();
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //*_r$y-74WSMFKk8
+  //await supabase();
+
+  //StartMongo().init();
 
   runApp(CoreDesigner());
 
@@ -46,6 +46,8 @@ void main() async {
       .listen((html.MouseEvent event) => event.preventDefault());
   //runApp(const MyApp());
 }
+
+
 
 class FavoriteWidget extends StatefulWidget {
   FavoriteWidget({super.key});
