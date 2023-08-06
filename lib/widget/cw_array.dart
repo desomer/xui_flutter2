@@ -72,7 +72,8 @@ class _CwArrayState extends StateCW<CWArray> {
       }
 
       if (futureData is Future) {
-        return CWFutureWidget(futureData: futureData, getContent: getContent, nbCol: nbCol );
+        return CWFutureWidget(
+            futureData: futureData, getContent: getContent, nbCol: nbCol);
       } else {
         return getContent(futureData as int);
       }
@@ -167,7 +168,7 @@ class _CwArrayState extends StateCW<CWArray> {
       if (w is CWWidgetMap) {
         if (provider != null) {
           provider.idxDisplayed = idxRow;
-          content = w.getValue();
+          content = w.getMapValue();
         }
       }
 

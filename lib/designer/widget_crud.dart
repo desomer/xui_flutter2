@@ -54,10 +54,7 @@ class _WidgetDragState extends State<WidgetDrag> {
 
 class WidgetAddBtn extends StatefulWidget {
   const WidgetAddBtn(
-      {required this.provider,
-      required this.loader,
-      this.repaintXid,
-      Key? key})
+      {required this.provider, required this.loader, this.repaintXid, Key? key})
       : super(key: key);
 
   final CWProvider provider;

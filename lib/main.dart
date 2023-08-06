@@ -7,8 +7,10 @@ import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'core/data/core_data.dart';
+import 'core/store/driver.dart';
 import 'deprecated/_core_widget.dart';
 import 'designer/designer.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class MyErrorsHandler {
   initialize() {}
@@ -33,7 +35,9 @@ void main() async {
   CWApplication.of().initDesigner();
   CWApplication.of().initModel();
 
-  WidgetsFlutterBinding.ensureInitialized();
+  // await WidgetsFlutterBinding.ensureInitialized();
+
+  await StoreDriver.getDefautDriver("main");
 
   //*_r$y-74WSMFKk8
   //await supabase();
@@ -46,8 +50,6 @@ void main() async {
       .listen((html.MouseEvent event) => event.preventDefault());
   //runApp(const MyApp());
 }
-
-
 
 class FavoriteWidget extends StatefulWidget {
   FavoriteWidget({super.key});
@@ -259,6 +261,15 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en'),
+          Locale('fr')
+        ],
         title: 'Elisys XUI',
         home: Scaffold(
           appBar: AppBar(

@@ -92,6 +92,43 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
     rootWidget.initSlot('root');
   }
 
+  disposePath(String path) {
+    List<String> xidToDelete = [];
+    List<String> xidSlotToDelete = [];
+    List<String> pathToDelete = [];
+    for (var p in mapXidByPath.entries) {
+      if (p.key.startsWith(path)) {
+        pathToDelete.add(p.key);
+        xidToDelete.add(p.value);
+        mapWidgetByXid.remove(p.value);
+        mapSlotConstraintByPath.remove(p.key);
+        mapConstraintByXid.remove(p.value);
+      }
+    }
+    for (var c in mapChildXidByXid.entries) {
+      if (xidToDelete.contains(c.value)) {
+        xidSlotToDelete.add(c.key);
+      }
+    }
+    for (var element in xidSlotToDelete) {
+      mapChildXidByXid.remove(element);
+    }
+    for (var element in pathToDelete) {
+      mapXidByPath.remove(element);
+    }
+    List designToRemove = [];
+    List designs = loader.entityCWFactory.value["designs"]??[];
+    for (var d in designs) {
+      if (xidToDelete.contains(d["xid"]) ||
+          xidSlotToDelete.contains(d["xid"])) {
+        designToRemove.add(d);
+      }
+    }
+    for (var element in designToRemove) {
+      designs.remove(element);
+    }
+  }
+
   // void doRepaintByXid(String? xid) {
   //   CWWidget? widgetRepaint = mapWidgetByXid[xid];
   //   // ignore: invalid_use_of_protected_member
@@ -116,7 +153,8 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
 
       if (ctx.event!.builder.name == 'CWChild') {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
-        if (mapWidgetByXid[xid] == null) {   // ne recreer pas 2 fois un cmp si plusieur getWidget
+        if (mapWidgetByXid[xid] == null) {
+          // ne recreer pas 2 fois un cmp si plusieur getWidget
           final String implement =
               ctx.event!.entity.getString('implement', def: '')!;
           final CWWidgetCtx ctxW = CWWidgetCtx(xid, loader, xid);

@@ -1,5 +1,7 @@
 import 'package:event_listener/event_listener.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
@@ -110,6 +112,30 @@ class _CoreDesignerState extends State<CoreDesigner>
     currentRouteStack.add(RouteTest(settings: const RouteSettings(name: "B")));
 
     return MaterialApp(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        // supportedLocales: const [
+        //   Locale('en'),
+        //   Locale('fr')
+        // ],   
+        // localeResolutionCallback:
+        //     (Locale? locale, Iterable<Locale> supportedLocales) {
+        //   for (Locale supportedLocale in supportedLocales) {
+        //     if (kIsWeb) {
+        //       Locale webLocale = Locale(ui.window.locale.languageCode, '');
+        //       print('system locale is ${webLocale}');
+        //       return webLocale;
+        //     } else if (supportedLocale.languageCode == locale!.languageCode ||
+        //         supportedLocale.countryCode == locale.countryCode) {
+        //       print('device Locale is $locale');
+        //       return supportedLocale;
+        //     }
+        //   }
+        //   return supportedLocales.first;
+        // },   
         key: CoreDesigner.of().designerKey,
         debugShowCheckedModeBanner: false,
         title: 'ElisView',

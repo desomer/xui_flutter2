@@ -124,16 +124,15 @@ class CWProvider {
         ctx.designEntity!.getString(propName)!, v);
 
     var displayedEntity = getDisplayedEntity();
-    var rowOperation = displayedEntity.operation;
 
+    var rowOperation = displayedEntity.operation;
     if (rowOperation == CDAction.none) {
-      displayedEntity.operation = CDAction.create;
       doAction(ctx, event, CWProviderAction.onStateNone2Create);
     }
-    if (rowOperation == CDAction.read) {
-      displayedEntity.operation == CDAction.update;
-    }
     doAction(ctx, event, CWProviderAction.onValueChanged);
+
+    loader?.changed(this, displayedEntity);
+
   }
 
   Future<int> getItemsCount() async {

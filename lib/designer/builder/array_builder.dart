@@ -15,7 +15,6 @@ class ArrayBuilder {
   List<Widget> getArrayWidget(String name, CWProvider provider,
       CWWidgetLoaderCtx ctxDesign, Type type, BoxConstraints constraints) {
     var listWidget = <Widget>[];
-
     final CoreDataObjectBuilder builder =
         ctxDesign.collectionDataModel.getClass(provider.type)!;
     //Map<String, dynamic> src = entity.value;
@@ -25,6 +24,7 @@ class ArrayBuilder {
         : AttrListLoader(name, ctxDesign, provider);
 
     loader.ctxLoader.factory.mapProvider[provider.name] = provider;
+    ctxDesign.factory.disposePath(name);
 
     List<CoreDataEntity> listMdel =
         CWApplication.of().dataModelProvider.content;
@@ -48,20 +48,20 @@ class ArrayBuilder {
         // }
       } else if (attr.type == CDAttributType.CDmany) {
       } else {
-        String nameAttr = attr.name;
+        //String nameAttr = attr.name;
+        Map<String, dynamic> attrDesc = {"name": attr.name};
 
         if (aModelToDisplay != null) {
           // recherche le label de l'attribut
           List<dynamic> listAttr = aModelToDisplay.value["listAttr"];
           for (Map<String, dynamic> attrModel in listAttr) {
             if (attrModel["_id_"] == attr.name) {
-              nameAttr = attrModel["name"];
+              attrDesc = attrModel;
               break;
             }
           }
         }
-
-        loader.addAttr(attr, nameAttr);
+        loader.addAttr(attr, attrDesc);
       }
     }
 
@@ -78,7 +78,7 @@ abstract class ColRowLoader extends CWWidgetLoader {
   ColRowLoader(this.name, super.ctx);
   String name;
 
-  void addAttr(CoreDataAttribut attribut, String nameAttr);
+  void addAttr(CoreDataAttribut attribut, Map<String, dynamic> infoAttr);
   void addRow() {}
 }
 
@@ -92,11 +92,11 @@ class AttrArrayLoader extends ColRowLoader {
   CWProvider provider;
 
   @override
-  void addAttr(CoreDataAttribut attribut, String nameAttr) {
+  void addAttr(CoreDataAttribut attribut, Map<String, dynamic> infoAttr) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onMapWidget.toString();
     ctxWE.provider = provider;
-    ctxWE.payload = attribut;
+    ctxWE.payload = {'attr': attribut, "infoAttr": infoAttr};
     ctxWE.loader = ctxLoader;
 
     provider.doAction(null, ctxWE, CWProviderAction.onMapWidget);
@@ -121,7 +121,7 @@ class AttrArrayLoader extends ColRowLoader {
 
       addWidget('${name}Col0Header$nbAttr', '${name}Head$nbAttr',
           CWText, <String, dynamic>{
-        'label': nameAttr,
+        'label': infoAttr["name"],
       });
 
       nbAttr++;
@@ -159,11 +159,11 @@ class AttrListLoader extends ColRowLoader {
   CWProvider provider;
 
   @override
-  void addAttr(CoreDataAttribut attribut, String nameAttr) {
+  void addAttr(CoreDataAttribut attribut, Map<String, dynamic> infoAttr) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onMapWidget.toString();
     ctxWE.provider = provider;
-    ctxWE.payload = attribut;
+    ctxWE.payload = {"attr": attribut, "infoAttr": infoAttr};
     ctxWE.loader = ctxLoader;
 
     provider.doAction(null, ctxWE, CWProviderAction.onMapWidget);

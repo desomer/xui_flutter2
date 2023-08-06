@@ -88,12 +88,12 @@ abstract class CWWidgetMap extends CWWidget {
     }
   }
 
-  String getValue() {
+  String getMapValue() {
     CWProvider? provider = CWProvider.of(ctx);
     return provider?.getStringValueOf(ctx, "bind") ?? "no map";
   }
 
-  bool getBool() {
+  bool getMapBool() {
     CWProvider? provider = CWProvider.of(ctx);
     return provider?.getBoolValueOf(ctx, "bind") ?? false;
   }

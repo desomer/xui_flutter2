@@ -20,6 +20,7 @@ class CacheResultQuery {
     String idCache = provider.name + provider.type;
     List<CoreDataEntity> contentDeleted = [];
     List<dynamic> contentToSave = [];
+    List<dynamic> contentToDelete = [];
 
     for (CoreDataEntity row in provider.content) {
       if (row.operation == CDAction.delete) {
@@ -32,9 +33,11 @@ class CacheResultQuery {
     for (CoreDataEntity rowDeleted in contentDeleted) {
       provider.content.remove(rowDeleted);
       cacheNbData[idCache] = cacheNbData[idCache]! - 1;
+      contentToDelete.add(rowDeleted.value);
     }
 
     debugPrint("save cache $idCache");
+    provider.loader?.deleteData(contentToDelete);
     provider.loader?.saveData(contentToSave);
   }
 

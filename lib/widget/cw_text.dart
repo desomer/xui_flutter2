@@ -24,7 +24,7 @@ class CWText extends CWWidgetMap {
   @override
   String getLabel() {
     if (ctx.designEntity?.getString('bind') != null) {
-      return getValue();
+      return getMapValue();
     } else {
       return super.getLabel();
     }
@@ -38,6 +38,7 @@ class _CWTextState extends StateCW<CWText> {
   @override
   Widget build(BuildContext context) {
     widget.initRow(context);
-    return Text(softWrap: false, overflow: TextOverflow.fade, widget.getLabel());
+    return Text(
+        softWrap: false, overflow: TextOverflow.fade, widget.getLabel());
   }
 }

@@ -44,11 +44,12 @@ class CWApplication {
 
     deleteModel(CWWidgetEvent e) async {
       dataModelProvider.getSelectedEntity()!.operation = CDAction.delete;
+      var name = e.provider?.getSelectedEntity()!.value["_id_"];
       CacheResultQuery.saveCache(dataModelProvider);
       dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
           repaintXid: "rootModelCol0");
       // supprime les datas    
-      dataProvider.loader!.deleteAll();
+      dataProvider.loader!.deleteAll(name);
     }
 
     dataModelProvider.addUserAction(

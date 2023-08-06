@@ -7,7 +7,6 @@ import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
 import 'builder/array_builder.dart';
-import 'cw_factory.dart';
 import 'widget_crud.dart';
 
 class DesignerData extends StatefulWidget {
@@ -24,7 +23,7 @@ class _DesignerDataState extends State<DesignerData> {
 
     var selectedEntity =
         CWApplication.of().dataModelProvider.getSelectedEntity();
-    if (selectedEntity == null) return const Text('empty data');
+    if (selectedEntity == null) return const Text('');
 
     var idData = selectedEntity.value["_id_"];
 
@@ -32,7 +31,7 @@ class _DesignerDataState extends State<DesignerData> {
     CWProvider provider =
         getDataProvider(loader, idData, selectedEntity.value["name"]);
 
-    loader.factory = WidgetFactoryEventHandler(loader);
+    
 
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listData = ArrayBuilder().getArrayWidget(

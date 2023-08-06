@@ -259,7 +259,7 @@ class CoreDataEntity {
   //   final CoreDataEntity val = builder.getEntityModel();
   //   val.value = v;
   //   return val;
-  // }  
+  // }
 
   String? getString(String attr, {String? def}) {
     final dynamic v = value[attr];
@@ -286,6 +286,16 @@ class CoreDataEntity {
     } else {
       return v as bool;
     }
+  }
+
+  CoreDataEntity doChanged() {
+    if (operation == CDAction.none) {
+      operation = CDAction.create;
+    }
+    if (operation == CDAction.read) {
+      operation = CDAction.update;
+    }
+    return this;
   }
 
   CoreDataEntity prepareChange(CoreDataCollection collection) {

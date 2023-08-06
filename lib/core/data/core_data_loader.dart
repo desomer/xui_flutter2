@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 
-import '../store/nosql/localstorage.dart';
+import '../store/driver.dart';
 import 'core_provider.dart';
 
 abstract class CoreDataLoader {
@@ -12,7 +12,9 @@ abstract class CoreDataLoader {
   List<CoreDataEntity> getDataSync(CoreDataEntity? filters);
   bool isSync();
   saveData(dynamic content);
-  deleteAll();
+  deleteData(dynamic content);
+  deleteAll(String idTable);
+  changed(CWProvider provider, CoreDataEntity entity);
 }
 
 class CoreDataLoaderMap extends CoreDataLoader {
@@ -22,7 +24,6 @@ class CoreDataLoaderMap extends CoreDataLoader {
   String attribut;
   String? idQuery;
   CoreDataLoaderMap(this.loader, this.dicoResultQuery, this.attribut);
-  StoreDriver? storage = LocalstorageDriver();
 
   @override
   addData(CoreDataEntity data) {
@@ -58,16 +59,17 @@ class CoreDataLoaderMap extends CoreDataLoader {
   Future<CoreDataEntity> getDataFromQuery(String idDataInMap) async {
     if (dicoResultQuery[idDataInMap] == null) {
       dynamic items;
+      StoreDriver? storage = await StoreDriver.getDefautDriver("main");
 
       if (storage != null) {
-        items = await storage!.getAllData(idDataInMap);
+        items = await storage.getAllData(idDataInMap);
       }
       if (items == null) {
         dicoResultQuery[idDataInMap] = loader.collectionDataModel
             .createEntityByJson(
                 "DataContainer", {"idData": idDataInMap, "listData": []});
         if (storage != null) {
-          await storage!.setData('data', dicoResultQuery[idDataInMap]!.value);
+          await storage.setData('data', dicoResultQuery[idDataInMap]!.value);
         }
       } else {
         dicoResultQuery[idDataInMap] = loader.collectionDataModel
@@ -91,9 +93,10 @@ class CoreDataLoaderMap extends CoreDataLoader {
 
   @override
   saveData(dynamic content) async {
+    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
     if (dicoResultQuery[idQuery] != null && storage != null) {
       dicoResultQuery[idQuery]!.value["listData"] = content;
-      storage!.setData(idQuery!, dicoResultQuery[idQuery]!.value);
+      storage.setData(idQuery!, dicoResultQuery[idQuery]!.value);
     }
   }
 
@@ -102,22 +105,38 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  deleteAll() {
-    storage!.deleteTable(idQuery!);
+  deleteAll(String idTable) async {
+    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+    storage!.deleteTable(idTable);
+  }
+
+  @override
+  deleteData(content) async {
+    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+    if (dicoResultQuery[idQuery] != null && storage != null) {
+      await storage.deleteData(idQuery!, content);
+    }
+  }
+
+  @override
+  changed(CWProvider provider, CoreDataEntity entity) {
+    //entity.prepareChange(loader.collectionDataModel);
+    entity.doChanged();
   }
 }
 
 class CoreDataLoaderNested extends CoreDataLoader {
   CWWidgetLoaderCtx loader;
-  CWProvider provider;
+  CWProvider providerParent;
   String attribut;
-  CoreDataLoaderNested(this.loader, this.provider, this.attribut);
+  CoreDataLoaderNested(this.loader, this.providerParent, this.attribut);
 
   @override
   addData(CoreDataEntity data) {
-    if (provider.idxSelected >= 0 &&
-        provider.idxSelected < provider.content.length) {
-      CoreDataEntity selected = provider.content[provider.idxSelected];
+    if (providerParent.idxSelected >= 0 &&
+        providerParent.idxSelected < providerParent.content.length) {
+      CoreDataEntity selected =
+          providerParent.content[providerParent.idxSelected];
       List<dynamic>? result = selected.value[attribut];
       result?.add(data.value);
     }
@@ -131,9 +150,10 @@ class CoreDataLoaderNested extends CoreDataLoader {
   @override
   List<CoreDataEntity> getDataSync(CoreDataEntity? filters) {
     List<CoreDataEntity> ret = [];
-    if (provider.idxSelected >= 0 &&
-        provider.idxSelected < provider.content.length) {
-      CoreDataEntity selected = provider.content[provider.idxSelected];
+    if (providerParent.idxSelected >= 0 &&
+        providerParent.idxSelected < providerParent.content.length) {
+      CoreDataEntity selected =
+          providerParent.content[providerParent.idxSelected];
       List<dynamic>? result = selected.value[attribut];
       if (result != null) {
         for (Map<String, dynamic> element in result) {
@@ -153,7 +173,18 @@ class CoreDataLoaderNested extends CoreDataLoader {
 
   @override
   saveData(dynamic content) {}
-  
+
   @override
-  deleteAll() {}
+  deleteAll(String idTable) {}
+
+  @override
+  deleteData(content) {}
+
+  @override
+  changed(CWProvider provider, CoreDataEntity entity) {
+    //entity.prepareChange(loader.collectionDataModel);
+    entity.doChanged();
+
+    providerParent.getSelectedEntity()!.doChanged();
+  }
 }

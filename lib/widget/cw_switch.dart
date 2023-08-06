@@ -21,7 +21,7 @@ class _CWSwitchState extends StateCW<CWSwitch> {
   @override
   void initState() {
     super.initState();
-    val = widget.getBool();
+    val = widget.getMapBool();
   }
 
   @override

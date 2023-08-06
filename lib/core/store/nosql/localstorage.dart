@@ -1,10 +1,7 @@
 import 'package:localstorage/localstorage.dart';
 
-class StoreDriver {
-  dynamic getAllData(String idTable) async {}
-  setData(String idTable, Map<String, dynamic> json) async {}
-  deleteTable(String idTable) async {}
-}
+import '../driver.dart';
+
 
 class LocalstorageDriver extends StoreDriver {
   @override
@@ -16,9 +13,9 @@ class LocalstorageDriver extends StoreDriver {
   }
 
   @override
-  setData(String idTable, Map<String, dynamic> json) async {
+  setData(String idTable, Map<String, dynamic> data) async {
     LocalStorage storage = LocalStorage('$idTable.json');
-    storage.setItem('data', json);
+    storage.setItem('data', data);
   }
 
   @override

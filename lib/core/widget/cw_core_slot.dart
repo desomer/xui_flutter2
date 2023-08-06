@@ -104,7 +104,7 @@ class _CWSlotState extends StateCW<CWSlot> {
       var slot = Center(
           child: Text(
         'Slot ${widget.ctx.xid}', //${widget.ctx.xid}
-        style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+        style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
       ));
 
       return getDropZone(DottedBorder(

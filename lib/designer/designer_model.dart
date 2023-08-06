@@ -141,7 +141,9 @@ class OnBuildEdit extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    CoreDataAttribut attr = event!.payload as CoreDataAttribut;
+    CoreDataAttribut attr = event!.payload["attr"];
+    Map<String, dynamic> infoAttr =event.payload["infoAttr"];
+
     if (attr.name.startsWith("_")) {
       if (!displayPrivate) {
         event.retAction = "None";
@@ -152,7 +154,7 @@ class OnBuildEdit extends CoreDataAction {
     for (var element in editName) {
       if (element == attr.name || element == "*") {
         event.ret = event.loader!.collectionWidget
-            .createEntityByJson((CWTextfield).toString(), {"withLabel": false});
+            .createEntityByJson((CWTextfield).toString(), {"withLabel": false, "type": infoAttr["type"] });
         return;
       }
     }
