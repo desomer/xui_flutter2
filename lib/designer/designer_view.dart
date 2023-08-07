@@ -41,14 +41,6 @@ class DesignerViewState extends State<DesignerView> {
   @override
   Widget build(BuildContext context) {
     stack ??= Stack(key: SelectorActionWidget.designerKey, children: [
-      // Center(
-      //     child: SizedBox(
-      //         height: 896,
-      //         width: 414,
-      //         child: Material(
-      //             key: SelectorActionWidget.rootKey,
-      //             elevation: 5,
-      //             child: widget.getRoot()))),
       widget.getRoot(),
       SelectorActionWidget(key: SelectorActionWidget.actionPanKey)
     ]);

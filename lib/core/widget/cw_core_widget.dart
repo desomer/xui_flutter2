@@ -76,17 +76,21 @@ abstract class StateCW<T extends CWWidget> extends State<T> {
 abstract class CWWidgetMap extends CWWidget {
   const CWWidgetMap({super.key, required super.ctx});
 
-  initRow(BuildContext context) {
+  setDisplayRow(InheritedStateContainer? row) {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
-      InheritedStateContainer? row =
-          context.getInheritedWidgetOfExactType<InheritedStateContainer>();
       if (row != null) {
         //print("row.index = ${row.index}");
         provider.idxDisplayed = row.index!;
       }
     }
   }
+
+  InheritedStateContainer? getRowState(BuildContext context) {
+    InheritedStateContainer? row =
+        context.getInheritedWidgetOfExactType<InheritedStateContainer>();
+    return row;
+  }  
 
   String getMapValue() {
     CWProvider? provider = CWProvider.of(ctx);

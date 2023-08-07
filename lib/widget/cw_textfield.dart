@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:xui_flutter/widget/cw_cell.dart';
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
@@ -54,20 +55,25 @@ extension TextEditingControllerExt on TextEditingController {
 
 class _CWTextfieldState extends StateCW<CWTextfield> {
   late FocusNode _focus;
-  final TextEditingController _controller = TextEditingController();
-  String? last;
-  String? lastOnFocus;
+  bool isRowFocus = false;
+  InheritedStateContainer? row;
 
-  FocusNode initFocusNode() {
-    InheritedStateContainer? row =
-        context.getInheritedWidgetOfExactType<InheritedStateContainer>();
-    if (row != null && row.rowState != null) {
-      var f = row.rowState!.mapFocus[widget.hashCode.toString()];
+  final TextEditingController _controller = TextEditingController();
+  String? mapValue;
+  String? lastOnFocus;
+  GlobalKey? cellIndicatorKey;
+
+  FocusNode findFocusNode() {
+    if (row?.rowState != null) {
+      isRowFocus = true;
+      // recupére les focus de la row pour ne âs perdre le focus au repaint
+      var f = row!.rowState!.mapFocus[widget.hashCode.toString()];
       if (f == null) {
         f = FocusNode();
-        row.rowState!.mapFocus[widget.hashCode.toString()] = f;
+        row!.rowState!.mapFocus[widget.hashCode.toString()] = f;
       } else {
         if (f.hasFocus) {
+          // se repositionne aprés repaint
           f.unfocus();
           Future.delayed(const Duration(milliseconds: 100), () {
             f!.requestFocus();
@@ -83,54 +89,59 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   @override
   void initState() {
     super.initState();
-    _focus = initFocusNode();
-    widget.initRow(context);
-    last = widget.getMapValue();
-    _controller.text = last!;
-    _controller.addListener(() {
-      if (_controller.text != last) {
-        widget.initRow(context);
-        bool valid = true;
-        if (mask?.validator != null) {
-          String? msg = mask?.validator!(_controller.text);
-          valid = msg == null;
-          if (mask!.error != msg) {
-            // setState(() {
-            mask!.error = msg;
-            // });
-          }
-        }
-        if (valid) {
-          widget.setValue(_controller.text);
-        }
-        last = _controller.text;
-      }
-    });
+    row = widget.getRowState(context);
+    _focus = findFocusNode();
+    if (row != null) widget.setDisplayRow(row);
+
+    // map la valeur
+    mapValue = widget.getMapValue();
+    _controller.text = mapValue!;
+
+    _controller.addListener(_onTextChange);
     _focus.addListener(_onFocusChange);
   }
 
-  void _onFocusChange() {
-    debugPrint(
-        "Focus: ${_focus.hasFocus.toString()} ${widget.ctx.pathWidget} ${_controller.text}");
-    if (_focus.hasFocus) {
-      InheritedStateContainer? row =
-          context.getInheritedWidgetOfExactType<InheritedStateContainer>();
-      if (row != null) {
-        // debugPrint("select row ${row.index}");
-        row.selected(widget.ctx);
+  void _onTextChange() {
+    if (_controller.text != mapValue) {
+      if (row != null) widget.setDisplayRow(row);
+      bool valid = true;
+      if (mask?.validator != null) {
+        String? msg = mask?.validator!(_controller.text);
+        valid = msg == null;
+        if (mask!.error != msg) {
+          mask!.error = msg;
+          if (cellIndicatorKey != null) {
+            CWCellIndicator indicator =
+                cellIndicatorKey!.currentWidget as CWCellIndicator;
+            indicator.color = valid ? null : Colors.red;
+            indicator.message = msg;
+            cellIndicatorKey!.currentState?.setState(() {});
+          }
+        }
       }
+      if (valid) {
+        // map la valeur
+        widget.setValue(_controller.text);
+        mapValue = _controller.text;
+      }
+    }
+  }
+
+  void _onFocusChange() {
+    // debugPrint(
+    //     "Focus: ${_focus.hasFocus.toString()} ${widget.ctx.pathWidget} ${_controller.text}");
+    if (_focus.hasFocus) {
+      //if (row != null) debugPrint("select row ${row.index}");
+      row?.selected(widget.ctx);
       lastOnFocus = _controller.text;
       _controller.selectAll();
     } else {
-      //_focus.requestFocus();
-      // repaint toute la ligne si changement
+      // repaint toute la ligne si perte de focus & changement
       if (lastOnFocus != _controller.text || mask?.error != null) {
         if (mask?.error != null) {
           _controller.text = lastOnFocus!;
         }
-        context
-            .getInheritedWidgetOfExactType<InheritedStateContainer>()
-            ?.repaintRow(widget.ctx);
+        row?.repaintRow(widget.ctx);
       }
     }
   }
@@ -139,7 +150,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   void dispose() {
     _controller.dispose();
     _focus.removeListener(_onFocusChange);
-//    _focus.dispose();
+    if (!isRowFocus) _focus.dispose();
     super.dispose();
   }
 
@@ -147,16 +158,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
 
   @override
   Widget build(BuildContext context) {
-    widget.initRow(context);
+    if (row != null) widget.setDisplayRow(row);
     String? label = widget.getLabelNull();
     String type = widget.getType();
-    // var formater = <TextInputFormatter>[
-    //   // // for below version 2 use this
-    //   // FilteringTextInputFormatter.allow(
-    //   //     RegExp(r'[0-9]')), //RegExp("[0-9]+.[0-9]")
-    //   // FilteringTextInputFormatter.singleLineFormatter,
-    //   // // LengthLimitingTextInputFormatter(12), //max length of 12 characters
-    // ];
 
     if (type == "INTEGER") {
       mask = MaskConfig(
@@ -177,7 +181,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
 
       mask = MaskConfig(
           formatter: [maskFormatter],
-          hint: "01/12/2023",
+          hint: "__/__/____",
           textInputType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -201,60 +205,91 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
           });
     }
 
+    // if (row!=null) {
+    //   return getTextfield(label);
+    // }
+
     return Container(
         height: label == null ? 24 : 32,
         decoration: BoxDecoration(
             border: Border(
                 bottom: BorderSide(
                     width: 1.0, color: Theme.of(context).dividerColor))),
-        child: GestureDetector(
-            onDoubleTap: () async {
-              if (kIsWeb) {}
-              String l = await findSystemLocale();
-              List lsp = l.split("_");
-              // ignore: use_build_context_synchronously
-              DateTime? pickedDate = await showDatePicker(
-                  helpText: "",
-                  context: context,
-                  locale: Locale(lsp[0], lsp[1]),
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(1900),
-                  lastDate: DateTime(2101));
+        child: getCell(type, getTextfield(label)));
+  }
 
-              if (pickedDate != null) {
-                String formattedDate =
-                    DateFormat('dd/MM/yyyy').format(pickedDate);
+  Widget getCell(String type, Widget content) {
+    if (type == "DATE") {
+      content = getDatePicker(content);
+    }
 
-                setState(() {
-                  _controller.text = formattedDate;
-                });
-              } else {
-                print("Date is not selected");
-              }
-            },
-            child: TextField(
-              // onTapOutside: (e) {
-              //   print("onTapOutside");
-              // },
-              onTap: _controller.selectAll,
-              focusNode: _focus,
-              controller: _controller,
-              style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
-              keyboardType: mask?.textInputType,
-              scrollPadding: const EdgeInsets.all(0),
-              inputFormatters: mask?.formatter ?? [],
-              autocorrect: false,
-              decoration: InputDecoration(
-                  hintText: mask?.hint,
-                  errorText: mask?.error,
-                  border: InputBorder.none,
-                  isDense: true,
-                  labelText: label,
-                  // labelStyle: const TextStyle(color: Colors.white70),
-                  contentPadding:
-                      EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
-              //autofocus: true,
-            )));
+    if (row == null) {
+      return content;
+    } else {
+      cellIndicatorKey ??= GlobalKey();
+
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return Row(children: [
+            SizedBox(
+                width: constraints.maxWidth - 8,
+                height: constraints.maxHeight,
+                child: content),
+            CWCellIndicator(key: cellIndicatorKey)
+          ]);
+        },
+      );
+    }
+  }
+
+  Widget getDatePicker(Widget content) {
+    return GestureDetector(
+        onDoubleTap: () async {
+          if (kIsWeb) {}
+          String l = await findSystemLocale();
+          List lsp = l.split("_");
+          // ignore: use_build_context_synchronously
+          DateTime? pickedDate = await showDatePicker(
+              helpText: "",
+              context: context,
+              locale: Locale(lsp[0], lsp[1]),
+              initialDate:  _controller.text==""?DateTime.now():DateFormat('dd/MM/yyyy').parse(_controller.text),
+              firstDate: DateTime(1900),
+              lastDate: DateTime(2101));
+
+          if (pickedDate != null) {
+            String formattedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
+
+            setState(() {
+              _controller.text = formattedDate;
+            });
+          } else {
+            print("Date is not selected");
+          }
+        },
+        child: content);
+  }
+
+  TextField getTextfield(String? label) {
+    return TextField(
+      onTap: _controller.selectAll,
+      focusNode: _focus,
+      controller: _controller,
+      style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
+      keyboardType: mask?.textInputType,
+      scrollPadding: const EdgeInsets.all(0),
+      inputFormatters: mask?.formatter ?? [],
+      autocorrect: false,
+      decoration: InputDecoration(
+          hintText: mask?.hint,
+          errorText: mask?.error,
+          border: InputBorder.none,
+          isDense: true,
+          labelText: label,
+          // labelStyle: const TextStyle(color: Colors.white70),
+          contentPadding: EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
+      //autofocus: true,
+    );
   }
 }
 

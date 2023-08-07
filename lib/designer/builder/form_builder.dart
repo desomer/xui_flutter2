@@ -15,14 +15,17 @@ class FormBuilder {
     var listWidget = <Widget>[];
     CoreDataEntity entity = provider.getEntityByIdx(0);
 
-    final CoreDataObjectBuilder builder =
-        ctxLoader.collectionWidget.getClass(entity.type)!;
+    CoreDataObjectBuilder? builder =
+        ctxLoader.collectionWidget.getClass(entity.type);
+
+    builder ??= ctxLoader.collectionDataModel.getClass(entity.type);
+
     Map<String, dynamic> src = entity.value;
 
-    ctxLoader.factory.disposePath("root"); 
+    ctxLoader.factory.disposePath("root");
 
     AttrFormLoader loader = AttrFormLoader(ctxLoader, entity);
-    var allAttribut = builder.getAllAttribut();
+    var allAttribut = builder!.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.CDone) {
         if (src[attr.name] != null) {

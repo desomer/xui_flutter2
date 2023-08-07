@@ -14,6 +14,7 @@ import '../deprecated/core_array.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
 import 'cw_factory.dart';
+import 'designer_attribut.dart';
 import 'designer_data.dart';
 import 'designer_model.dart';
 import 'designer_view.dart';
@@ -104,12 +105,19 @@ class _CoreDesignerState extends State<CoreDesigner>
   @override
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
-    nav.tab = [getDesignPan(), getDataPan(), getDebugPan(), getTestPan()];
+    nav.listTabNav = [
+      getDesignPan(),
+      getDataPan(),
+      Container(),
+      getDebugPan(),
+      getTestPan()
+    ];
 
     List<Route> currentRouteStack = [];
     currentRouteStack
         .add(RouteTest(settings: const RouteSettings(name: "Root")));
-    currentRouteStack.add(RouteTest(settings: const RouteSettings(name: "B")));
+    currentRouteStack
+        .add(RouteTest(settings: const RouteSettings(name: "Text")));
 
     return MaterialApp(
         localizationsDelegates: const [
@@ -120,7 +128,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         // supportedLocales: const [
         //   Locale('en'),
         //   Locale('fr')
-        // ],   
+        // ],
         // localeResolutionCallback:
         //     (Locale? locale, Iterable<Locale> supportedLocales) {
         //   for (Locale supportedLocale in supportedLocales) {
@@ -135,7 +143,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         //     }
         //   }
         //   return supportedLocales.first;
-        // },   
+        // },
         key: CoreDesigner.of().designerKey,
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
@@ -198,7 +206,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                         )),
                   ]),
                   const Spacer(),
-                  const Text("Desomer G."),
+                  const Text("Desomer G.  07/08/23"),
                   IconButton(
                     icon: const Icon(Icons.help),
                     onPressed: () {},
@@ -250,49 +258,54 @@ class _CoreDesignerState extends State<CoreDesigner>
       ),
     );
 
-    WidgetTab tabAttributDesc = WidgetTab(heightTab: 30, listTab: const [
-      Tab(text: "Description"),
-      Tab(text: "Constraints")
-    ], listTabCont: [
-      Center(
-        child: Container(
-          width: 100,
-          height: 100,
-          decoration: const BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                offset: Offset(-20, 20),
-                color: Colors.red,
-                blurRadius: 15,
-                spreadRadius: -10,
-              ),
-              BoxShadow(
-                offset: Offset(-20, -20),
-                color: Colors.orange,
-                blurRadius: 15,
-                spreadRadius: -10,
-              ),
-              BoxShadow(
-                offset: Offset(20, -20),
-                color: Colors.blue,
-                blurRadius: 15,
-                spreadRadius: -10,
-              ),
-              BoxShadow(
-                offset: Offset(25, 25),
-                color: Colors.deepPurple,
-                blurRadius: 15,
-                spreadRadius: -10,
-              )
-            ],
-            //color: Colors.grey.shade800
+    var rainboxBox = Container(
+      width: 100,
+      height: 100,
+      margin: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            offset: Offset(-20, 20),
+            color: Colors.red,
+            blurRadius: 15,
+            spreadRadius: -10,
           ),
-          child: Card(
-            color: Colors.grey.shade800,
-            elevation: 3,
+          BoxShadow(
+            offset: Offset(-20, -20),
+            color: Colors.orange,
+            blurRadius: 15,
+            spreadRadius: -10,
           ),
-        ),
+          BoxShadow(
+            offset: Offset(20, -20),
+            color: Colors.blue,
+            blurRadius: 15,
+            spreadRadius: -10,
+          ),
+          BoxShadow(
+            offset: Offset(25, 25),
+            color: Colors.deepPurple,
+            blurRadius: 15,
+            spreadRadius: -10,
+          )
+        ],
+        //color: Colors.grey.shade800
       ),
+      child: Card(
+        color: Colors.grey.shade800,
+        elevation: 3,
+      ),
+    );
+
+    WidgetTab tabAttributDesc = WidgetTab(heightTab: 30, listTab: const [
+      Tab(text: "Properties"),
+      Tab(text: "Validator"),
+      Tab(text: "Style")
+    ], listTabCont: [
+      Row(
+        children: [const Expanded(child: DesignerAttribut()), rainboxBox],
+      ),
+      Container(),
       Container()
     ]);
 
@@ -366,10 +379,10 @@ class _CoreDesignerState extends State<CoreDesigner>
         width: 300,
         child: WidgetTab(heightTab: 40, listTab: [
           Tab(icon: Icon(Icons.near_me)),
-          Tab(icon: Icon(Icons.query_stats))
+          Tab(icon: Icon(Icons.filter_alt))
         ], listTabCont: [
-          Text("navigation"),
-          Text("Query")
+          Text(" Navigation"),
+          Text(" Query to display")
         ]),
       ),
       Expanded(child: widget.view),
@@ -430,7 +443,7 @@ class _CoreDesignerState extends State<CoreDesigner>
 class NavRail extends StatefulWidget {
   NavRail({super.key});
 
-  late List<Widget> tab;
+  late List<Widget> listTabNav;
 
   @override
   State<NavRail> createState() => _NavRailState();
@@ -479,6 +492,10 @@ class _NavRailState extends State<NavRail> {
               label: Text('Store'),
             ),
             NavigationRailDestination(
+              icon: Tooltip(message: 'Query', child: Icon(Icons.filter_alt)),
+              label: Text('Query'),
+            ),
+            NavigationRailDestination(
               icon: Tooltip(message: 'Debug', child: Icon(Icons.bug_report)),
               label: Text('Debug'),
             ),
@@ -491,7 +508,7 @@ class _NavRailState extends State<NavRail> {
         Expanded(
             child: PageView(
           controller: pageController,
-          children: widget.tab,
+          children: widget.listTabNav,
         ))
       ],
     );

@@ -101,10 +101,10 @@ class _CWSlotState extends StateCW<CWSlot> {
     } else {
       //bool hasBoundedHeight = slotDesign.constraints.hasBoundedHeight;
 
-      var slot = Center(
+      var slot = const Center(
           child: Text(
-        'Slot ${widget.ctx.xid}', //${widget.ctx.xid}
-        style: const TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+        'Drag here', //${widget.ctx.xid}
+        style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
       ));
 
       return getDropZone(DottedBorder(

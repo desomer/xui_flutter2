@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
+import 'cw_list.dart';
 
 class CWText extends CWWidgetMap {
   const CWText({
@@ -35,9 +36,17 @@ class CWText extends CWWidgetMap {
 }
 
 class _CWTextState extends StateCW<CWText> {
+  InheritedStateContainer? row;
+
+  @override
+  void initState() {
+    super.initState();
+    row = widget.getRowState(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    widget.initRow(context);
+    if (row!=null) widget.setDisplayRow(row);
     return Text(
         softWrap: false, overflow: TextOverflow.fade, widget.getLabel());
   }

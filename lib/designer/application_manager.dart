@@ -19,6 +19,7 @@ class CWApplication {
   CWWidgetLoaderCtx loaderDesigner = CWWidgetLoaderCtx();
 
   CWWidgetLoaderCtx loaderModel = CWWidgetLoaderCtx();
+
   CWWidgetLoaderCtx loaderData = CWWidgetLoaderCtx();
 
   CoreDataCollection collection = CoreDataCollection();
@@ -48,14 +49,14 @@ class CWApplication {
       CacheResultQuery.saveCache(dataModelProvider);
       dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
           repaintXid: "rootModelCol0");
-      // supprime les datas    
+      // supprime les datas
       dataProvider.loader!.deleteAll(name);
     }
 
     dataModelProvider.addUserAction(
         "delete", CoreDataActionFunction(deleteModel));
 
-    // custom du loader
+    // ajouter l'action de delete
     var c = CWApplication.of().loaderModel.collectionWidget;
     CWApplication.of()
         .loaderModel
@@ -69,6 +70,7 @@ class CWApplication {
               "icon": Icons.delete_forever
             }));
 
+    // custom du loader
     CWApplication.of().loaderModel.setProp(
         "rootAttr",
         c.createEntityByJson(
@@ -105,6 +107,11 @@ class CWApplication {
         .addAttr("name", CDAttributType.CDtext)
         .addAttr("listData", CDAttributType.CDmany);
 
+    collection.addObject("DataAttribut")
+        .addAttr("description", CDAttributType.CDtext)
+        .addAttr("mask", CDAttributType.CDtext)
+        ;
+
     collection
         .addObject("ModelAttributs")
         .addAttr("_id_", CDAttributType.CDtext)
@@ -123,54 +130,54 @@ class CWApplication {
     // var items;
 
     // if (items == null) {
-      CoreDataEntity modelCustomer =
-          collection.createEntityByJson("DataModel", {"name": "Customers"});
+    CoreDataEntity modelCustomer =
+        collection.createEntityByJson("DataModel", {"name": "Customers"});
 
-      CoreDataEntity modelPets =
-          collection.createEntityByJson("DataModel", {"name": "Pets"});
+    CoreDataEntity modelPets =
+        collection.createEntityByJson("DataModel", {"name": "Pets"});
 
-      //////////////////////////////////////////
-      modelCustomer.addMany(
-          collection,
-          "listAttr",
-          collection.createEntityByJson(
-              "ModelAttributs", {"name": "First name", "type": "TEXT"}));
-      modelCustomer.addMany(
-          collection,
-          "listAttr",
-          collection.createEntityByJson(
-              "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
-      /////////////////////////////////////////////////
-      modelPets.addMany(
-          collection,
-          "listAttr",
-          collection.createEntityByJson(
-              "ModelAttributs", {"name": "Name", "type": "TEXT"}));
-      modelPets.addMany(
-          collection,
-          "listAttr",
-          collection.createEntityByJson(
-              "ModelAttributs", {"name": "Category", "type": "TEXT"}));
-      modelPets.addMany(
-          collection,
-          "listAttr",
-          collection.createEntityByJson(
-              "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
-      /////////////////////////////////////
-      // dataModelProvider
-      //   ..add(modelCustomer)
-      //   ..add(modelPets);
+    //////////////////////////////////////////
+    modelCustomer.addMany(
+        collection,
+        "listAttr",
+        collection.createEntityByJson(
+            "ModelAttributs", {"name": "First name", "type": "TEXT"}));
+    modelCustomer.addMany(
+        collection,
+        "listAttr",
+        collection.createEntityByJson(
+            "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
+    /////////////////////////////////////////////////
+    modelPets.addMany(
+        collection,
+        "listAttr",
+        collection.createEntityByJson(
+            "ModelAttributs", {"name": "Name", "type": "TEXT"}));
+    modelPets.addMany(
+        collection,
+        "listAttr",
+        collection.createEntityByJson(
+            "ModelAttributs", {"name": "Category", "type": "TEXT"}));
+    modelPets.addMany(
+        collection,
+        "listAttr",
+        collection.createEntityByJson(
+            "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
+    /////////////////////////////////////
+    // dataModelProvider
+    //   ..add(modelCustomer)
+    //   ..add(modelPets);
 
-      CoreDataEntity modelContainer = collection.createEntityByJson(
-          "DataContainer", {"idData": "models", "listData": []});
+    CoreDataEntity modelContainer = collection.createEntityByJson(
+        "DataContainer", {"idData": "models", "listData": []});
 
-      modelContainer.addMany(collection, "listData", modelCustomer);
-      modelContainer.addMany(collection, "listData", modelPets);
+    modelContainer.addMany(collection, "listData", modelCustomer);
+    modelContainer.addMany(collection, "listData", modelPets);
 
-      //Map<String, CoreDataEntity> listModel = {"models": modelContainer};
+    //Map<String, CoreDataEntity> listModel = {"models": modelContainer};
 
-      // storage.setItem('data', listModel["models"]!.value);
-      return dataModelProvider.getItemsCount();
+    // storage.setItem('data', listModel["models"]!.value);
+    return dataModelProvider.getItemsCount();
     // } else {
     //   return 0;
     // }
