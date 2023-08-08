@@ -1,5 +1,4 @@
 import 'package:event_listener/event_listener.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
@@ -18,6 +17,7 @@ import 'designer_attribut.dart';
 import 'designer_data.dart';
 import 'designer_model.dart';
 import 'designer_view.dart';
+import 'widget_hidden_box.dart';
 import 'widget_model_attribut.dart';
 import 'widget_properties.dart';
 
@@ -153,7 +153,8 @@ class _CoreDesignerState extends State<CoreDesigner>
             indicatorColor: Colors.amber,
             inputDecorationTheme: const InputDecorationTheme(
                 labelStyle: TextStyle(color: Colors.white70))),
-        themeMode: ThemeMode.system,
+        //themeMode: ThemeMode.system,
+        themeMode: ThemeMode.dark,
         home: Scaffold(
           appBar: AppBar(
             title: Row(
@@ -309,7 +310,7 @@ class _CoreDesignerState extends State<CoreDesigner>
       Container()
     ]);
 
-    WidgetTab tab = WidgetTab(
+    WidgetTab tabModelDesc = WidgetTab(
       heightTab: 60,
       listTab: const [
         Tab(text: "Model", icon: Icon(Icons.data_object)),
@@ -323,14 +324,12 @@ class _CoreDesignerState extends State<CoreDesigner>
               Expanded(
                   child: Column(
                 children: [
-                  Expanded(child: viewAttribute),
-                  SizedBox(
-                    height: 200,
-                    child: tabAttributDesc,
-                  )
+                  Expanded(child: viewAttribute),  // les attributs
+                  WidgetHiddenBox(child:tabAttributDesc)
                 ],
               )), // ),
               SizedBox(
+                // les type d'attribut
                 width: 300,
                 child: Column(children: AttributDesc.getListAttr),
               )
@@ -348,7 +347,7 @@ class _CoreDesignerState extends State<CoreDesigner>
           width: 200,
           child: DesignerListModel(),
         ),
-        Expanded(child: tab)
+        Expanded(child: tabModelDesc)
       ],
     );
   }

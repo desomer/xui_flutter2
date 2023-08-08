@@ -27,9 +27,9 @@ class CWArray extends CWWidgetMap {
     }
   }
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget((CWArray),
+        .addWidget("CWArray",
             (CWWidgetCtx ctx) => CWArray(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .addAttr('providerName', CDAttributType.CDtext);

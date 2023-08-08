@@ -56,12 +56,10 @@ class CWColumn extends CWContainer {
     }
   }
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget(
-            (CWColumn),
-            (CWWidgetCtx ctx) =>
-                CWColumn(key: ctx.getKey(), ctx: ctx))
+        .addWidget("CWColumn",
+            (CWWidgetCtx ctx) => CWColumn(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)
@@ -155,7 +153,7 @@ class CWColumnState extends StateCW<CWColumn> {
 class CWRow extends CWContainer {
   const CWRow({Key? key, required super.ctx}) : super(key: key);
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c.collection
             .addObject('CWRowConstraint')
             .addAttr('flex', CDAttributType.CDint)
@@ -169,9 +167,7 @@ class CWRow extends CWContainer {
 
     c
         .addWidget(
-            (CWRow),
-            (CWWidgetCtx ctx) =>
-                CWRow(key: ctx.getKey(), ctx: ctx))
+            "CWRow", (CWWidgetCtx ctx) => CWRow(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.CDbool)

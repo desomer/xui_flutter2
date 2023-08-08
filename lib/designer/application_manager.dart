@@ -16,24 +16,22 @@ class CWApplication {
     return _current;
   }
 
-  CWWidgetLoaderCtx loaderDesigner = CWWidgetLoaderCtx();
-
-  CWWidgetLoaderCtx loaderModel = CWWidgetLoaderCtx();
-
-  CWWidgetLoaderCtx loaderData = CWWidgetLoaderCtx();
-
   CoreDataCollection collection = CoreDataCollection();
+
+  CWWidgetLoaderCtx loaderDesigner = CWWidgetLoaderCtx();
+  CWWidgetLoaderCtx loaderModel = CWWidgetLoaderCtx();
+  CWWidgetLoaderCtx loaderData = CWWidgetLoaderCtx();
 
   CWProvider dataModelProvider =
       CWProvider("DataModelProvider", "DataModel", null);
-
   late CWProvider dataAttributProvider;
   late CWProvider dataProvider;
 
-  Map<String, CoreDataEntity> listData = {};
+  Map<String, CoreDataEntity> cacheMapData = {};
 
   initDesigner() {
-    loaderDesigner.collectionWidget = CWCollection().collection;
+    loaderDesigner.collectionWidget = CWWidgetCollectionBuilder().collection;
+
     loaderDesigner.collectionDataModel = loaderDesigner.collectionWidget;
     loaderDesigner.mode = ModeRendering.design;
     loaderDesigner.entityCWFactory =
@@ -57,9 +55,8 @@ class CWApplication {
         "delete", CoreDataActionFunction(deleteModel));
 
     // ajouter l'action de delete
-    var c = CWApplication.of().loaderModel.collectionWidget;
-    CWApplication.of()
-        .loaderModel
+    var c = loaderModel.collectionWidget;
+    loaderModel
         .addConstraint('rootAttrExpTitle0', 'CWExpandConstraint')
         .addMany(
             c,
@@ -71,10 +68,10 @@ class CWApplication {
             }));
 
     // custom du loader
-    CWApplication.of().loaderModel.setProp(
-        "rootAttr",
-        c.createEntityByJson(
-            'CWLoader', {'providerName': "DataModelProvider"}));
+    var setProdiverName =
+        c.createEntityByJson('CWLoader', {'providerName': "DataModelProvider"});
+
+    loaderModel.setProp("rootAttr", setProdiverName);
 
     loaderData.collectionWidget = loaderDesigner.collectionWidget;
     loaderData.createFactory();
@@ -107,9 +104,12 @@ class CWApplication {
         .addAttr("name", CDAttributType.CDtext)
         .addAttr("listData", CDAttributType.CDmany);
 
-    collection.addObject("DataAttribut")
+    collection
+        .addObject("DataAttribut")
         .addAttr("description", CDAttributType.CDtext)
         .addAttr("mask", CDAttributType.CDtext)
+        .addAttr("required", CDAttributType.CDbool)
+        .addAttr("localized", CDAttributType.CDbool)
         ;
 
     collection
@@ -120,67 +120,6 @@ class CWApplication {
         .addAttr("type", CDAttributType.CDtext);
 
     _initProvider();
-  }
-
-  Future<int> initPetStore() async {
-    // final LocalStorage storage = LocalStorage('listModel.json');
-    // await storage.ready;
-    // await Future.delayed(const Duration(seconds: 5));
-    // var items = storage.getItem('data');
-    // var items;
-
-    // if (items == null) {
-    CoreDataEntity modelCustomer =
-        collection.createEntityByJson("DataModel", {"name": "Customers"});
-
-    CoreDataEntity modelPets =
-        collection.createEntityByJson("DataModel", {"name": "Pets"});
-
-    //////////////////////////////////////////
-    modelCustomer.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "First name", "type": "TEXT"}));
-    modelCustomer.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
-    /////////////////////////////////////////////////
-    modelPets.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Name", "type": "TEXT"}));
-    modelPets.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Category", "type": "TEXT"}));
-    modelPets.addMany(
-        collection,
-        "listAttr",
-        collection.createEntityByJson(
-            "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
-    /////////////////////////////////////
-    // dataModelProvider
-    //   ..add(modelCustomer)
-    //   ..add(modelPets);
-
-    CoreDataEntity modelContainer = collection.createEntityByJson(
-        "DataContainer", {"idData": "models", "listData": []});
-
-    modelContainer.addMany(collection, "listData", modelCustomer);
-    modelContainer.addMany(collection, "listData", modelPets);
-
-    //Map<String, CoreDataEntity> listModel = {"models": modelContainer};
-
-    // storage.setItem('data', listModel["models"]!.value);
-    return dataModelProvider.getItemsCount();
-    // } else {
-    //   return 0;
-    // }
   }
 
   Map<String, CoreDataEntity> listModel = {};
@@ -211,9 +150,11 @@ class CWApplication {
         CWProviderAction.onMapWidget, OnBuildEdit(["name"], false));
     dataAttributProvider.addAction(
         CWProviderAction.onStateNone, OnAddAttr(dataAttributProvider));
+    dataAttributProvider.addAction(
+        CWProviderAction.onRowSelected, OnSelectAttribut());        
     //-------------------------------------------------------
     dataProvider = CWProvider("DataProvider", "?",
-        CoreDataLoaderMap(loaderData, listData, "listData"));
+        CoreDataLoaderMap(loaderData, cacheMapData, "listData"));
     dataProvider.header =
         collection.createEntityByJson("DataHeader", {"label": "?"});
 

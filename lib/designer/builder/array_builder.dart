@@ -1,36 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
-import 'package:xui_flutter/widget/cw_array.dart';
 
 import '../../core/data/core_data.dart';
 import '../../core/data/core_provider.dart';
 import '../../core/widget/cw_core_loader.dart';
 import '../../core/widget/cw_core_widget.dart';
-import '../../widget/cw_container.dart';
-import '../../widget/cw_expand_panel.dart';
-import '../../widget/cw_list.dart';
-import '../../widget/cw_text.dart';
 
 class ArrayBuilder {
   List<Widget> getArrayWidget(String name, CWProvider provider,
-      CWWidgetLoaderCtx ctxDesign, Type type, BoxConstraints constraints) {
+      CWWidgetLoaderCtx ctxDesign, String type, BoxConstraints constraints) {
     var listWidget = <Widget>[];
     final CoreDataObjectBuilder builder =
         ctxDesign.collectionDataModel.getClass(provider.type)!;
     //Map<String, dynamic> src = entity.value;
+    ColRowLoader? loader;
+    switch (type) {
+      case "Array":
+        loader = AttrArrayLoader(name, ctxDesign, provider);
+        break;
+      case "List":
+        loader = AttrListLoader(name, ctxDesign, provider);
+        break;
+      case "ReorderList":
+        loader = AttrListLoader(name, ctxDesign, provider);
+        (loader as AttrListLoader).reorder = true;
+        break;
+    }
 
-    ColRowLoader loader = (type == AttrArrayLoader)
-        ? AttrArrayLoader(name, ctxDesign, provider)
-        : AttrListLoader(name, ctxDesign, provider);
-
-    loader.ctxLoader.factory.mapProvider[provider.name] = provider;
+    loader!.ctxLoader.factory.mapProvider[provider.name] = provider;
     ctxDesign.factory.disposePath(name);
 
     List<CoreDataEntity> listMdel =
         CWApplication.of().dataModelProvider.content;
     CoreDataEntity? aModelToDisplay;
 
-    if (type == AttrArrayLoader) {
+    if (type == "Array") {
       // recherche du model pour afficher les bon label
       for (var element in listMdel) {
         if (element.value["_id_"] == builder.name) {
@@ -113,14 +117,14 @@ class AttrArrayLoader extends ColRowLoader {
       } else {
         // type text par defaut
         addWidget('${name}Col0Cont$nbAttr', '${name}Info$nbAttr',
-            CWText, <String, dynamic>{
+            "CWText", <String, dynamic>{
           'bind': attribut.name,
           'providerName': provider.name
         });
       }
 
       addWidget('${name}Col0Header$nbAttr', '${name}Head$nbAttr',
-          CWText, <String, dynamic>{
+          "CWText", <String, dynamic>{
         'label': infoAttr["name"],
       });
 
@@ -136,12 +140,12 @@ class AttrArrayLoader extends ColRowLoader {
             'CWExpandPanel', <String, dynamic>{'count': 1}));
 
     // le titre
-    addWidget('${name}Title0', '${name}Title0', CWText, <String, dynamic>{
+    addWidget('${name}Title0', '${name}Title0', "CWText", <String, dynamic>{
       'label': provider.header?.value["label"] ?? provider.type
     });
 
     // la colonne d'attribut
-    addWidget('${name}Body0', '${name}Col0', CWArray,
+    addWidget('${name}Body0', '${name}Col0', "CWArray",
         <String, dynamic>{'providerName': provider.name, "count": nbAttr});
 
     return cwFactory;
@@ -157,6 +161,7 @@ class AttrListLoader extends ColRowLoader {
 
   int nbAttr = 0;
   CWProvider provider;
+  bool reorder = false;
 
   @override
   void addAttr(CoreDataAttribut attribut, Map<String, dynamic> infoAttr) {
@@ -179,7 +184,7 @@ class AttrListLoader extends ColRowLoader {
       } else {
         // type text par defaut
         addWidget('${name}RowCont$nbAttr', '${name}Info$nbAttr',
-            CWText, <String, dynamic>{
+            "CWText", <String, dynamic>{
           'bind': attribut.name,
           'providerName': provider.name
         });
@@ -191,7 +196,7 @@ class AttrListLoader extends ColRowLoader {
   @override
   void addRow() {
     // la colonne d'attribut
-    addWidget('${name}Col0Cont', '${name}Row', CWRow,
+    addWidget('${name}Col0Cont', '${name}Row', "CWRow",
         <String, dynamic>{"count": nbAttr});
   }
 
@@ -201,17 +206,17 @@ class AttrListLoader extends ColRowLoader {
     //     name, ctxLoader.collectionWidget.createEntityByJson('CWLoader', {'providerName': provider.name}));
 
     // le titre
-    addWidget('${name}Cont', '${name}Exp', CWExpandPanel,
+    addWidget('${name}Cont', '${name}Exp', "CWExpandPanel",
         <String, dynamic>{'count': 1});
 
     // le titre
-    addWidget('${name}ExpTitle0', '${name}Title0', CWText, <String, dynamic>{
+    addWidget('${name}ExpTitle0', '${name}Title0', "CWText", <String, dynamic>{
       'label': provider.header?.value["label"] ?? provider.type
     });
 
     // la colonne d'attribut
-    addWidget('${name}ExpBody0', '${name}Col0', CWList,
-        <String, dynamic>{'providerName': provider.name});
+    addWidget('${name}ExpBody0', '${name}Col0', "CWList",
+        <String, dynamic>{'providerName': provider.name, "reorder": reorder});
 
     return cwFactory;
   }

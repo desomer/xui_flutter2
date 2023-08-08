@@ -11,10 +11,10 @@ class CWText extends CWWidgetMap {
     required super.ctx,
   });
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c
         .addWidget(
-            (CWText), (CWWidgetCtx ctx) => CWText(key: ctx.getKey(), ctx: ctx))
+            "CWText", (CWWidgetCtx ctx) => CWText(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('textColor', CDAttributType.CDtext);
   }
@@ -46,7 +46,7 @@ class _CWTextState extends StateCW<CWText> {
 
   @override
   Widget build(BuildContext context) {
-    if (row!=null) widget.setDisplayRow(row);
+    if (row != null) widget.setDisplayRow(row);
     return Text(
         softWrap: false, overflow: TextOverflow.fade, widget.getLabel());
   }

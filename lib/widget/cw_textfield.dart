@@ -22,9 +22,9 @@ class CWTextfield extends CWWidgetMap {
   @override
   initSlot(String path) {}
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget((CWTextfield),
+        .addWidget("CWTextfield",
             (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('withLabel', CDAttributType.CDbool)
@@ -253,7 +253,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
               helpText: "",
               context: context,
               locale: Locale(lsp[0], lsp[1]),
-              initialDate:  _controller.text==""?DateTime.now():DateFormat('dd/MM/yyyy').parse(_controller.text),
+              initialDate: _controller.text == ""
+                  ? DateTime.now()
+                  : DateFormat('dd/MM/yyyy').parse(_controller.text),
               firstDate: DateTime(1900),
               lastDate: DateTime(2101));
 

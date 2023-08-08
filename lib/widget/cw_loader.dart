@@ -17,9 +17,9 @@ class CWLoader extends CWWidgetMap {
     addSlotPath('$path.Cont', SlotConfig('${ctx.xid}Cont'));
   }
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c.addWidget(
-        (CWLoader), (CWWidgetCtx ctx) => CWLoader(key: ctx.getKey(), ctx: ctx));
+        "CWLoader", (CWWidgetCtx ctx) => CWLoader(key: ctx.getKey(), ctx: ctx));
   }
 }
 

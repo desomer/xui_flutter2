@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
-import 'package:xui_flutter/widget/cw_switch.dart';
 
 import '../../core/data/core_data.dart';
 import '../../core/data/core_provider.dart';
-import '../../widget/cw_container.dart';
-import '../../widget/cw_text.dart';
-import '../../widget/cw_textfield.dart';
 
 class FormBuilder {
   static const String providerName = "Form";
@@ -54,14 +50,14 @@ class AttrFormLoader extends CWWidgetLoader {
 
   void addAttr(CoreDataAttribut attribut) {
     if (attribut.type == CDAttributType.CDbool) {
-      addWidget('Col0Cont$nbAttr', 'attr$nbAttr', CWSwitch, <String, dynamic>{
+      addWidget('Col0Cont$nbAttr', 'attr$nbAttr', "CWSwitch", <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
         'providerName': FormBuilder.providerName
       });
     } else {
       addWidget(
-          'Col0Cont$nbAttr', 'attr$nbAttr', CWTextfield, <String, dynamic>{
+          'Col0Cont$nbAttr', 'attr$nbAttr', "CWTextfield", <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
         'providerName': FormBuilder.providerName
@@ -84,12 +80,12 @@ class AttrFormLoader extends CWWidgetLoader {
             'CWExpandPanel', <String, dynamic>{'count': 1}));
 
     // le titre
-    addWidget('rootTitle0', 'title0', CWText, <String, dynamic>{
+    addWidget('rootTitle0', 'title0', "CWText", <String, dynamic>{
       'label': provider?.header?.value["label"] ?? entity.type
     });
 
     // la colonne d'attribut
-    addWidget('rootBody0', 'Col0', CWColumn,
+    addWidget('rootBody0', 'Col0', "CWColumn",
         <String, dynamic>{'count': nbAttr, 'fill': false});
 
     return cwFactory;

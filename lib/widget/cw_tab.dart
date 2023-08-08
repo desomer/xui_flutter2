@@ -11,12 +11,10 @@ class CWTab extends CWWidget {
     required super.ctx,
   });
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c
         .addWidget(
-            (CWTab),
-            (CWWidgetCtx ctx) =>
-                CWTab(key: ctx.getKey(), ctx: ctx))
+            "CWTab", (CWWidgetCtx ctx) => CWTab(key: ctx.getKey(), ctx: ctx))
         .addAttr('tabCount', CDAttributType.CDint)
         .withAction(AttrActionDefault(2))
         .addAttr('heightTabBar', CDAttributType.CDint)
@@ -97,9 +95,10 @@ class _CWTabState extends StateCW<CWTab> {
     final List<Widget> listTab = <Widget>[];
     final nb = widget.getNb();
     for (int i = 0; i < nb; i++) {
-      Widget slot = SingleChildScrollView( child: CWSlot(
-          key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
-          ctx: widget.createChildCtx('Cont', i)));
+      Widget slot = SingleChildScrollView(
+          child: CWSlot(
+              key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
+              ctx: widget.createChildCtx('Cont', i)));
       listTab.add(slot);
     }
 

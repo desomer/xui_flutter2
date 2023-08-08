@@ -7,10 +7,11 @@ import 'package:nanoid/nanoid.dart';
 import 'core_event.dart';
 
 class CoreDataCollection {
-  Map<String, CoreDataObjectBuilder> objects =
+  final Map<String, CoreDataObjectBuilder> objects =
       <String, CoreDataObjectBuilder>{};
 
   CoreDataObjectBuilder addObject(String name) {
+    print("add model $name");
     final CoreDataObjectBuilder ret = CoreDataObjectBuilder(name);
     objects[name] = ret;
     return ret;

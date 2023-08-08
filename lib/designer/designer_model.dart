@@ -6,7 +6,6 @@ import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/builder/array_builder.dart';
 import 'package:xui_flutter/designer/designer.dart';
 import 'package:xui_flutter/designer/widget_crud.dart';
-import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
@@ -23,13 +22,12 @@ class DesignerListModel extends StatefulWidget {
 class _DesignerListModelState extends State<DesignerListModel> {
   @override
   Widget build(BuildContext context) {
-
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listModel = ArrayBuilder().getArrayWidget(
           "rootModel",
           CWApplication.of().dataModelProvider,
           CWApplication.of().loaderModel,
-          AttrListLoader,
+          "List",
           constraints);
 
       listModel.add(WidgetAddBtn(
@@ -53,6 +51,15 @@ class OnInsertModel extends CoreDataAction {
     CoreDataEntity newModel = loader.collectionDataModel
         .createEntityByJson("DataModel", {"name": "?", "listAttr": []});
     event!.provider?.addNew(newModel);
+  }
+}
+
+class OnSelectAttribut extends CoreDataAction {
+  OnSelectAttribut();
+
+  @override
+  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    CWApplication.of().dataModelProvider.doUserAction(null, null, "showAttr");
   }
 }
 
@@ -109,7 +116,7 @@ class _DesignerModelState extends State<DesignerModel> {
           "rootAttr",
           providerAttr,
           CWApplication.of().loaderModel,
-          AttrListLoader,
+          "ReorderList",
           constraints);
       listModel.add(WidgetDrag(provider: providerAttr));
       return Column(children: listModel);
@@ -142,7 +149,7 @@ class OnBuildEdit extends CoreDataAction {
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CoreDataAttribut attr = event!.payload["attr"];
-    Map<String, dynamic> infoAttr =event.payload["infoAttr"];
+    Map<String, dynamic> infoAttr = event.payload["infoAttr"];
 
     if (attr.name.startsWith("_")) {
       if (!displayPrivate) {
@@ -153,8 +160,8 @@ class OnBuildEdit extends CoreDataAction {
 
     for (var element in editName) {
       if (element == attr.name || element == "*") {
-        event.ret = event.loader!.collectionWidget
-            .createEntityByJson((CWTextfield).toString(), {"withLabel": false, "type": infoAttr["type"] });
+        event.ret = event.loader!.collectionWidget.createEntityByJson(
+            "CWTextfield", {"withLabel": false, "type": infoAttr["type"]});
         return;
       }
     }

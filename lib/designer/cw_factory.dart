@@ -15,8 +15,8 @@ import '../widget/cw_tab.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 
-class CWCollection {
-  CWCollection() {
+class CWWidgetCollectionBuilder {
+  CWWidgetCollectionBuilder() {
     _initCollection();
     _initWidget();
   }
@@ -25,16 +25,15 @@ class CWCollection {
 
   /////////////////////////////////////////////////////////////////////////
   void _initWidget() {
-    addWidget((CWFrameDesktop),
+    addWidget("CWFrameDesktop",
             (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
         .addAttr('title', CDAttributType.CDtext)
         .addAttr('fill', CDAttributType.CDbool);
 
     CWTab.initFactory(this);
-
     CWTextfield.initFactory(this);
 
-    addWidget((CWSwitch),
+    addWidget("CWSwitch",
             (CWWidgetCtx ctx) => CWSwitch(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.CDtext)
         .addAttr('bind', CDAttributType.CDtext)
@@ -69,8 +68,8 @@ class CWCollection {
         .addAttr('implement', CDAttributType.CDtext);
   }
 
-  CoreDataObjectBuilder addWidget(Type t, Function f) {
-    return collection.addObject(t.toString()).addObjectAction('BuildWidget', f);
+  CoreDataObjectBuilder addWidget(String type, Function f) {
+    return collection.addObject(type).addObjectAction('BuildWidget', f);
   }
 }
 
@@ -117,7 +116,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
       mapXidByPath.remove(element);
     }
     List designToRemove = [];
-    List designs = loader.entityCWFactory.value["designs"]??[];
+    List designs = loader.entityCWFactory.value["designs"] ?? [];
     for (var d in designs) {
       if (xidToDelete.contains(d["xid"]) ||
           xidSlotToDelete.contains(d["xid"])) {
@@ -171,7 +170,6 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
       if (ctx.event!.builder.name == 'CWDesign') {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
         String path = ctx.getPathData();
-        //mapPathDesignByXid[xid] = path;
         mapWidgetByXid[xid]?.ctx.pathDataDesign = path;
 
         final CoreDataEntity? prop = ctx.event!.entity

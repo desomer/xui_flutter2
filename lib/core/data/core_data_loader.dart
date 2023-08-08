@@ -15,6 +15,7 @@ abstract class CoreDataLoader {
   deleteData(dynamic content);
   deleteAll(String idTable);
   changed(CWProvider provider, CoreDataEntity entity);
+  reorder(int oldIndex, int newIndex);
 }
 
 class CoreDataLoaderMap extends CoreDataLoader {
@@ -37,6 +38,17 @@ class CoreDataLoaderMap extends CoreDataLoader {
     _currentLoading[idQuery!] =
         _currentLoading[idQuery] ?? getDataCached(filters);
     return _currentLoading[idQuery]!;
+  }
+
+  @override
+  reorder(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    CoreDataEntity? selected = dicoResultQuery[idQuery];
+    List<dynamic> result = selected!.value[attribut];
+    final item = result.removeAt(oldIndex);
+    result.insert(newIndex, item);
   }
 
   Future<List<CoreDataEntity>> getDataCached(CoreDataEntity? filters) async {
@@ -186,5 +198,16 @@ class CoreDataLoaderNested extends CoreDataLoader {
     entity.doChanged();
 
     providerParent.getSelectedEntity()!.doChanged();
+  }
+  
+  @override
+  reorder(int oldIndex, int newIndex) {
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    CoreDataEntity selected = providerParent.content[providerParent.idxSelected];
+    List<dynamic> result = selected.value[attribut];
+    final item = result.removeAt(oldIndex);
+    result.insert(newIndex, item);
   }
 }

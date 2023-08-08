@@ -35,7 +35,7 @@ class _DesignerDataState extends State<DesignerData> {
 
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listData = ArrayBuilder().getArrayWidget(
-          "rootData", provider, loader, AttrArrayLoader, constraints);
+          "rootData", provider, loader, "Array", constraints);
 
       listData.add(WidgetAddBtn(
         provider: provider,

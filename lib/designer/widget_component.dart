@@ -3,20 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/action_manager.dart';
 import 'dart:math' as math;
 
-import '../widget/cw_container.dart';
-import '../widget/cw_switch.dart';
-import '../widget/cw_tab.dart';
-import '../widget/cw_text.dart';
-import '../widget/cw_textfield.dart';
 
 class ComponentDesc {
   static List<Widget> get getListComponent {
     return [
       CardComponents("Layout", [
-        ComponentDesc('Label', Icons.format_quote, CWText),
-        ComponentDesc('Column', Icons.table_rows_rounded, CWColumn),
-        ComponentDesc('Row', Icons.view_week, CWRow),
-        ComponentDesc('Tab', Icons.tab, CWTab)
+        ComponentDesc('Label', Icons.format_quote, "CWText"),
+        ComponentDesc('Column', Icons.table_rows_rounded, "CWColumn"),
+        ComponentDesc('Row', Icons.view_week, "CWRow"),
+        ComponentDesc('Tab', Icons.tab, "CWTab")
       ]), // "Column", "Row", "Tab"
       // CardComponents("Filter", const [
       //   "Form",
@@ -26,14 +21,14 @@ class ComponentDesc {
       //     "Data", const ["Form", "List", "Tree" "List/Form", "Tree/Form"]),
       // CardComponents("Aggregat", const ["Sum", "Moy", "Count", "Chart"]),
       CardComponents("Input", [
-        ComponentDesc('Text', Icons.text_fields, CWTextfield),
-        ComponentDesc('Switch', Icons.toggle_on, CWSwitch),
+        ComponentDesc('Text', Icons.text_fields, "CWTextfield"),
+        ComponentDesc('Switch', Icons.toggle_on, "CWSwitch"),
       ]),
     ];
   }
 
-  ComponentDesc(this.name, this.icon, Type widget) {
-    impl = widget.toString();
+  ComponentDesc(this.name, this.icon, String widget) {
+    impl = widget;
   }
 
   String name;

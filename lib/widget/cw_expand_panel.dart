@@ -12,7 +12,7 @@ import '../designer/cw_factory.dart';
 class CWExpandPanel extends CWWidget {
   const CWExpandPanel({Key? key, required super.ctx}) : super(key: key);
 
-  static initFactory(CWCollection c) {
+  static initFactory(CWWidgetCollectionBuilder c) {
     c.collection
         .addObject('CWExpandConstraint')
         .addAttr('actions', CDAttributType.CDmany);
@@ -24,7 +24,7 @@ class CWExpandPanel extends CWWidget {
         .addAttr('icon', CDAttributType.CDtext);
 
     c
-        .addWidget((CWExpandPanel),
+        .addWidget("CWExpandPanel",
             (CWWidgetCtx ctx) => CWExpandPanel(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.CDint);
   }

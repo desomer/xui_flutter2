@@ -23,9 +23,9 @@ class _WidgetDebugState extends State<WidgetDebug> {
 
     Map<String, dynamic> data = {};
 
-    for (var element in CWApplication.of().listData.entries) {
-      data[element.key] =  element.value.value;
-    }    
+    for (var element in CWApplication.of().cacheMapData.entries) {
+      data[element.key] = element.value.value;
+    }
 
     return WidgetTab(heightTab: 40, listTab: const [
       Tab(text: "Design"),

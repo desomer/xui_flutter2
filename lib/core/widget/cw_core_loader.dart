@@ -66,9 +66,9 @@ abstract class CWWidgetLoader {
   }
 
   String addWidget(
-      String xid, String xidChild, Type type, Map<String, dynamic> v) {
-    return addChildProp(xid, xidChild, type.toString(),
-        collection.createEntityByJson(type.toString(), v));
+      String xid, String xidChild, String type, Map<String, dynamic> v) {
+    return addChildProp(xid, xidChild, type,
+        collection.createEntityByJson(type, v));
   }
 
   Widget getWidget(String path, String xid) {
