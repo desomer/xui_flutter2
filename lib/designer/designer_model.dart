@@ -9,6 +9,7 @@ import 'package:xui_flutter/designer/widget_crud.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
+import 'widget_help_bounce.dart';
 
 class DesignerListModel extends StatefulWidget {
   const DesignerListModel({Key? key}) : super(key: key);
@@ -30,11 +31,11 @@ class _DesignerListModelState extends State<DesignerListModel> {
           "List",
           constraints);
 
-      listModel.add(WidgetAddBtn(
+      listModel.add(WidgetHelpBounce(child :  WidgetAddBtn(
         provider: CWApplication.of().dataModelProvider,
         loader: CWApplication.of().loaderModel,
         repaintXid: "rootModelCol0",
-      ));
+      )));
       return Column(
         children: listModel,
       );
@@ -68,8 +69,8 @@ class OnSelectModel extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    CacheResultQuery.saveCache(CWApplication.of().dataProvider);
-    CacheResultQuery.saveCache(CWApplication.of().dataModelProvider);
+    CoreGlobalCacheResultQuery.saveCache(CWApplication.of().dataProvider);
+    CoreGlobalCacheResultQuery.saveCache(CWApplication.of().dataModelProvider);
 
     var name = event!.provider?.getSelectedEntity()!.value["name"];
 
@@ -83,9 +84,12 @@ class OnSelectModel extends CoreDataAction {
         .findByXid("rootDataTitle0")
         ?.changeProp("label", name);
 
+    CWApplication.of().loaderModel.findWidgetByXid("rootAttrExp")?.repaint();
+    // ignore: invalid_use_of_protected_member
+    CoreDesigner.of().dataFilterKey.currentState?.setState(() {});
     // ignore: invalid_use_of_protected_member
     CoreDesigner.of().dataKey.currentState?.setState(() {});
-    CWApplication.of().loaderModel.findWidgetByXid("rootAttrExp")?.repaint();
+
   }
 }
 

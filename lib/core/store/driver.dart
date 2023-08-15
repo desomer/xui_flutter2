@@ -1,10 +1,12 @@
 // import 'package:xui_flutter/core/store/nosql/localstorage.dart';
 import 'package:xui_flutter/core/store/sql/supabased.dart';
 
+import '../data/core_data.dart';
+
 class StoreDriver {
   static SupabaseDriver? supra;
 
-  dynamic getAllData(String idTable) async {}
+  dynamic getJsonData(String idTable, CoreDataEntity? filters) async {}
   setData(String idTable, Map<String, dynamic> data) async {}
   deleteData(String idTable, List data) async {}
   deleteTable(String idTable) async {}

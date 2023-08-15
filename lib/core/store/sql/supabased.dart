@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
+import 'package:xui_flutter/designer/widget_querybuilder.dart';
 
 import '../driver.dart';
 
@@ -11,6 +10,16 @@ class SupabaseDriver extends StoreDriver {
   Map<String, SupabaseClient> client = {};
   String idCustomer = "demo";
   String idNamespace = "demo";
+
+  static final Map<String, String> _mapOpe = {
+    "=": "eq",
+    ">": "gt",
+    ">=": "gte",
+    "<": "lt",
+    "<=": "lte",
+    "like": "like",
+    "ilike": "ilike"
+  };
 
   Future<void> init() async {
     await Supabase.initialize(
@@ -47,18 +56,42 @@ class SupabaseDriver extends StoreDriver {
   }
 
   @override
-  dynamic getAllData(String idTable) async {
-    var ret = await client['main']!
-        .from('ListModel')
-        .select('json')
-        .eq("idTable", idTable)
-        .eq("idCustomer", idCustomer)
-        .eq("idNamespace", idNamespace);
+  dynamic getJsonData(String idTable, CoreDataEntity? filters) async {
+    var query = client['main']!
+            .from('ListModel')
+            .select('json')
+            .eq("idTable", idTable)
+            .eq("idCustomer", idCustomer)
+            .eq("idNamespace", idNamespace)
+        // .appendSearchParams(key, value)
+        //.or(filters)
+        ;
+
+    if (filters != null) {
+      CoreDataFilter f = CoreDataFilter();
+      f.dataFilter = filters;
+      List listGroup = f.getListGroup();
+      for (var group in listGroup) {
+        //var op = f.getGroupOp(group);
+        List listClause = f.getListClause(group);
+        for (var clause in listClause) {
+          var colId = clause["colId"];
+          var operator = clause["operator"];
+          var value1 = clause["value1"];
+          if (colId != null) {
+            query.filter("json->>$colId", _mapOpe[operator]!, value1);
+          }
+        }
+      }
+    }
+
+    var ret = await query;
+
     if (ret is List) {
       if (ret.isNotEmpty) {
         var result = [];
         for (var r in ret) {
-          result.add(json.decode(r["json"]));
+          result.add(r["json"]);
         }
         return {
           r"$type": 'DataContainer',
@@ -82,7 +115,7 @@ class SupabaseDriver extends StoreDriver {
             "idCustomer": idCustomer,
             "idNamespace": idNamespace,
             "idData": element["_id_"],
-            "json": json.encode(element)
+            "json": element // json.encode(element)
           }
         ]); //.select('json').eq("idTable", idTable);
       }
@@ -111,7 +144,7 @@ class SupabaseDriver extends StoreDriver {
           .eq("idCustomer", idCustomer)
           .eq("idNamespace", idNamespace)
           .eq("idData", element["_id_"]);
-      print("delete $idTable $element");
+      print("delete row $idTable $element");
     }
   }
 }

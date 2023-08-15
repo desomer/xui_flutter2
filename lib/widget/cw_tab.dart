@@ -18,7 +18,7 @@ class CWTab extends CWWidget {
         .addAttr('tabCount', CDAttributType.CDint)
         .withAction(AttrActionDefault(2))
         .addAttr('heightTabBar', CDAttributType.CDint)
-        .addAttr('heightTabView', CDAttributType.CDint);
+        .addAttr('height', CDAttributType.CDint);
   }
 
   @override
@@ -29,7 +29,7 @@ class CWTab extends CWWidget {
   }
 
   int getHeight() {
-    return ctx.designEntity?.getInt("heightTabView", 100) ?? 100;
+    return ctx.designEntity?.getInt("height", 100) ?? 100;
   }
 
   int getTabHeight() {
@@ -63,8 +63,10 @@ class _CWTabState extends StateCW<CWTab> {
             heightBody = viewportConstraints.maxHeight - heightHeader - 2;
           }
 
-          return Column(
-              children: <Widget>[getTabsButton(), getTabsSlot(heightBody)]);
+          return Column(children: <Widget>[
+            getTabsButton(),
+            getTabsSlot(heightBody, viewportConstraints)
+          ]);
         }));
   }
 
@@ -91,23 +93,40 @@ class _CWTabState extends StateCW<CWTab> {
     );
   }
 
-  Widget getTabsSlot(double h) {
+  Widget getTabsSlot(double fixedHeight, BoxConstraints viewportConstraints) {
     final List<Widget> listTab = <Widget>[];
     final nb = widget.getNb();
     for (int i = 0; i < nb; i++) {
-      Widget slot = SingleChildScrollView(
-          child: CWSlot(
-              key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
-              ctx: widget.createChildCtx('Cont', i)));
+      Widget slot;
+      if (fixedHeight != -1) {
+        slot = Container(
+                constraints:
+                    BoxConstraints(minHeight: viewportConstraints.maxHeight),
+                child: Column(children: [
+                  Expanded(
+                      child: CWSlot(
+                          key: GlobalKey(
+                              debugLabel: 'tab cont slot ${widget.ctx.xid}'),
+                          ctx: widget.createChildCtx('Cont', i)))
+                ]));
+      } else {
+        slot = SingleChildScrollView(
+            child: CWSlot(
+                key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
+                ctx: widget.createChildCtx('Cont', i)));
+      }
       listTab.add(slot);
     }
 
-    if (h == -1) {
+    if (fixedHeight == -1) {
+      // return SizedBox(
+      //     height: widget.getHeight().toDouble(),
+      //     child: TabBarView(children: listTab));
       return SizedBox(
-          height: widget.getHeight().toDouble(),
-          child: TabBarView(children: listTab));
+                height: widget.getHeight().toDouble(),
+                child: TabBarView(children: listTab));          
     } else {
-      return SizedBox(height: h, child: TabBarView(children: listTab));
+      return SizedBox(height: fixedHeight, child: TabBarView(children: listTab));
     }
   }
 }

@@ -163,23 +163,20 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     String type = widget.getType();
 
     if (type == "INTEGER") {
-      mask = MaskConfig(
+      mask = MaskConfig( controller: _controller, focus: _focus, label: label,
           formatter: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
           textInputType: TextInputType.number);
-    }
-    if (type == "DOUBLE") {
-      mask = MaskConfig(formatter: [
+    } else if (type == "DOUBLE") {
+      mask = MaskConfig(controller: _controller, focus: _focus, formatter: [
         FilteringTextInputFormatter.allow(RegExp(r'(^-?\d*\.?\d*)'))
       ], textInputType: TextInputType.number);
-    }
-
-    if (type == "DATE") {
+    } else if (type == "DATE") {
       var maskFormatter = MaskTextInputFormatter(
           mask: '##/##/####',
           filter: {"#": RegExp(r'[0-9]')},
           type: MaskAutoCompletionType.lazy);
 
-      mask = MaskConfig(
+      mask = MaskConfig(controller: _controller, focus: _focus, label: label,
           formatter: [maskFormatter],
           hint: "__/__/____",
           textInputType: TextInputType.number,
@@ -203,11 +200,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
             }
             return "wrong date";
           });
+    } else {
+      mask = MaskConfig(controller: _controller, focus: _focus, label: label );
     }
-
-    // if (row!=null) {
-    //   return getTextfield(label);
-    // }
 
     return Container(
         height: label == null ? 24 : 32,
@@ -215,7 +210,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
             border: Border(
                 bottom: BorderSide(
                     width: 1.0, color: Theme.of(context).dividerColor))),
-        child: getCell(type, getTextfield(label)));
+        child: getCell(type, mask!.getTextfield()));
   }
 
   Widget getCell(String type, Widget content) {
@@ -271,40 +266,49 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
         },
         child: content);
   }
-
-  TextField getTextfield(String? label) {
-    return TextField(
-      onTap: _controller.selectAll,
-      focusNode: _focus,
-      controller: _controller,
-      style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
-      keyboardType: mask?.textInputType,
-      scrollPadding: const EdgeInsets.all(0),
-      inputFormatters: mask?.formatter ?? [],
-      autocorrect: false,
-      decoration: InputDecoration(
-          hintText: mask?.hint,
-          errorText: mask?.error,
-          border: InputBorder.none,
-          isDense: true,
-          labelText: label,
-          // labelStyle: const TextStyle(color: Colors.white70),
-          contentPadding: EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
-      //autofocus: true,
-    );
-  }
 }
 
 class MaskConfig {
   final List<TextInputFormatter>? formatter;
   final FormFieldValidator<String>? validator;
   final String? hint;
-  final TextInputType textInputType;
+  final TextInputType? textInputType;
   String? error;
+  String? label;
+
+  FocusNode focus;
+  TextEditingController controller;  
 
   MaskConfig(
-      {required this.formatter,
+      {
+      required this.controller,
+      required this.focus,
+      this.formatter,
       this.validator,
       this.hint,
-      required this.textInputType});
+      this.label,
+      this.textInputType});
+
+  TextField getTextfield() {
+    return TextField(
+      onTap: controller.selectAll,
+      focusNode: focus,
+      controller: controller,
+      style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
+      keyboardType: textInputType,
+      scrollPadding: const EdgeInsets.all(0),
+      inputFormatters: formatter ?? [],
+      autocorrect: false,
+      decoration: InputDecoration(
+          hintText: hint,
+          errorText: error,
+          border: InputBorder.none,
+          isDense: true,
+          labelText: label,
+          // labelStyle: const TextStyle(color: Colors.white70),
+          contentPadding:
+              EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
+      //autofocus: true,
+    );
+  }
 }

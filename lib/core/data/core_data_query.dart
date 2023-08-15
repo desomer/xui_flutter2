@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'core_data.dart';
 import 'core_provider.dart';
 
-class CacheResultQuery {
+class CoreGlobalCacheResultQuery {
   static final Map<String, int> cacheNbData = {};
   static final Map<String, List<CoreDataEntity>> cacheDataValue = {};
 
@@ -32,7 +32,9 @@ class CacheResultQuery {
 
     for (CoreDataEntity rowDeleted in contentDeleted) {
       provider.content.remove(rowDeleted);
-      cacheNbData[idCache] = cacheNbData[idCache]! - 1;
+      if (cacheNbData[idCache] != null) {
+        cacheNbData[idCache] = cacheNbData[idCache]! - 1;
+      }
       contentToDelete.add(rowDeleted.value);
     }
 

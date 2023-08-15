@@ -94,6 +94,13 @@ class PropBuilder {
 
   static CoreDataEntity preparePropChange(
       CWWidgetLoaderCtx loader, DesignCtx aCtx) {
+    // TODO : a faire  : exemple height du Tab  
+
+    // recherche de la properties Height
+    //  soit le slot constraint
+    //  soit la height de l'enfant
+    //  soit le parent      
+
     var prop = aCtx.widget!.ctx.designEntity;
     if (prop == null) {
       prop = getEmptyEntity(loader, aCtx);
@@ -106,11 +113,14 @@ class PropBuilder {
 
   static CoreDataEntity getEmptyEntity(
       CWWidgetLoaderCtx loader, DesignCtx aCtx) {
-    CoreDataEntity emptyEntity;
+    CoreDataEntity? emptyEntity;
     if (aCtx.isSlot) {
       SlotConfig sc = loader.factory.mapSlotConstraintByPath[aCtx.pathWidget]!;
-      emptyEntity = loader.collectionWidget.createEntity(sc.constraintEntity!);
-    } else {
+      if (sc.constraintEntity!=null) {
+        emptyEntity = loader.collectionWidget.createEntity(sc.constraintEntity!);
+      }
+    } 
+    if (emptyEntity==null) {
       CoreDataPath? path = loader.entityCWFactory
           .getPath(loader.collectionWidget, aCtx.pathCreate!);
       String impl = path.entities.last.value['implement'];

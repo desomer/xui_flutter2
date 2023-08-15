@@ -90,7 +90,7 @@ abstract class CWWidgetMap extends CWWidget {
     InheritedStateContainer? row =
         context.getInheritedWidgetOfExactType<InheritedStateContainer>();
     return row;
-  }  
+  }
 
   String getMapValue() {
     CWProvider? provider = CWProvider.of(ctx);
@@ -134,7 +134,7 @@ abstract class CWWidgetMap extends CWWidget {
     if (provider != null &&
         provider.loader != null &&
         !provider.loader!.isSync()) {
-      CacheResultQuery.setCache(provider, ok);
+      CoreGlobalCacheResultQuery.setCache(provider, ok);
     }
   }
 
@@ -145,9 +145,9 @@ abstract class CWWidgetMap extends CWWidget {
         !provider.loader!.isSync()) {
       isSync = false;
       String idCache = provider.name + provider.type;
-      var cacheNbRow = CacheResultQuery.cacheNbData[idCache];
+      var cacheNbRow = CoreGlobalCacheResultQuery.cacheNbData[idCache];
       if (cacheNbRow != null && cacheNbRow != -1) {
-        var result = CacheResultQuery.cacheDataValue[idCache];
+        var result = CoreGlobalCacheResultQuery.cacheDataValue[idCache];
         provider.content = result!;
         return cacheNbRow;
       }

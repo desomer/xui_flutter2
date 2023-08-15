@@ -5,7 +5,7 @@ import '../../core/data/core_data.dart';
 import '../../core/data/core_provider.dart';
 
 class FormBuilder {
-  static const String providerName = "Form";
+  //static const String providerName = "Form";
 
   List<Widget> getFormWidget(CWProvider provider, CWWidgetLoaderCtx ctxLoader) {
     var listWidget = <Widget>[];
@@ -20,7 +20,7 @@ class FormBuilder {
 
     ctxLoader.factory.disposePath("root");
 
-    AttrFormLoader loader = AttrFormLoader(ctxLoader, entity);
+    AttrFormLoader loader = AttrFormLoader(ctxLoader, entity, provider);
     var allAttribut = builder!.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.CDone) {
@@ -33,7 +33,7 @@ class FormBuilder {
       }
     }
 
-    loader.ctxLoader.factory.mapProvider[providerName] = provider;
+    loader.ctxLoader.factory.mapProvider[provider.name] = provider;
 
     listWidget.add(loader.getWidget("root", "root"));
     return listWidget;
@@ -41,10 +41,11 @@ class FormBuilder {
 }
 
 class AttrFormLoader extends CWWidgetLoader {
-  AttrFormLoader(CWWidgetLoaderCtx ctxLoader, this.entity) : super(ctxLoader) {
+  AttrFormLoader(CWWidgetLoaderCtx ctxLoader, this.entity, this.provider) : super(ctxLoader) {
     setRoot("root", "CWExpandPanel");
   }
 
+  CWProvider provider;
   int nbAttr = 0;
   CoreDataEntity entity;
 
@@ -53,14 +54,14 @@ class AttrFormLoader extends CWWidgetLoader {
       addWidget('Col0Cont$nbAttr', 'attr$nbAttr', "CWSwitch", <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
-        'providerName': FormBuilder.providerName
+        'providerName': provider.name
       });
     } else {
       addWidget(
           'Col0Cont$nbAttr', 'attr$nbAttr', "CWTextfield", <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
-        'providerName': FormBuilder.providerName
+        'providerName':provider.name
       });
 
       // CoreDataEntity ent = cwFactory.getPath(collection, path).getLast();
@@ -72,7 +73,7 @@ class AttrFormLoader extends CWWidgetLoader {
 
   @override
   CoreDataEntity getCWFactory() {
-    CWProvider? provider = getProvider(FormBuilder.providerName);
+    //CWProvider? provider = getProvider(provider.name);
 
     setProp(
         "root",
@@ -81,7 +82,7 @@ class AttrFormLoader extends CWWidgetLoader {
 
     // le titre
     addWidget('rootTitle0', 'title0', "CWText", <String, dynamic>{
-      'label': provider?.header?.value["label"] ?? entity.type
+      'label': provider.header?.value["label"] ?? entity.type
     });
 
     // la colonne d'attribut

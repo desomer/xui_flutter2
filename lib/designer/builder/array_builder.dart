@@ -53,17 +53,11 @@ class ArrayBuilder {
       } else if (attr.type == CDAttributType.CDmany) {
       } else {
         //String nameAttr = attr.name;
-        Map<String, dynamic> attrDesc = {"name": attr.name};
+        Map<String, dynamic> attrDesc = {"name": attr.name}; // par defaut
 
         if (aModelToDisplay != null) {
           // recherche le label de l'attribut
-          List<dynamic> listAttr = aModelToDisplay.value["listAttr"];
-          for (Map<String, dynamic> attrModel in listAttr) {
-            if (attrModel["_id_"] == attr.name) {
-              attrDesc = attrModel;
-              break;
-            }
-          }
+          attrDesc = CWApplication.of().getAttributValueById(aModelToDisplay, attr.name) ?? attrDesc;
         }
         loader.addAttr(attr, attrDesc);
       }
@@ -76,6 +70,8 @@ class ArrayBuilder {
         child: loader.getWidget(name, name)));
     return listWidget;
   }
+
+
 }
 
 abstract class ColRowLoader extends CWWidgetLoader {

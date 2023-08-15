@@ -9,6 +9,7 @@ import 'package:xui_flutter/designer/widget_debug.dart';
 import 'package:xui_flutter/designer/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
+import '../db_icon_icons.dart';
 import '../deprecated/core_array.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
@@ -16,10 +17,12 @@ import 'cw_factory.dart';
 import 'designer_attribut.dart';
 import 'designer_data.dart';
 import 'designer_model.dart';
+import 'designer_query.dart';
 import 'designer_view.dart';
 import 'widget_hidden_box.dart';
 import 'widget_model_attribut.dart';
 import 'widget_properties.dart';
+import 'widget_querybuilder.dart';
 
 enum CDDesignEvent { select, reselect }
 
@@ -66,6 +69,7 @@ class CoreDesigner extends StatefulWidget {
       GlobalKey(debugLabel: "CoreDesignerdesignerKey");
 
   final GlobalKey dataKey = GlobalKey(debugLabel: "CoreDesigner.dataKey");
+  final GlobalKey dataFilterKey = GlobalKey(debugLabel: "CoreDesigner.dataFilterKey");
 
   final _eventListener = EventListener();
   late TabController controllerTabRight;
@@ -108,7 +112,7 @@ class _CoreDesignerState extends State<CoreDesigner>
     nav.listTabNav = [
       getDesignPan(),
       getDataPan(),
-      Container(),
+      getQueryPan(),
       getDebugPan(),
       getTestPan()
     ];
@@ -147,7 +151,10 @@ class _CoreDesignerState extends State<CoreDesigner>
         key: CoreDesigner.of().designerKey,
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
-        theme: ThemeData(),
+        theme: ThemeData(
+          useMaterial3: true,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
         // standard dark theme
         darkTheme: ThemeData.dark().copyWith(
             indicatorColor: Colors.amber,
@@ -242,6 +249,12 @@ class _CoreDesignerState extends State<CoreDesigner>
         ));
   }
 
+  Widget getQueryPan() {
+    return const Row(
+      children: [SizedBox(width: 300, child: DesignerQuery())],
+    );
+  }
+
   Widget getDataPan() {
     var viewAttribute = Container(
       color: Colors.black26,
@@ -324,8 +337,8 @@ class _CoreDesignerState extends State<CoreDesigner>
               Expanded(
                   child: Column(
                 children: [
-                  Expanded(child: viewAttribute),  // les attributs
-                  WidgetHiddenBox(child:tabAttributDesc)
+                  Expanded(child: viewAttribute), // les attributs
+                  WidgetHiddenBox(child: tabAttributDesc)
                 ],
               )), // ),
               SizedBox(
@@ -337,7 +350,12 @@ class _CoreDesignerState extends State<CoreDesigner>
           )),
           //
         ]),
-        DesignerData(key: widget.dataKey)
+        Column(
+          children: [
+            WidgetFilterbuilder(key: widget.dataFilterKey, filter: CoreDataFilter()),
+            Expanded(child: DesignerData(key: widget.dataKey))
+          ],
+        )
       ],
     );
 
@@ -486,8 +504,8 @@ class _NavRailState extends State<NavRail> {
               label: Text('Edit'),
             ),
             NavigationRailDestination(
-              icon:
-                  Tooltip(message: 'Data', child: Icon(Icons.storage_rounded)),
+              icon: Tooltip(
+                  message: 'Data', child: Icon(size: 18, DBIcon.database)),
               label: Text('Store'),
             ),
             NavigationRailDestination(

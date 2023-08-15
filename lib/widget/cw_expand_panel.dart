@@ -9,13 +9,18 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 
+enum CWExpandAction { actions }
+
 class CWExpandPanel extends CWWidget {
+  
+
+
   const CWExpandPanel({Key? key, required super.ctx}) : super(key: key);
 
   static initFactory(CWWidgetCollectionBuilder c) {
     c.collection
         .addObject('CWExpandConstraint')
-        .addAttr('actions', CDAttributType.CDmany);
+        .addAttr(CWExpandAction.actions.toString(), CDAttributType.CDmany);
 
     c.collection
         .addObject('CWAction')
@@ -98,7 +103,7 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
   Widget getHeader(ExpandInfo step) {
     CWWidgetCtx? constraint =
         widget.ctx.factory.mapConstraintByXid[step.title.ctx.xid];
-    List<dynamic>? actions = constraint?.designEntity?.value["actions"];
+    List<dynamic>? actions = constraint?.designEntity?.value[CWExpandAction.actions.toString()];
 
     List<Widget> header = [
       GestureDetector(

@@ -23,11 +23,16 @@ class CWProvider {
   String type;
 
   List<CoreDataEntity> content = [];
+
   int idxDisplayed = -1;
   int idxSelected = -1;
   Map<CWProviderAction, List<CoreDataAction>> actions = {};
   Map<String, List<CoreDataAction>> userActions = {};
   CoreDataLoader? loader;
+
+  setFilter(CoreDataEntity? aFilter) {
+    loader?.setFilter(aFilter);
+  }
 
   add(CoreDataEntity add) {
     content.add(add);
@@ -40,7 +45,7 @@ class CWProvider {
     }
     add(newRow);
 
-    CacheResultQuery.notifNewRow(this);
+    CoreGlobalCacheResultQuery.notifNewRow(this);
   }
 
   CoreDataEntity getEntityByIdx(idx) {
@@ -101,14 +106,12 @@ class CWProvider {
   }
 
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
-    dynamic val =
-        getDisplayedEntity().value[ctx.designEntity?.getString(propName)];
+    var val = getDisplayedEntity().value[ctx.designEntity?.getString(propName)];
     return val?.toString() ?? "";
   }
 
   bool getBoolValueOf(CWWidgetCtx ctx, String propName) {
-    dynamic val =
-        getDisplayedEntity().value[ctx.designEntity?.getString(propName)];
+    var val = getDisplayedEntity().value[ctx.designEntity?.getString(propName)];
     return val ?? false;
   }
 
@@ -120,6 +123,10 @@ class CWProvider {
     if (attr?.type == CDAttributType.CDint) {
       v = int.tryParse(val);
     }
+    else if (attr?.type == CDAttributType.CDdec) {
+      v = double.tryParse(val);
+    }  
+       
     getDisplayedEntity().setAttr(ctx.loader.collectionDataModel,
         ctx.designEntity!.getString(propName)!, v);
 
@@ -132,21 +139,20 @@ class CWProvider {
     doAction(ctx, event, CWProviderAction.onValueChanged);
 
     loader?.changed(this, displayedEntity);
-
   }
 
   Future<int> getItemsCount() async {
     if (loader != null) {
-      var result = await loader!.getData(null);
+      var result = await loader!.getDataAsync();
       content = result;
-      CacheResultQuery.setCacheValue(this, content);
+      CoreGlobalCacheResultQuery.setCacheValue(this, content);
     }
     return content.length;
   }
 
   int getItemsCountSync() {
     if (loader != null) {
-      var result = loader!.getDataSync(null);
+      var result = loader!.getDataSync();
       content = result;
     }
     return content.length;

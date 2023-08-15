@@ -1,11 +1,11 @@
 import 'package:localstorage/localstorage.dart';
 
+import '../../data/core_data.dart';
 import '../driver.dart';
-
 
 class LocalstorageDriver extends StoreDriver {
   @override
-  dynamic getAllData(String idTable) async {
+  dynamic getJsonData(String idTable, CoreDataEntity? filters) async {
     LocalStorage storage = LocalStorage('$idTable.json');
     await storage.ready;
     await Future.delayed(const Duration(seconds: 1));

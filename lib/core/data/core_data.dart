@@ -518,8 +518,9 @@ class CoreDataEntity {
     CoreDataObjectBuilder builderOne = collection.getClass(cur.type)!;
 
     ret.add(cur);
+    dynamic value;
     for (String attr in lattr) {
-      int idx = 0;
+      int idx = -1;
       if (attr.endsWith(']')) {
         final int i = attr.indexOf('[');
         idx = int.parse(attr.substring(i + 1, attr.length - 1));
@@ -528,7 +529,10 @@ class CoreDataEntity {
 
       CoreDataAttribut attribut = builderOne.attributsByName[attr]!;
       dynamic v = cur.value[attr];
-      if (v is List) {
+      if (v is List && idx > -1) {
+        if (v.length <= idx) {
+          break;
+        }
         v = v[idx];
         CoreDataAttributItemIdx attIdx = CoreDataAttributItemIdx("$attr[$idx]");
         attIdx.initWith(attribut);
@@ -538,16 +542,19 @@ class CoreDataEntity {
 
       attrs.add(attribut);
 
-      builderOne =
-          collection.getClass(getType(null, v as Map<String, dynamic>))!;
+      if (v is Map<String, dynamic>) {
+        builderOne = collection.getClass(getType(null, v))!;
 
-      final CoreDataEntity child = builderOne.createEntity();
-      child.value = v;
-      ret.add(child);
-      cur = child;
+        final CoreDataEntity child = builderOne.createEntity();
+        child.value = v;
+        ret.add(child);
+        cur = child;
+      }
+      value = v;
     }
 
     final CoreDataPath r = CoreDataPath(ret);
+    r.value = value;
     r.pathId = pathId;
     r.attributs = attrs;
     return r;
@@ -566,8 +573,9 @@ class CoreDataPath {
   List<CoreDataEntity> entities;
   late List<CoreDataAttribut> attributs;
   late String pathId;
+  dynamic value;
 
-  CoreDataEntity getLast() {
+  CoreDataEntity getLastEntity() {
     return entities.last;
   }
 
@@ -575,7 +583,7 @@ class CoreDataPath {
     CoreDataEntity entity = entities[entities.length - 2];
     CoreDataAttribut attr = attributs[attributs.length - 1];
     entity.value.remove(attr.name);
-    return getLast();
+    return getLastEntity();
   }
 }
 
@@ -677,7 +685,16 @@ class CoreDataCtx {
 }
 
 // ignore: constant_identifier_names
-enum CDAttributType { CDtext, CDint, CDdec, CDdate, CDbool, CDone, CDmany }
+enum CDAttributType {
+  CDtext,
+  CDint,
+  CDdec,
+  CDdate,
+  CDbool,
+  CDone,
+  CDmany,
+  CDdynamic
+}
 
 enum CDPriority { min, moy, norm, mid, max }
 

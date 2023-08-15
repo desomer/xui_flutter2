@@ -55,7 +55,8 @@ class _CwArrayState extends StateCW<CWArray> {
 
   @override
   Widget build(BuildContext context) {
-    var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx));
+    var provider = CWProvider.of(widget.ctx);
+    var futureData = widget.initFutureDataOrNot(provider);
 
     return LayoutBuilder(builder: (context, constraint) {
       final nbCol = widget.getCountChildren();
@@ -65,7 +66,6 @@ class _CwArrayState extends StateCW<CWArray> {
       List<Widget> listHeader = getListWidgetHeader(nbCol, widthCol);
 
       getContent(int ok) {
-        var provider = CWProvider.of(widget.ctx);
         widget.setProviderDataOK(provider, ok);
         return getArray(w, constraint.maxHeight, Row(children: listHeader),
             getListView(nbCol, widthCol, ok));
@@ -158,16 +158,17 @@ class _CwArrayState extends StateCW<CWArray> {
     return listView;
   }
 
+  CWProvider? provider;
   List<Widget> getRow(int nbCol, int idxRow, double maxWidth) {
     final List<Widget> listConts = [];
-    CWProvider? provider = CWProvider.of(widget.ctx);
+    provider = CWProvider.of(widget.ctx);
     for (var i = 0; i < nbCol; i++) {
       dynamic content = "";
       var createInArrayCtx = widget.createInArrayCtx('Cont$i', null);
       var w = createInArrayCtx.getWidgetInSlot();
       if (w is CWWidgetMap) {
         if (provider != null) {
-          provider.idxDisplayed = idxRow;
+          provider!.idxDisplayed = idxRow;
           content = w.getMapValue();
         }
       }
@@ -185,13 +186,29 @@ class _CwArrayState extends StateCW<CWArray> {
     return listConts;
   }
 
+  Offset dragAnchorStrategy(
+      Draggable<Object> d, BuildContext context, Offset point) {
+    return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy - 5);
+  }
+
+  Widget getDrag(int i, Widget child) {
+    return Draggable<DragColCtx>(
+        dragAnchorStrategy: dragAnchorStrategy,
+        onDragStarted: () {
+          // GlobalSnackBar.show(context, 'Drag started');
+        },
+        data: DragColCtx(provider, i),
+        feedback: Container(height: 30, width: 100, color: Colors.grey,  child: const Center(child: Icon(Icons.abc))) ,
+        child: child);
+  }
+
   Widget getHeader(int i, double maxWidth) {
-    return getCell(
+    return getDrag(i,  getCell(
         CWSlot(
             key: widget.ctx.getSlotKey('Header$i', ''),
             ctx: widget.createInArrayCtx('Header$i', null)),
         i,
-        maxWidth);
+        maxWidth));
   }
 
   Widget getCell(Widget cell, int numCol, double max) {
@@ -204,4 +221,10 @@ class _CwArrayState extends StateCW<CWArray> {
                     Border(right: BorderSide(color: Colors.black, width: 1))),
             child: cell));
   }
+}
+
+class DragColCtx {
+  DragColCtx(this.provider, this.idxCol);
+  CWProvider? provider;
+  int idxCol;
 }
