@@ -5,7 +5,9 @@ import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
+import '../designer/builder/array_builder.dart';
 import '../designer/cw_factory.dart';
+import '../designer/designer_query.dart';
 import '../designer/widget_crud.dart';
 import 'cw_row.dart';
 
@@ -23,7 +25,7 @@ class CWArray extends CWWidgetMap {
           '$path[].Header$i',
           SlotConfig('${ctx.xid}Header$i',
               constraintEntity: "CWColArrayConstraint"));
-      addSlotPath('$path[].Cont$i', SlotConfig('${ctx.xid}Cont$i'));
+      addSlotPath('$path[].RowCont$i', SlotConfig('${ctx.xid}RowCont$i'));
     }
   }
 
@@ -52,6 +54,8 @@ class _CwArrayState extends StateCW<CWArray> {
   }
 
   final double minWidth = 100.0;
+  final double heightHeader = 40;
+  final double heightScroll = 12;
 
   @override
   Widget build(BuildContext context) {
@@ -63,12 +67,16 @@ class _CwArrayState extends StateCW<CWArray> {
       final w = constraint.maxWidth.clamp(minWidth * nbCol + 24 + 9, 50000.0);
       final widthCol = (w - 24 - 9) / nbCol;
 
-      List<Widget> listHeader = getListWidgetHeader(nbCol, widthCol);
+      List<Widget> listHeader =
+          getListWidgetHeader(nbCol, widthCol, heightHeader);
 
       getContent(int ok) {
         widget.setProviderDataOK(provider, ok);
-        return getArray(w, constraint.maxHeight, Row(children: listHeader),
-            getListView(nbCol, widthCol, ok));
+
+        if (widget.ctx.loader.mode == ModeRendering.design) ok = 1;
+
+        return getArray(w, constraint.maxHeight, nbCol,
+            Row(children: listHeader), getListView(nbCol, widthCol, ok));
       }
 
       if (futureData is Future) {
@@ -80,10 +88,10 @@ class _CwArrayState extends StateCW<CWArray> {
     });
   }
 
-  List<Widget> getListWidgetHeader(int nbCol, double maxWidth) {
+  List<Widget> getListWidgetHeader(int nbCol, double maxWidth, double height) {
     final List<Widget> listHeader = [];
     for (var i = 0; i < nbCol; i++) {
-      listHeader.add(getHeader(i, maxWidth));
+      listHeader.add(getHeader(i, maxWidth, height));
     }
     // header delete
     listHeader.add(const SizedBox(
@@ -92,37 +100,88 @@ class _CwArrayState extends StateCW<CWArray> {
     return listHeader;
   }
 
-  Widget getArray(double w, double h, Row header, ListView content) {
-    const int heightHeader = 28;
-    return SizedBox(
+  Widget getDropZone(Widget child) {
+    return DragTarget<DragQueryCtx>(
+        builder: (context, candidateItems, rejectedItems) {
+      return AnimatedScale(
+          scale: candidateItems.isEmpty ? 1 : 0.95,
+          duration: const Duration(milliseconds: 100),
+          child: child);
+    }, onWillAccept: (item) {
+      return true;
+    }, onAccept: (item) async {
+      print("acccep $item");
+
+      ArrayBuilder().initArray(widget, item.query);
+    });
+  }
+
+  Widget getArray(double w, double h, int nbCol, Row header, ListView content) {
+    double heightBorder = 1;
+
+    Widget sizedContent = content;
+    if (nbCol == 0) {
+      sizedContent = ListView(
+          scrollDirection: Axis.vertical,
+          controller: vertical,
+          shrinkWrap: true,
+          children: [
+            getDropZone(Container(
+                margin: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: Colors.grey)),
+                height: 100,
+                child: const Center(
+                    child: IntrinsicWidth(
+                        child: Row(children: [
+                  Text("Drag query here"),
+                  Icon(Icons.filter_alt)
+                ])))))
+          ]);
+    } else if (h != double.infinity) {
+      sizedContent = SizedBox(
+          height: h - heightHeader - heightScroll - heightBorder * 2,
+          child: content);
+    }
+
+    return Container(
+        decoration: BoxDecoration(
+            border: Border.all(
+                width: heightBorder, color: Theme.of(context).dividerColor)),
         width: w,
-        height: h,
-        child: Scrollbar(
-            thumbVisibility: true,
-            trackVisibility: true,
-            controller: horizontal,
-            child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+        height: h != double.infinity ? h : null,
+        child: MediaQuery(
+            data: MediaQuery.of(context).removePadding(removeBottom: true),
+            child: Scrollbar(
+                thumbVisibility: true,
+                trackVisibility: true,
                 controller: horizontal,
-                child: SizedBox(
-                    width: w,
-                    child: Column(children: [
-                      Container(color: Colors.grey.shade800, child: header),
-                      Scrollbar(
-                          thumbVisibility: true,
-                          trackVisibility: true,
-                          controller: vertical,
-                          child: SizedBox(
-                              height: h - heightHeader, child: content)),
-                      const SizedBox(height: 9) // zone scrollbar
-                    ])))
-            //)
-            )
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    controller: horizontal,
+                    child: SizedBox(
+                        width: w - heightBorder * 2, // 2 = border
+                        child: Column(children: [
+                          Container(
+                              color: Theme.of(context).secondaryHeaderColor,
+                              child: header),
+
+                          Scrollbar(
+                              thumbVisibility: true,
+                              trackVisibility: true,
+                              controller: vertical,
+                              child: sizedContent),
+                          SizedBox(height: heightScroll) // zone scrollbar
+                        ])))
+                //)
+                ))
         //)
         );
   }
 
   ListView getListView(int nbCol, double maxWidth, nbRow) {
+    if (nbRow < 0) nbRow = 0;
+
     var listView = ListView.builder(
         scrollDirection: Axis.vertical,
         controller: vertical,
@@ -163,22 +222,24 @@ class _CwArrayState extends StateCW<CWArray> {
     final List<Widget> listConts = [];
     provider = CWProvider.of(widget.ctx);
     for (var i = 0; i < nbCol; i++) {
-      dynamic content = "";
-      var createInArrayCtx = widget.createInArrayCtx('Cont$i', null);
+      //dynamic content = "";
+      var createInArrayCtx = widget.createInArrayCtx('RowCont$i', null);
       var w = createInArrayCtx.getWidgetInSlot();
       if (w is CWWidgetMap) {
         if (provider != null) {
           provider!.idxDisplayed = idxRow;
-          content = w.getMapValue();
+          //content = w.getMapValue();
         }
       }
-
+      // duplique les slot 
       listConts.add(getCell(
           CWSlot(
-              key: widget.ctx.getSlotKey('Cont$i$idxRow', content.toString()),
+              key: widget.ctx
+                  .getSlotKey(idxRow==0?'RowCont{$i}':'RowCont{$i}_$idxRow', ''), // content.toString()),
               ctx: createInArrayCtx),
           i,
-          maxWidth));
+          maxWidth,
+          null));
     }
 
     // delete
@@ -198,22 +259,30 @@ class _CwArrayState extends StateCW<CWArray> {
           // GlobalSnackBar.show(context, 'Drag started');
         },
         data: DragColCtx(provider, i),
-        feedback: Container(height: 30, width: 100, color: Colors.grey,  child: const Center(child: Icon(Icons.abc))) ,
+        feedback: Container(
+            height: 30,
+            width: 100,
+            color: Colors.grey,
+            child: const Center(child: Icon(Icons.abc))),
         child: child);
   }
 
-  Widget getHeader(int i, double maxWidth) {
-    return getDrag(i,  getCell(
-        CWSlot(
-            key: widget.ctx.getSlotKey('Header$i', ''),
-            ctx: widget.createInArrayCtx('Header$i', null)),
+  Widget getHeader(int i, double maxWidth, double h) {
+    return getDrag(
         i,
-        maxWidth));
+        getCell(
+            CWSlot(
+                key: widget.ctx.getSlotKey('Header$i', ''),
+                ctx: widget.createInArrayCtx('Header$i', null)),
+            i,
+            maxWidth,
+            h));
   }
 
-  Widget getCell(Widget cell, int numCol, double max) {
+  Widget getCell(Widget cell, int numCol, double max, double? height) {
     return SizedBox(
         width: max.clamp(minWidth, 500),
+        height: height,
         child: Container(
             alignment: Alignment.center,
             decoration: const BoxDecoration(

@@ -34,7 +34,7 @@ class _WidgetDebugState extends State<WidgetDebug> {
     ], listTabCont: [
       Container(
           color: Colors.white,
-          child: JsonViewer(CoreDesigner.ofLoader().cwFactory.value)),
+          child: SingleChildScrollView( child :JsonViewer(CoreDesigner.ofLoader().cwFactory.value))),
       Container(color: Colors.white, child: JsonViewer(mdl)),
       Container(color: Colors.white, child: JsonViewer(data)),
     ]);

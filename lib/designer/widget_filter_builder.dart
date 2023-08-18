@@ -7,33 +7,36 @@ import 'package:xui_flutter/designer/designer.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_loader.dart';
 import '../widget/cw_array.dart';
 import '../widget/cw_textfield.dart';
 
 class CoreDataFilter {
   CoreDataFilter() {
     c = CWApplication.of().collection;
+    loader = CWApplication.of().loaderData;
   }
   late CoreDataEntity dataFilter;
   late CoreDataCollection c;
+  late CWWidgetLoaderCtx loader;
 
   init(String idModel, String name) {
     dataFilter = c.createEntityByJson("DataFilter", {"listGroup": []});
-    dataFilter.setAttr(c, "model", idModel);
-    dataFilter.setAttr(c, "name", name);
+    dataFilter.setAttr(loader, "model", idModel);
+    dataFilter.setAttr(loader, "name", name);
   }
 
   CoreDataEntity addGroup(CoreDataEntity parent) {
     CoreDataEntity group = c.createEntityByJson("DataFilterGroup",
         {"operator": "and", "listClause": [], "listGroup": []});
-    parent.addMany(c, "listGroup", group);
+    parent.addMany(loader, "listGroup", group);
     return group;
   }
 
   CoreDataEntity addClause(CoreDataEntity group) {
     CoreDataEntity clause = c.createEntityByJson("DataFilterClause",
         {"operator": "=", "model": dataFilter.getString("model")});
-    group.addMany(c, "listClause", clause);
+    group.addMany(loader, "listClause", clause);
     return clause;
   }
 
@@ -198,10 +201,12 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
   }
 
   Widget getAddGroupBtn() {
-    return Tooltip(message: "add group", child : InkWell(
-              onTap: addGroup,
-              child: const Icon(Icons.add_box_outlined),
-            ));
+    return Tooltip(
+        message: "add group",
+        child: InkWell(
+          onTap: addGroup,
+          child: const Icon(Icons.add_box_outlined),
+        ));
   }
 
   addGroup() {
@@ -359,15 +364,12 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
               pathGroup.entities.removeLast();
               var remove = pathGroup.getLastEntity().value;
               pathGroup.entities.removeLast();
-             // print('b ${pathGroup.getLastEntity().value}');
+              // print('b ${pathGroup.getLastEntity().value}');
               (pathGroup.getLastEntity().value['listGroup'] as List)
                   .remove(remove);
-             // print('f ${pathGroup.getLastEntity().value}');
-              CoreDesigner.of().dataFilterKey.currentState?.setState(() {
-                
-              });
-            }
-            else {
+              // print('f ${pathGroup.getLastEntity().value}');
+              CoreDesigner.of().dataFilterKey.currentState?.setState(() {});
+            } else {
               (path.value as Map).remove("colId");
               (path.value as Map).remove("value1");
               widget.groupState.setState(() {});

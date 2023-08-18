@@ -48,7 +48,7 @@ class _DesignerAttributState extends State<DesignerAttribut> {
 
     var c = loader.collectionWidget;
     loader.addConstraint('rootTitle0', 'CWExpandConstraint').addMany(
-        c,
+        loader,
         CWExpandAction.actions.toString(),
         c.createEntityByJson("CWAction", {
           "_idAction_": "deleteAttr@AttrProvider",

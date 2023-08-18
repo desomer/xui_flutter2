@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../core/widget/cw_core_selector_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
-import 'prop_builder.dart';
+import 'builder/prop_builder.dart';
 
 class CoreDesignerSelector {
   PropBuilder propBuilder = PropBuilder();

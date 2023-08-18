@@ -4,13 +4,19 @@ import 'core/widget/cw_core_loader.dart';
 class CWLoaderTest extends CWWidgetLoader {
   CWLoaderTest(super.ctx);
 
+  bool load = true;
+
   @override
   CoreDataEntity getCWFactory() {
-    setRoot('root','CWFrameDesktop');
-    setProp(
-        'root',
-        ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',
-            <String, dynamic>{'title': 'un titre modifiable'}));
+    if (load) {
+      load = false;
+
+      setRoot('root', 'CWFrameDesktop');
+      setProp(
+          'root',
+          ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',
+              <String, dynamic>{'title': 'un titre modifiable'}));
+    }
 
     //------------------------------------------------------------------
     // addChildProp(

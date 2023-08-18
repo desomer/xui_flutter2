@@ -12,7 +12,13 @@ class ComponentDesc {
         ComponentDesc('Column', Icons.table_rows_rounded, "CWColumn"),
         ComponentDesc('Row', Icons.view_week, "CWRow"),
         ComponentDesc('Tab', Icons.tab, "CWTab")
-      ]), // "Column", "Row", "Tab"
+      ]),
+      CardComponents("Array & Form", [
+        ComponentDesc('Array', Icons.table_chart, "CWArray"),
+        ComponentDesc('Form', Icons.feed, "CWText"),
+      ]),
+      
+      // "Column", "Row", "Tab"
       // CardComponents("Filter", const [
       //   "Form",
       //   "Selector",

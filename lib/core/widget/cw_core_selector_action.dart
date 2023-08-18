@@ -3,7 +3,7 @@ import 'package:xui_flutter/designer/selector_manager.dart';
 
 import '../../designer/action_manager.dart';
 import '../../designer/designer.dart';
-import '../../designer/prop_builder.dart';
+import '../../designer/builder/prop_builder.dart';
 import '../../widget/cw_toolkit.dart';
 import '../data/core_data.dart';
 import 'cw_core_loader.dart';

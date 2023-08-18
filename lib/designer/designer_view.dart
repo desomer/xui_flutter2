@@ -12,21 +12,30 @@ import 'cw_factory.dart';
 class DesignerView extends StatefulWidget {
   DesignerView({super.key});
 
-  @override
-  State<StatefulWidget> createState() => DesignerViewState();
+  DesignerViewState? state;
 
-  late CWWidgetLoader loader;
+  @override
+  State<StatefulWidget> createState() {
+    return DesignerViewState();
+  }
+
+  CWWidgetLoader? loader;
   WidgetFactoryEventHandler get factory {
-    return loader.ctxLoader.factory;
+    return loader!.ctxLoader.factory;
   }
 
   Widget? rootWidget;
 
+  void rebuild() {
+    rootWidget = null;
+    state?.stack = null;
+  }
+
   Widget getRoot() {
     if (rootWidget != null) return rootWidget!;
 
-    loader = CWLoaderTest(CWApplication.of().loaderDesigner);
-    rootWidget = loader.getWidget("root", "root");
+    loader ??= CWLoaderTest(CWApplication.of().loaderDesigner);
+    rootWidget = loader!.getWidget("root", "root");
     return rootWidget!;
   }
 
@@ -37,6 +46,12 @@ class DesignerView extends StatefulWidget {
 
 class DesignerViewState extends State<DesignerView> {
   Widget? stack;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.state = this;
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -71,8 +71,11 @@ class DesignActionManager {
 
   ///////////////////////////////////////////////////////////////////////////////////////
   void _doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
+
+    String newXid = desc.impl + customAlphabet('1234567890abcdef', 10);
+
     String pathCreate = CoreDesigner.ofLoader()
-        .addChild(toCtxSlot.xid, "${toCtxSlot.xid}child", desc.impl);
+        .addChild(toCtxSlot.xid, newXid, desc.impl);
 
     final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, toCtxSlot.loader,
         '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
@@ -84,7 +87,6 @@ class DesignActionManager {
     final CWWidget newWidget =
         wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
 
-    String newXid = desc.impl + customAlphabet('1234567890abcdef', 10);
     toCtxSlot.factory.mapWidgetByXid[newXid] = newWidget;
     newWidget.ctx.pathDataCreate = pathCreate;
     toCtxSlot.factory.mapChildXidByXid[toCtxSlot.xid] = newXid;

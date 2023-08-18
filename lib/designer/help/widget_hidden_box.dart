@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 
-import '../core/data/core_provider.dart';
+import '../../core/data/core_provider.dart';
 
 class WidgetHiddenBox extends StatefulWidget {
   WidgetHiddenBox({Key? key, required this.child}) : super(key: key);

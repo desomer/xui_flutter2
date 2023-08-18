@@ -4,13 +4,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
 import 'package:xui_flutter/designer/widget_debug.dart';
+import 'package:xui_flutter/designer/widget_drag_file.dart';
 import 'package:xui_flutter/designer/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
 import '../db_icon_icons.dart';
-import '../deprecated/core_array.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
 import 'cw_factory.dart';
@@ -19,16 +20,17 @@ import 'designer_data.dart';
 import 'designer_model.dart';
 import 'designer_query.dart';
 import 'designer_view.dart';
-import 'widget_hidden_box.dart';
+import 'help/widget_hidden_box.dart';
 import 'widget_model_attribut.dart';
 import 'widget_properties.dart';
-import 'widget_querybuilder.dart';
+import 'widget_filter_builder.dart';
 
 enum CDDesignEvent { select, reselect }
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
   CoreDesigner({super.key}) {
+    designView = DesignerView(key: designerKey);
     _coreDesigner = this;
   }
 
@@ -49,27 +51,30 @@ class CoreDesigner extends StatefulWidget {
   }
 
   static DesignerView ofView() {
-    return _coreDesigner.view;
+    return _coreDesigner.designView;
   }
 
   static CWWidgetLoader ofLoader() {
-    return _coreDesigner.view.loader;
+    return _coreDesigner.designView.loader!;
   }
 
   static WidgetFactoryEventHandler ofFactory() {
     return ofLoader().ctxLoader.factory;
   }
 
-  static late CoreDesigner _coreDesigner;
-  final DesignerView view = DesignerView();
-
-  final GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
-  final GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
   final GlobalKey designerKey =
       GlobalKey(debugLabel: "CoreDesignerdesignerKey");
 
+  static late CoreDesigner _coreDesigner;
+  late DesignerView designView;
+
+  final GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
+  final GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
+  final GlobalKey appKey = GlobalKey(debugLabel: "CoreDesignerdesignerKey");
+
   final GlobalKey dataKey = GlobalKey(debugLabel: "CoreDesigner.dataKey");
-  final GlobalKey dataFilterKey = GlobalKey(debugLabel: "CoreDesigner.dataFilterKey");
+  final GlobalKey dataFilterKey =
+      GlobalKey(debugLabel: "CoreDesigner.dataFilterKey");
 
   final _eventListener = EventListener();
   late TabController controllerTabRight;
@@ -101,7 +106,8 @@ class _CoreDesignerState extends State<CoreDesigner>
     super.initState();
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      CWWidget wid = CoreDesigner.of().view.factory.mapWidgetByXid['root']!;
+      CWWidget wid =
+          CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
       CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
     });
   }
@@ -148,7 +154,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         //   }
         //   return supportedLocales.first;
         // },
-        key: CoreDesigner.of().designerKey,
+        key: CoreDesigner.of().appKey,
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
         theme: ThemeData(
@@ -250,8 +256,14 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getQueryPan() {
-    return const Row(
-      children: [SizedBox(width: 300, child: DesignerQuery())],
+    CWWidgetCtx ctx = CWWidgetCtx("", CWApplication.of().loaderModel, "");
+    ctx.designEntity = CWApplication.of()
+        .loaderModel
+        .collectionWidget
+        .createEntityByJson("CWArray", {"providerName": "DataModelProvider"});
+
+    return Row(
+      children: [SizedBox(width: 300, child: DesignerQuery(ctx: ctx))],
     );
   }
 
@@ -352,7 +364,8 @@ class _CoreDesignerState extends State<CoreDesigner>
         ]),
         Column(
           children: [
-            WidgetFilterbuilder(key: widget.dataFilterKey, filter: CoreDataFilter()),
+            WidgetFilterbuilder(
+                key: widget.dataFilterKey, filter: CoreDataFilter()),
             Expanded(child: DesignerData(key: widget.dataKey))
           ],
         )
@@ -376,9 +389,9 @@ class _CoreDesignerState extends State<CoreDesigner>
 
   Column getTestPan() {
     return Column(children: [
+      const WidgetDragTarget(),
       const DialogExample(key: PageStorageKey<String>('pageMain')),
       CwImage(key: CoreDesigner.of().imageKey),
-      const PlutoGridExamplePage(),
       MaterialColorPicker(
           onColorChange: (Color color) {
             debugPrint(color.toString());
@@ -391,18 +404,24 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDesignPan() {
+    CWWidgetCtx ctxQuery = CWWidgetCtx("", CWApplication.of().loaderModel, "");
+    ctxQuery.designEntity = CWApplication.of()
+        .loaderModel
+        .collectionWidget
+        .createEntityByJson("CWArray", {"providerName": "DataModelProvider"});
+
     return Row(children: [
-      const SizedBox(
+      SizedBox(
         width: 300,
-        child: WidgetTab(heightTab: 40, listTab: [
+        child: WidgetTab(heightTab: 40, listTab: const [
           Tab(icon: Icon(Icons.near_me)),
           Tab(icon: Icon(Icons.filter_alt))
         ], listTabCont: [
-          Text(" Navigation"),
-          Text(" Query to display")
+          const Text(" Navigation"),
+          DesignerQuery(ctx: ctxQuery)
         ]),
       ),
-      Expanded(child: widget.view),
+      Expanded(child: widget.designView),
       SizedBox(
           //  margin: new EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
           width: 300,
@@ -492,9 +511,11 @@ class _NavRailState extends State<NavRail> {
           onDestinationSelected: (int index) {
             setState(() {
               selectedIndex = index;
-              pageController.animateToPage(index,
-                  duration: const Duration(milliseconds: 200),
-                  curve: Curves.easeIn);
+              pageController.jumpToPage(index);
+
+              // pageController.animateToPage(index,
+              //     duration: const Duration(milliseconds: 200),
+              //     curve: Curves.easeIn);
             });
           },
           destinations: const <NavigationRailDestination>[

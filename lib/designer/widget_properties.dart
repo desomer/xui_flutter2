@@ -7,7 +7,7 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
-import 'prop_builder.dart';
+import 'builder/prop_builder.dart';
 
 // ignore: must_be_immutable
 class DesignerProp extends StatefulWidget {

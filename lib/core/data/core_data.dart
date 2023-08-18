@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:json_patch/json_patch.dart';
 import 'package:nanoid/nanoid.dart';
 
+import '../widget/cw_core_loader.dart';
 import 'core_event.dart';
 
 class CoreDataCollection {
@@ -178,8 +179,8 @@ class CoreDataEntity {
   }
 
   CoreDataEntity setAttr(
-      CoreDataCollection collection, String attrName, dynamic v) {
-    final CoreDataAttribut? attr = getAttrByName(collection, attrName);
+      CWWidgetLoaderCtx loader, String attrName, dynamic v) {
+    final CoreDataAttribut? attr = getAttrByName(loader, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
       value[attrName] = v;
@@ -189,10 +190,11 @@ class CoreDataEntity {
   }
 
   CoreDataAttribut? getAttrByName(
-      CoreDataCollection collection, String attrName) {
-    final CoreDataObjectBuilder builder = collection.getClass(type)!;
-    CoreDataAttribut? attr = builder.attributsByName[attrName];
-    if (attr == null) {
+      CWWidgetLoaderCtx loader, String attrName) {
+    final CoreDataObjectBuilder? builder = loader.collectionDataModel.getClass(type) ?? loader.collectionWidget.getClass(type);
+
+    CoreDataAttribut? attr = builder?.attributsByName[attrName];
+    if (builder!=null && attr == null) {
       for (var group in builder.groupAttributs) {
         attr = group.attributsByName[attrName];
         if (attr != null) return attr;
@@ -202,8 +204,8 @@ class CoreDataEntity {
   }
 
   CoreDataEntity setOne(
-      CoreDataCollection collection, String attrName, CoreDataEntity v) {
-    final CoreDataAttribut? attr = getAttrByName(collection, attrName);
+      CWWidgetLoaderCtx loader, String attrName, CoreDataEntity v) {
+    final CoreDataAttribut? attr = getAttrByName(loader, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
       value[attrName] = v.value;
@@ -213,8 +215,8 @@ class CoreDataEntity {
   }
 
   CoreDataEntity addMany(
-      CoreDataCollection collection, String attrName, CoreDataEntity v) {
-    final CoreDataAttribut? attr = getAttrByName(collection, attrName);
+      CWWidgetLoaderCtx loader, String attrName, CoreDataEntity v) {
+    final CoreDataAttribut? attr = getAttrByName(loader, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
       if (value[attrName] == null) {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
-import '../core/widget/cw_core_loader.dart';
-import '../core/widget/cw_core_widget.dart';
-import 'designer.dart';
-import 'widget_properties.dart';
-import 'builder/form_builder.dart';
+import '../../core/data/core_data.dart';
+import '../../core/data/core_provider.dart';
+import '../../core/widget/cw_core_loader.dart';
+import '../../core/widget/cw_core_widget.dart';
+import '../designer.dart';
+import '../widget_properties.dart';
+import 'form_builder.dart';
 
 class PropBuilder {
   List<Widget> listProp = [];

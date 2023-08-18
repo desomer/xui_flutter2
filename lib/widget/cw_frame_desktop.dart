@@ -66,7 +66,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
           ctx: widget.ctx,
           childForced: MaterialApp(
               debugShowCheckedModeBanner: false,
-              title: 'Mouse Region',
+              title: 'ElisView',
               builder: DevicePreview.appBuilder,
               locale: DevicePreview.locale(context),
               // theme: ThemeData.light(),

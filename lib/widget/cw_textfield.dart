@@ -150,7 +150,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   void dispose() {
     _controller.dispose();
     _focus.removeListener(_onFocusChange);
-    if (!isRowFocus) _focus.dispose();
+  //  if (!isRowFocus) {
+      _focus.dispose();
+  //  }
     super.dispose();
   }
 
@@ -163,20 +165,30 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     String type = widget.getType();
 
     if (type == "INTEGER") {
-      mask = MaskConfig( controller: _controller, focus: _focus, label: label,
+      mask = MaskConfig(
+          controller: _controller,
+          focus: _focus,
+          label: label,
           formatter: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
           textInputType: TextInputType.number);
     } else if (type == "DOUBLE") {
-      mask = MaskConfig(controller: _controller, focus: _focus, formatter: [
-        FilteringTextInputFormatter.allow(RegExp(r'(^-?\d*\.?\d*)'))
-      ], textInputType: TextInputType.number);
+      mask = MaskConfig(
+          controller: _controller,
+          focus: _focus,
+          formatter: [
+            FilteringTextInputFormatter.allow(RegExp(r'(^-?\d*\.?\d*)'))
+          ],
+          textInputType: TextInputType.number);
     } else if (type == "DATE") {
       var maskFormatter = MaskTextInputFormatter(
           mask: '##/##/####',
           filter: {"#": RegExp(r'[0-9]')},
           type: MaskAutoCompletionType.lazy);
 
-      mask = MaskConfig(controller: _controller, focus: _focus, label: label,
+      mask = MaskConfig(
+          controller: _controller,
+          focus: _focus,
+          label: label,
           formatter: [maskFormatter],
           hint: "__/__/____",
           textInputType: TextInputType.number,
@@ -201,7 +213,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
             return "wrong date";
           });
     } else {
-      mask = MaskConfig(controller: _controller, focus: _focus, label: label );
+      mask = MaskConfig(controller: _controller, focus: _focus, label: label);
     }
 
     return Container(
@@ -277,11 +289,10 @@ class MaskConfig {
   String? label;
 
   FocusNode focus;
-  TextEditingController controller;  
+  TextEditingController controller;
 
   MaskConfig(
-      {
-      required this.controller,
+      {required this.controller,
       required this.focus,
       this.formatter,
       this.validator,
@@ -306,8 +317,7 @@ class MaskConfig {
           isDense: true,
           labelText: label,
           // labelStyle: const TextStyle(color: Colors.white70),
-          contentPadding:
-              EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
+          contentPadding: EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
       //autofocus: true,
     );
   }

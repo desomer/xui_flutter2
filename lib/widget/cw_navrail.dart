@@ -17,6 +17,7 @@ class _NavRailState extends State<NavRail> {
     return Row(
       children: <Widget>[
         NavigationRail(
+          
           labelType: NavigationRailLabelType.all,
           // selectedIconTheme: const IconThemeData(color: Colors.green),
           // unselectedIconTheme: const IconThemeData(color: Colors.blueGrey),

@@ -20,7 +20,7 @@ class CWArrayRow extends StatefulWidget {
   final Function getRow;
 
   @override
-  State<CWArrayRow> createState() => CwRowState();
+  State<CWArrayRow> createState() => CWArrayRowState();
 
   void selected(CWWidgetCtx ctx) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
@@ -38,7 +38,7 @@ class CWArrayRow extends StatefulWidget {
   }
 }
 
-class CwRowState extends State<CWArrayRow> {
+class CWArrayRowState extends State<CWArrayRow> {
   @override
   void initState() {
     super.initState();
@@ -51,9 +51,10 @@ class CwRowState extends State<CWArrayRow> {
     super.dispose();
     //print("remove row ${widget.rowIdx}");
     //widget.stateArray.widget.listState.remove(widget.rowIdx);
-    for (var element in mapFocus.entries) {
-      element.value.dispose();
-    }
+    // for (var element in mapFocus.entries) {
+    //   element.value.dispose();
+    // }
+    //mapFocus.clear();
   }
 
   Map<String, FocusNode> mapFocus = {};

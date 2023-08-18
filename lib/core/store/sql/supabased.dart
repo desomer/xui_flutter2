@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
-import 'package:xui_flutter/designer/widget_querybuilder.dart';
+import 'package:xui_flutter/designer/widget_filter_builder.dart';
 
 import '../driver.dart';
 
@@ -22,24 +22,27 @@ class SupabaseDriver extends StoreDriver {
   };
 
   Future<void> init() async {
-    await Supabase.initialize(
-      url: "https://pkrutsmghgjxapkozcyn.supabase.co",
-      anonKey:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcnV0c21naGdqeGFwa296Y3luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTEyNzI4MjgsImV4cCI6MjAwNjg0ODgyOH0.nlADIUSTgwWCZ9Q2vUgr6iwPHBZwxSjLlQKCV_zdt8I",
-    );
+    try {
+      await Supabase.initialize(
+        url: "https://pkrutsmghgjxapkozcyn.supabase.co",
+        anonKey:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcnV0c21naGdqeGFwa296Y3luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTEyNzI4MjgsImV4cCI6MjAwNjg0ODgyOH0.nlADIUSTgwWCZ9Q2vUgr6iwPHBZwxSjLlQKCV_zdt8I",
+      );
 
-    // It's handy to then extract the Supabase client in a variable for later uses
-    client['main'] = Supabase.instance.client;
+      // It's handy to then extract the Supabase client in a variable for later uses
+      client['main'] = Supabase.instance.client;
 
-    AuthResponse res = await client['main']!.auth.signInWithPassword(
-          email: "gauthier.desomer@gmail.com",
-          password: "Charley.30",
-        );
-
-    // ignore: unused_local_variable
-    final Session? session = res.session;
-    // ignore: unused_local_variable
-    final User? user = res.user;
+      AuthResponse res = await client['main']!.auth.signInWithPassword(
+            email: "gauthier.desomer@gmail.com",
+            password: "Charley.30",
+          );
+      // ignore: unused_local_variable
+      final Session? session = res.session;
+      // ignore: unused_local_variable
+      final User? user = res.user;
+    } on Exception catch (e) {
+      print("object $e");
+    }
 
     // Listen to auth state changes
     // supabase.auth.onAuthStateChange.listen((data) {
@@ -85,20 +88,24 @@ class SupabaseDriver extends StoreDriver {
       }
     }
 
-    var ret = await query;
+    try {
+      var ret = await query;
 
-    if (ret is List) {
-      if (ret.isNotEmpty) {
-        var result = [];
-        for (var r in ret) {
-          result.add(r["json"]);
+      if (ret is List) {
+        if (ret.isNotEmpty) {
+          var result = [];
+          for (var r in ret) {
+            result.add(r["json"]);
+          }
+          return {
+            r"$type": 'DataContainer',
+            "idData": idTable,
+            "listData": result
+          };
         }
-        return {
-          r"$type": 'DataContainer',
-          "idData": idTable,
-          "listData": result
-        };
       }
+    } on Exception catch (e) {
+      print('Exception $e');
     }
     return null;
   }

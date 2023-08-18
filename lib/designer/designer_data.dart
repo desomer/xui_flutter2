@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_data_loader.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -21,21 +20,16 @@ class _DesignerDataState extends State<DesignerData> {
   Widget build(BuildContext context) {
     CWWidgetLoaderCtx loader = CWApplication.of().loaderData;
 
-    var selectedEntity =
-        CWApplication.of().dataModelProvider.getSelectedEntity();
-    if (selectedEntity == null) return const Text('');
+    var tableEntity = CWApplication.of().dataModelProvider.getSelectedEntity();
+    if (tableEntity == null) return const Text('');
 
-    var idData = selectedEntity.value["_id_"];
-
-    initDataModelWithAttr(loader, selectedEntity, idData);
+    CWApplication.of().initDataModelWithAttr(loader, tableEntity);
     CWProvider provider =
-        getDataProvider(loader, idData, selectedEntity.value["name"]);
-
-    
+        CWApplication.of().getDataProvider(loader, tableEntity);
 
     return LayoutBuilder(builder: (context, constraints) {
-      List<Widget> listData = ArrayBuilder().getArrayWidget(
-          "rootData", provider, loader, "Array", constraints);
+      List<Widget> listData = ArrayBuilder()
+          .getArrayWidget("rootData", provider, loader, "Array", constraints);
 
       listData.add(WidgetAddBtn(
         provider: provider,
@@ -47,28 +41,6 @@ class _DesignerDataState extends State<DesignerData> {
         children: listData,
       );
     });
-  }
-
-  void initDataModelWithAttr(
-      CWWidgetLoaderCtx loader, CoreDataEntity selectedEntity, name) {
-    var listAttr = selectedEntity.value["listAttr"];
-
-    CoreDataObjectBuilder data = loader.collectionDataModel.addObject(name);
-    for (var element in listAttr ?? []) {
-      data.addAttribut(element["_id_"], CDAttributType.CDtext);
-    }
-    data.addGroup(loader.collectionDataModel.getClass("DataEntity")!);
-  }
-
-  CWProvider getDataProvider(CWWidgetLoaderCtx loader, idData, label) {
-    CWProvider providerData = CWApplication.of().dataProvider;
-    providerData.type = idData;
-    CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-    dataLoader.setMapID(idData); // choix de la map a afficher
-    providerData.header!.value["label"] = label;
-
-    providerData.idxSelected = 0;
-    return providerData;
   }
 }
 
@@ -91,7 +63,7 @@ class SetDate extends CoreDataAction {
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     event!.provider!.getSelectedEntity()!.setAttr(
-        ctx!.loader.collectionDataModel,
+        ctx!.loader,
         name,
         DateTime.timestamp().toIso8601String());
   }

@@ -171,7 +171,7 @@ abstract class CWWidgetMap extends CWWidget {
   }
 
   int getCountChildren() {
-    return ctx.designEntity?.getInt('count', 1) ?? 1;
+    return ctx.designEntity?.getInt('count', 0) ?? 0;
   }
 }
 

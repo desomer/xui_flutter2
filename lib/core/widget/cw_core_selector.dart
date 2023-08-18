@@ -12,7 +12,6 @@ import '../../widget/cw_toolkit.dart';
 import 'cw_core_selector_action.dart';
 import 'cw_core_widget.dart';
 
-
 class SelectorWidget extends StatefulWidget {
   const SelectorWidget({super.key, required this.child, required this.ctx});
 
@@ -49,7 +48,6 @@ class SelectorWidgetState extends State<SelectorWidget> {
     );
 
     return Stack(
-      //  key: GlobalKey(debugLabel: "_getBorderOver ${widget.ctx.xid}"),
       children: [child, borderOver],
     );
   }

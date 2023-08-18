@@ -118,17 +118,16 @@ class CWProvider {
   void setValueOf(
       CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
     dynamic v = val;
-    CoreDataAttribut? attr = getDisplayedEntity().getAttrByName(
-        ctx.loader.collectionDataModel, ctx.designEntity!.getString(propName)!);
+    CoreDataAttribut? attr = getDisplayedEntity()
+        .getAttrByName(ctx.loader, ctx.designEntity!.getString(propName)!);
     if (attr?.type == CDAttributType.CDint) {
       v = int.tryParse(val);
-    }
-    else if (attr?.type == CDAttributType.CDdec) {
+    } else if (attr?.type == CDAttributType.CDdec) {
       v = double.tryParse(val);
-    }  
-       
-    getDisplayedEntity().setAttr(ctx.loader.collectionDataModel,
-        ctx.designEntity!.getString(propName)!, v);
+    }
+
+    getDisplayedEntity()
+        .setAttr(ctx.loader, ctx.designEntity!.getString(propName)!, v);
 
     var displayedEntity = getDisplayedEntity();
 

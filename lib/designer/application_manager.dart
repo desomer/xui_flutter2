@@ -33,7 +33,6 @@ class CWApplication {
   initDesigner() {
     loaderDesigner.collectionWidget = CWWidgetCollectionBuilder().collection;
 
-    loaderDesigner.collectionDataModel = loaderDesigner.collectionWidget;
     loaderDesigner.mode = ModeRendering.design;
     loaderDesigner.entityCWFactory =
         loaderDesigner.collectionWidget.createEntity('CWFactory');
@@ -43,12 +42,16 @@ class CWApplication {
     loaderModel.createFactory();
 
     deleteModel(CWWidgetEvent e) async {
-      dataModelProvider.getSelectedEntity()!.operation = CDAction.delete;
+      var selectedEntity = dataModelProvider.getSelectedEntity();
+      selectedEntity!.operation = CDAction.delete;
       CoreGlobalCacheResultQuery.saveCache(dataModelProvider);
       dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
           repaintXid: "rootModelCol0");
       // supprime les datas
-      dataProvider.loader!.deleteAll();
+      CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
+      dataLoader
+          .setMapID(selectedEntity.value["_id_"]); // choix de la map a afficher
+      dataLoader.deleteAll();
     }
 
     dataModelProvider.addUserAction(
@@ -56,10 +59,11 @@ class CWApplication {
 
     // ajouter l'action de delete
     var c = loaderModel.collectionWidget;
+    loaderModel.collectionDataModel = c;
     loaderModel
         .addConstraint('rootAttrExpTitle0', 'CWExpandConstraint')
         .addMany(
-            c,
+            loaderModel,
             CWExpandAction.actions.toString(),
             c.createEntityByJson("CWAction", {
               "_idAction_": "delete@DataModelProvider",
@@ -78,6 +82,8 @@ class CWApplication {
   }
 
   initModel() {
+    loaderDesigner.collectionDataModel = collection;
+
     loaderModel.mode = ModeRendering.view;
     loaderModel.collectionDataModel = collection;
 
@@ -133,8 +139,7 @@ class CWApplication {
         .addObject("DataFilterGroup")
         .addAttr("operator", CDAttributType.CDtext)
         .addAttr("listClause", CDAttributType.CDmany)
-        .addAttr("listGroup", CDAttributType.CDmany)
-        ;
+        .addAttr("listGroup", CDAttributType.CDmany);
 
     collection
         .addObject("DataFilterClause")
@@ -165,6 +170,7 @@ class CWApplication {
         CoreDataLoaderMap(loaderModel, listModel, "listData")
           ..setMapID("models");
 
+    loaderModel.addProvider(dataModelProvider);
     //----------------------------------------------
     dataAttributProvider = CWProvider("DataAttrProvider", "ModelAttributs",
         CoreDataLoaderNested(loaderModel, dataModelProvider, "listAttr"));
@@ -221,5 +227,31 @@ class CWApplication {
       }
     }
     return attrDesc;
+  }
+
+  void initDataModelWithAttr(
+      CWWidgetLoaderCtx loader, CoreDataEntity tableEntity) {
+    var listAttr = tableEntity.value["listAttr"];
+    var name = tableEntity.value["_id_"];
+
+    CoreDataObjectBuilder data = loader.collectionDataModel.addObject(name);
+    for (var element in listAttr ?? []) {
+      data.addAttribut(element["_id_"], CDAttributType.CDtext);
+    }
+    data.addGroup(loader.collectionDataModel.getClass("DataEntity")!);
+  }
+
+  CWProvider getDataProvider(
+      CWWidgetLoaderCtx loader, CoreDataEntity tableEntity) {
+    var label = tableEntity.value["name"];
+    var idData = tableEntity.value["_id_"];
+    CWProvider providerData = CWApplication.of().dataProvider;
+    providerData.type = idData;
+    CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
+    dataLoader.setMapID(idData); // choix de la map a afficher
+    providerData.header!.value["label"] = label;
+
+    providerData.idxSelected = 0;
+    return providerData;
   }
 }
