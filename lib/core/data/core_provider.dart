@@ -15,73 +15,129 @@ enum CWProviderAction {
   onRowSelected
 }
 
-class CWProvider {
-  CWProvider(this.name, this.type, this.loader);
-
-  String name;
-  CoreDataEntity? header;
-  String type;
+class CWProviderData {
+  CWProviderData(this.loader);
 
   List<CoreDataEntity> content = [];
-
   int idxDisplayed = -1;
   int idxSelected = -1;
   Map<CWProviderAction, List<CoreDataAction>> actions = {};
   Map<String, List<CoreDataAction>> userActions = {};
   CoreDataLoader? loader;
+}
 
-  setFilter(CoreDataEntity? aFilter) {
-    loader?.setFilter(aFilter);
+class CWProviderDataSelector {
+  CWProviderDataSelector(this.finalData, this.designData, this.appLoader);
+  CWProviderData designData;
+  CWProviderData finalData;
+  CWAppLoaderCtx? appLoader;
+  ModeRendering modeRendering = ModeRendering.view;
+
+  static noLoader() {
+    CWProviderData data = CWProviderData(null);
+    return CWProviderDataSelector(data, data, null);
   }
 
-  add(CoreDataEntity add) {
-    content.add(add);
-    if (idxDisplayed == -1) idxDisplayed = 0;
+  static loader(CoreDataLoader loader) {
+    CWProviderData data = CWProviderData(loader);
+    return CWProviderDataSelector(data, data, null);
+  }
+
+  setModeRendering(ModeRendering mode) {
+    modeRendering = mode;
+  }
+
+  CWProviderData getData() {
+    var mode = appLoader?.mode ?? modeRendering;
+
+    switch (mode) {
+      case ModeRendering.view:
+        return finalData;
+      default:
+        return designData;
+    }
+  }
+}
+
+class CWProvider {
+  CWProvider(this.name, this.type, this.dataSelector);
+
+  String name;
+  CoreDataEntity? header;
+  String type;
+
+  late CWProviderDataSelector dataSelector;
+
+  CWProviderData getData() {
+    return dataSelector.getData();
+  }
+
+  List<CoreDataEntity> get content {
+    return dataSelector.getData().content;
+  }
+
+  set content(d) {
+    dataSelector.getData().content = d;
+  }
+
+  CoreDataLoader? get loader {
+    return dataSelector.getData().loader;
+  }
+
+  setFilter(CoreDataEntity? aFilter) {
+    getData().loader?.setFilter(aFilter);
+  }
+
+  addContent(CoreDataEntity add) {
+    getData().content.add(add);
+    if (getData().idxDisplayed == -1) getData().idxDisplayed = 0;
   }
 
   addNew(CoreDataEntity newRow) {
-    if (loader != null) {
-      loader?.addData(newRow);
+    if (getData().loader != null) {
+      getData().loader?.addData(newRow);
     }
-    add(newRow);
+    addContent(newRow);
 
     CoreGlobalCacheResultQuery.notifNewRow(this);
   }
 
   CoreDataEntity getEntityByIdx(idx) {
-    return content[idx];
+    return getData().content[idx];
   }
 
   CoreDataEntity getDisplayedEntity() {
-    return content[idxDisplayed];
+    return getData().content[getData().idxDisplayed];
   }
 
   CoreDataEntity? getSelectedEntity() {
-    if (idxSelected == -1) return null;
-    if (idxSelected >= content.length) {
-      idxSelected = -1;
+    if (getData().idxSelected == -1) return null;
+    if (getData().idxSelected >= getData().content.length) {
+      getData().idxSelected = -1;
       return null;
     }
-    return content[idxSelected];
+    return getData().content[getData().idxSelected];
   }
 
   CWProvider addAction(CWProviderAction idAction, CoreDataAction action) {
-    if (actions[idAction] == null) actions[idAction] = [];
-    actions[idAction]!.add(action);
+    if (getData().actions[idAction] == null) getData().actions[idAction] = [];
+    getData().actions[idAction]!.add(action);
     return this;
   }
 
   CWProvider addUserAction(String idAction, CoreDataAction action) {
-    if (userActions[idAction] == null) userActions[idAction] = [];
-    userActions[idAction]!.add(action);
+    if (getData().userActions[idAction] == null) {
+      getData().userActions[idAction] = [];
+    }
+    getData().userActions[idAction]!.add(action);
     return this;
   }
 
   CWProvider doAction(
       CWWidgetCtx? ctx, CWWidgetEvent? event, CWProviderAction idAction) {
     event?.widgetCtx = ctx;
-    if (actions[idAction] != null) {
-      for (var act in actions[idAction]!) {
+    if (getData().actions[idAction] != null) {
+      for (var act in getData().actions[idAction]!) {
         act.execute(ctx, event);
       }
     }
@@ -91,8 +147,8 @@ class CWProvider {
   CWProvider doUserAction(
       CWWidgetCtx? ctx, CWWidgetEvent? event, String idAction) {
     event?.widgetCtx = ctx;
-    if (userActions[idAction] != null) {
-      for (var act in userActions[idAction]!) {
+    if (getData().userActions[idAction] != null) {
+      for (var act in getData().userActions[idAction]!) {
         act.execute(ctx, event);
       }
     }
@@ -120,9 +176,9 @@ class CWProvider {
     dynamic v = val;
     CoreDataAttribut? attr = getDisplayedEntity()
         .getAttrByName(ctx.loader, ctx.designEntity!.getString(propName)!);
-    if (attr?.type == CDAttributType.CDint) {
+    if (attr?.type == CDAttributType.int) {
       v = int.tryParse(val);
-    } else if (attr?.type == CDAttributType.CDdec) {
+    } else if (attr?.type == CDAttributType.dec) {
       v = double.tryParse(val);
     }
 
@@ -137,27 +193,27 @@ class CWProvider {
     }
     doAction(ctx, event, CWProviderAction.onValueChanged);
 
-    loader?.changed(this, displayedEntity);
+    getData().loader?.changed(this, displayedEntity);
   }
 
   Future<int> getItemsCount() async {
-    if (loader != null) {
-      var result = await loader!.getDataAsync();
-      content = result;
-      CoreGlobalCacheResultQuery.setCacheValue(this, content);
+    if (getData().loader != null) {
+      var result = await getData().loader!.getDataAsync();
+      getData().content = result;
+      CoreGlobalCacheResultQuery.setCacheValue(this, getData().content);
     }
-    return content.length;
+    return getData().content.length;
   }
 
   int getItemsCountSync() {
-    if (loader != null) {
-      var result = loader!.getDataSync();
-      content = result;
+    if (getData().loader != null) {
+      var result = getData().loader!.getDataSync();
+      getData().content = result;
     }
-    return content.length;
+    return getData().content.length;
   }
 
-  void doEvent(CWProviderAction event, CWWidgetLoaderCtx loader,
+  void doEvent(CWProviderAction event, CWAppLoaderCtx loader,
       {String? repaintXid}) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = event.toString();

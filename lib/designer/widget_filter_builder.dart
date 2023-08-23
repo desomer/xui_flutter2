@@ -18,7 +18,7 @@ class CoreDataFilter {
   }
   late CoreDataEntity dataFilter;
   late CoreDataCollection c;
-  late CWWidgetLoaderCtx loader;
+  late CWAppLoaderCtx loader;
 
   init(String idModel, String name) {
     dataFilter = c.createEntityByJson("DataFilter", {"listGroup": []});

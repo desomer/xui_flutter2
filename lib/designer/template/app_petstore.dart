@@ -2,7 +2,7 @@ import '../../core/data/core_data.dart';
 import '../../core/widget/cw_core_loader.dart';
 
 class AppPetStore {
-  void initPetStore(CWWidgetLoaderCtx loader) {
+  void initPetStore(CWAppLoaderCtx loader) {
     // final LocalStorage storage = LocalStorage('listModel.json');
     // await storage.ready;
     // await Future.delayed(const Duration(seconds: 5));

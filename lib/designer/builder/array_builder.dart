@@ -10,7 +10,7 @@ import '../designer.dart';
 
 class ArrayBuilder {
   List<Widget> getArrayWidget(String name, CWProvider provider,
-      CWWidgetLoaderCtx loaderCtx, String type, BoxConstraints constraints) {
+      CWAppLoaderCtx loaderCtx, String type, BoxConstraints constraints) {
     var listWidget = <Widget>[];
     ColRowLoader? loader =
         initDesign(loaderCtx, provider, type, name, name, false);
@@ -22,18 +22,18 @@ class ArrayBuilder {
   }
 
   initArray(CWArray widget, CoreDataEntity query) async {
-    await CWApplication.of().dataModelProvider.getItemsCount();
+    var app = CWApplication.of();
+    await app.dataModelProvider.getItemsCount();
 
-    List<CoreDataEntity> listTableEntity =
-        CWApplication.of().dataModelProvider.content;
+    List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
 
     var tableEntity = listTableEntity.firstWhere((CoreDataEntity element) =>
         element.value["_id_"] == query.value["_id_"]);
 
-    CWApplication.of().initDataModelWithAttr(widget.ctx.loader, tableEntity);
+    app.initDataModelWithAttr(widget.ctx.loader, tableEntity);
     CWProvider provider = widget.ctx.factory.loader.mode == ModeRendering.design
-        ? getEmptyDataProvider(widget.ctx.loader, tableEntity)
-        : CWApplication.of().getDataProvider(widget.ctx.loader, tableEntity);
+        ? app.getDesignDataProvider(widget.ctx.loader, tableEntity)
+        : app.getDataProvider(widget.ctx.loader, tableEntity);
 
     ArrayBuilder().initDesign(widget.ctx.loader, provider, "Array",
         widget.ctx.xid, widget.ctx.pathWidget, true);
@@ -44,18 +44,7 @@ class ArrayBuilder {
     widget.repaint();
   }
 
-  CWProvider getEmptyDataProvider(
-      CWWidgetLoaderCtx loader, CoreDataEntity tableEntity) {
-    //var label = tableEntity.value["name"];
-    var idData = tableEntity.value["_id_"];
-    CWProvider providerData = CWProvider(idData, "?", null);
-    providerData.type = idData;
-    providerData.content.add(loader.collectionDataModel.createEntity(idData));
-    providerData.idxSelected = 0;
-    return providerData;
-  }
-
-  ColRowLoader initDesign(CWWidgetLoaderCtx loaderCtx, CWProvider provider,
+  ColRowLoader initDesign(CWAppLoaderCtx loaderCtx, CWProvider provider,
       String typeArray, String xid, String path, bool designOnly) {
     final CoreDataObjectBuilder builder =
         loaderCtx.collectionDataModel.getClass(provider.type)!;
@@ -95,11 +84,11 @@ class ArrayBuilder {
 
     var allAttribut = builder.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
-      if (attr.type == CDAttributType.CDone) {
+      if (attr.type == CDAttributType.one) {
         // if (src[attr.name] != null) {
         //   // lien one2one
         // }
-      } else if (attr.type == CDAttributType.CDmany) {
+      } else if (attr.type == CDAttributType.many) {
       } else {
         //String nameAttr = attr.name;
         Map<String, dynamic> attrDesc = {"name": attr.name}; // par defaut
@@ -132,8 +121,7 @@ abstract class ColRowLoader extends CWWidgetLoader {
 
 /////////////////////////////////////////////////////////////////////////////////////
 class AttrArrayLoader extends ColRowLoader {
-  AttrArrayLoader(
-      xid, CWWidgetLoaderCtx ctxDesign, this.provider, this.arrayOnly)
+  AttrArrayLoader(xid, CWAppLoaderCtx ctxDesign, this.provider, this.arrayOnly)
       : super(xid, ctxDesign) {
     if (!arrayOnly) {
       setRoot(xid, "CWExpandPanel");
@@ -163,8 +151,8 @@ class AttrArrayLoader extends ColRowLoader {
           'bind': attribut.name,
           'providerName': provider.name
         });
-        addChildProp(
-            '$xid${tag}RowCont$nbAttr', '${xid}Cell$nbAttr', widget.type, widget);
+        addChildProp('$xid${tag}RowCont$nbAttr', '${xid}Cell$nbAttr',
+            widget.type, widget);
       } else {
         // type text par defaut
         addWidget('$xid${tag}RowCont$nbAttr', '${xid}Cell$nbAttr',
@@ -216,7 +204,7 @@ class AttrArrayLoader extends ColRowLoader {
 
 /////////////////////////////////////////////////////////////////////////
 class AttrListLoader extends ColRowLoader {
-  AttrListLoader(xid, CWWidgetLoaderCtx ctxDesign, this.provider)
+  AttrListLoader(xid, CWAppLoaderCtx ctxDesign, this.provider)
       : super(xid, ctxDesign) {
     setRoot(xid, "CWLoader");
   }

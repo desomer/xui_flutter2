@@ -21,11 +21,12 @@ import 'designer_model.dart';
 import 'designer_query.dart';
 import 'designer_view.dart';
 import 'help/widget_hidden_box.dart';
+import 'widget/widget_preview.dart';
 import 'widget_model_attribut.dart';
 import 'widget_properties.dart';
 import 'widget_filter_builder.dart';
 
-enum CDDesignEvent { select, reselect }
+enum CDDesignEvent { select, reselect, preview }
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
@@ -34,8 +35,9 @@ class CoreDesigner extends StatefulWidget {
     _coreDesigner = this;
   }
 
-  static on(CDDesignEvent event, Function(dynamic) fct) {
+  static Function(dynamic) on(CDDesignEvent event, Function(dynamic) fct) {
     of()._eventListener.on(event.toString(), fct);
+    return fct;
   }
 
   static emit(CDDesignEvent event, dynamic payload) {
@@ -43,7 +45,7 @@ class CoreDesigner extends StatefulWidget {
   }
 
   static removeListener(CDDesignEvent event, Function(dynamic) fct) {
-    of()._eventListener.removeEventListener(event.toString(), (argument) {});
+    of()._eventListener.removeEventListener(event.toString(), fct);
   }
 
   static CoreDesigner of() {
@@ -175,7 +177,8 @@ class _CoreDesignerState extends State<CoreDesigner>
                 children: [
                   BreadCrumbNavigator(currentRouteStack),
                   const Spacer(),
-                  const Text('ElisView v0.2.1'),
+                  const WidgetPreview(),
+                  const Text('ElisView v0.3.0'),
                   const SizedBox(width: 5),
                   IconButton(
                     iconSize: 30,

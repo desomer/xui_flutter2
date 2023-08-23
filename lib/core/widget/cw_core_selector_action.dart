@@ -76,11 +76,28 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   @override
   void dispose() {
     super.dispose();
+
+    isInitiaziled = false;
+    CoreDesigner.removeListener(CDDesignEvent.preview, onPreviewFct!);
   }
+
+  bool isInitiaziled = false;
+  bool isPreviewMode = false;
+  Function(dynamic)? onPreviewFct;
 
   @override
   void initState() {
     super.initState();
+
+    if (!isInitiaziled) {
+      isInitiaziled = true;
+      onPreviewFct = CoreDesigner.on(CDDesignEvent.preview, (arg) {
+        isPreviewMode = arg as bool;
+        setState(() {
+          visible = !isPreviewMode;
+        });
+      });
+    }
 
     bottomZone.initPos = () {
       bottomZone.top = gBottom - 10;
@@ -241,7 +258,9 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
     childrenAction.add(getZone(leftZone));
     childrenAction.add(BoxSelected(
         key: boxkey, top: gTop, left: gLeft, right: gRight, bottom: gBottom));
-    return Visibility(visible: visible, child: Stack(children: childrenAction));
+    return Visibility(
+        visible: visible && !isPreviewMode,
+        child: Stack(children: childrenAction));
   }
 
   GlobalKey boxkey = GlobalKey();

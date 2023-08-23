@@ -19,12 +19,12 @@ class CWApplication {
 
   CoreDataCollection collection = CoreDataCollection();
 
-  CWWidgetLoaderCtx loaderDesigner = CWWidgetLoaderCtx();
-  CWWidgetLoaderCtx loaderModel = CWWidgetLoaderCtx();
-  CWWidgetLoaderCtx loaderData = CWWidgetLoaderCtx();
+  CWAppLoaderCtx loaderDesigner = CWAppLoaderCtx();
+  CWAppLoaderCtx loaderModel = CWAppLoaderCtx();
+  CWAppLoaderCtx loaderData = CWAppLoaderCtx();
 
-  CWProvider dataModelProvider =
-      CWProvider("DataModelProvider", "DataModel", null);
+  CWProvider dataModelProvider = CWProvider(
+      "DataModelProvider", "DataModel", CWProviderDataSelector.noLoader());
   late CWProvider dataAttributProvider;
   late CWProvider dataProvider;
 
@@ -33,10 +33,10 @@ class CWApplication {
   initDesigner() {
     loaderDesigner.collectionWidget = CWWidgetCollectionBuilder().collection;
 
-    loaderDesigner.mode = ModeRendering.design;
     loaderDesigner.entityCWFactory =
         loaderDesigner.collectionWidget.createEntity('CWFactory');
     loaderDesigner.factory = WidgetFactoryEventHandler(loaderDesigner);
+    loaderDesigner.setModeRendering(ModeRendering.design);
 
     loaderModel.collectionWidget = loaderDesigner.collectionWidget;
     loaderModel.createFactory();
@@ -84,71 +84,71 @@ class CWApplication {
   initModel() {
     loaderDesigner.collectionDataModel = collection;
 
-    loaderModel.mode = ModeRendering.view;
+    loaderModel.setModeRendering(ModeRendering.view);
     loaderModel.collectionDataModel = collection;
 
-    loaderData.mode = ModeRendering.view;
+    loaderData.setModeRendering(ModeRendering.view);
     loaderData.collectionDataModel = collection;
 
     collection
         .addObject("DataContainer")
-        .addAttr("name", CDAttributType.CDtext)
-        .addAttr("listData", CDAttributType.CDmany);
+        .addAttr("name", CDAttributType.text)
+        .addAttr("listData", CDAttributType.many);
 
     collection // group d'attribut
         .addObject("DataEntity")
-        .addAttr("_id_", CDAttributType.CDtext)
+        .addAttr("_id_", CDAttributType.text)
         .withAction(AttrActionDefaultUUID())
-        .addAttr("_createAt_", CDAttributType.CDdate)
-        .addAttr("_updateAt_", CDAttributType.CDdate);
+        .addAttr("_createAt_", CDAttributType.date)
+        .addAttr("_updateAt_", CDAttributType.date);
 
     ///////////////////////////////////////////////////////////
     collection
         .addObject("DataModel")
-        .addAttr("name", CDAttributType.CDtext)
-        .addAttr("filter", CDAttributType.CDone)
-        .addAttr("listAttr", CDAttributType.CDmany)
+        .addAttr("name", CDAttributType.text)
+        .addAttr("filter", CDAttributType.one)
+        .addAttr("listAttr", CDAttributType.many)
         .addGroup(collection.getClass("DataEntity")!);
 
-    collection.addObject("DataHeader").addAttr("label", CDAttributType.CDtext);
+    collection.addObject("DataHeader").addAttr("label", CDAttributType.text);
 
     collection // les attributs
         .addObject("ModelAttributs")
-        .addAttr("_id_", CDAttributType.CDtext)
+        .addAttr("_id_", CDAttributType.text)
         .withAction(AttrActionDefaultUUID())
-        .addAttr("name", CDAttributType.CDtext)
-        .addAttr("type", CDAttributType.CDtext);
+        .addAttr("name", CDAttributType.text)
+        .addAttr("type", CDAttributType.text);
 
     collection // le formulaire d'attribut
         .addObject("DataAttribut")
-        .addAttr("description", CDAttributType.CDtext)
-        .addAttr("mask", CDAttributType.CDtext)
-        .addAttr("required", CDAttributType.CDbool)
-        .addAttr("localized", CDAttributType.CDbool);
+        .addAttr("description", CDAttributType.text)
+        .addAttr("mask", CDAttributType.text)
+        .addAttr("required", CDAttributType.bool)
+        .addAttr("localized", CDAttributType.bool);
 
     ///////////////////////////////////////////////////////////
     collection
         .addObject("DataFilter")
-        .addAttr("_id_", CDAttributType.CDtext)
+        .addAttr("_id_", CDAttributType.text)
         .withAction(AttrActionDefaultUUID())
-        .addAttr("name", CDAttributType.CDtext)
-        .addAttr("model", CDAttributType.CDtext)
-        .addAttr("listGroup", CDAttributType.CDmany);
+        .addAttr("name", CDAttributType.text)
+        .addAttr("model", CDAttributType.text)
+        .addAttr("listGroup", CDAttributType.many);
 
     collection
         .addObject("DataFilterGroup")
-        .addAttr("operator", CDAttributType.CDtext)
-        .addAttr("listClause", CDAttributType.CDmany)
-        .addAttr("listGroup", CDAttributType.CDmany);
+        .addAttr("operator", CDAttributType.text)
+        .addAttr("listClause", CDAttributType.many)
+        .addAttr("listGroup", CDAttributType.many);
 
     collection
         .addObject("DataFilterClause")
-        .addAttr("model", CDAttributType.CDtext)
-        .addAttr("colId", CDAttributType.CDtext)
-        .addAttr("type", CDAttributType.CDtext)
-        .addAttr("operator", CDAttributType.CDtext)
-        .addAttr("value1", CDAttributType.CDdynamic)
-        .addAttr("value2", CDAttributType.CDdynamic);
+        .addAttr("model", CDAttributType.text)
+        .addAttr("colId", CDAttributType.text)
+        .addAttr("type", CDAttributType.text)
+        .addAttr("operator", CDAttributType.text)
+        .addAttr("value1", CDAttributType.dynamic)
+        .addAttr("value2", CDAttributType.dynamic);
 
     _initProvider();
   }
@@ -166,14 +166,17 @@ class CWApplication {
     dataModelProvider.addAction(
         CWProviderAction.onRowSelected, OnSelectModel());
 
-    dataModelProvider.loader =
+    dataModelProvider.getData().loader =
         CoreDataLoaderMap(loaderModel, listModel, "listData")
           ..setMapID("models");
 
     loaderModel.addProvider(dataModelProvider);
     //----------------------------------------------
-    dataAttributProvider = CWProvider("DataAttrProvider", "ModelAttributs",
-        CoreDataLoaderNested(loaderModel, dataModelProvider, "listAttr"));
+    dataAttributProvider = CWProvider(
+        "DataAttrProvider",
+        "ModelAttributs",
+        CWProviderDataSelector.loader(
+            CoreDataLoaderNested(loaderModel, dataModelProvider, "listAttr")));
 
     dataAttributProvider.header =
         collection.createEntityByJson("DataHeader", {"label": "?"});
@@ -186,8 +189,11 @@ class CWApplication {
         CWProviderAction.onRowSelected, OnSelectAttribut());
 
     //-------------------------------------------------------
-    dataProvider = CWProvider("DataProvider", "?",
-        CoreDataLoaderMap(loaderData, cacheMapData, "listData"));
+    dataProvider = CWProvider(
+        "DataProvider",
+        "?",
+        CWProviderDataSelector.loader(
+            CoreDataLoaderMap(loaderData, cacheMapData, "listData")));
     dataProvider.header =
         collection.createEntityByJson("DataHeader", {"label": "?"});
 
@@ -230,28 +236,45 @@ class CWApplication {
   }
 
   void initDataModelWithAttr(
-      CWWidgetLoaderCtx loader, CoreDataEntity tableEntity) {
+      CWAppLoaderCtx loader, CoreDataEntity tableEntity) {
     var listAttr = tableEntity.value["listAttr"];
     var name = tableEntity.value["_id_"];
 
     CoreDataObjectBuilder data = loader.collectionDataModel.addObject(name);
     for (var element in listAttr ?? []) {
-      data.addAttribut(element["_id_"], CDAttributType.CDtext);
+      data.addAttribut(element["_id_"], CDAttributType.text);
     }
     data.addGroup(loader.collectionDataModel.getClass("DataEntity")!);
   }
 
   CWProvider getDataProvider(
-      CWWidgetLoaderCtx loader, CoreDataEntity tableEntity) {
+      CWAppLoaderCtx loader, CoreDataEntity tableEntity) {
     var label = tableEntity.value["name"];
     var idData = tableEntity.value["_id_"];
-    CWProvider providerData = CWApplication.of().dataProvider;
-    providerData.type = idData;
-    CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-    dataLoader.setMapID(idData); // choix de la map a afficher
-    providerData.header!.value["label"] = label;
 
-    providerData.idxSelected = 0;
-    return providerData;
+    dataProvider.type = idData;
+    CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
+    dataLoader.setMapID(idData); // choix de la map a afficher
+    dataProvider.header!.value["label"] = label;
+
+    dataProvider.getData().idxSelected = 0;
+    return dataProvider;
+  }
+
+  CWProvider getDesignDataProvider(
+      CWAppLoaderCtx loader, CoreDataEntity tableEntity) {
+    //var label = tableEntity.value["name"];
+    var idData = tableEntity.value["_id_"];
+
+    CWProviderData dataLoaderFinal = CWProviderData(CoreDataLoaderMap(loader, cacheMapData, "listData")..setMapID(idData));
+    CWProviderData dataLoaderDesign = CWProviderData(null);
+
+    CWProvider designData =
+        CWProvider(idData, idData, CWProviderDataSelector(dataLoaderFinal, dataLoaderDesign, loaderDesigner));
+    
+    designData.type = idData;
+    designData.content.add(loader.collectionDataModel.createEntity(idData));
+    designData.getData().idxSelected = 0;
+    return designData;
   }
 }

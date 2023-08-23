@@ -7,9 +7,10 @@ import 'cw_core_selector.dart';
 import 'cw_core_widget.dart';
 
 class CWSlot extends CWWidget {
-  const CWSlot({required super.key, this.childForced, required super.ctx});
+  const CWSlot({required super.key, this.childForced, required super.ctx, required this.type});
 
   final Widget? childForced;
+  final String type;
 
   @override
   State<CWSlot> createState() => _CWSlotState();
@@ -36,8 +37,9 @@ class _CWSlotState extends StateCW<CWSlot> {
     return LayoutBuilder(builder: (context, constraints) {
       return widget.ctx.loader.mode == ModeRendering.design
           ? getSelector(contentWidget, _SlotDesign(contentWidget, constraints))
-          : getSlotDesign(
-              contentWidget, _SlotDesign(contentWidget, constraints));
+          : contentWidget ?? Container();
+      // : getSlotDesign(
+      //     contentWidget, _SlotDesign(contentWidget, constraints));
     });
   }
 
@@ -101,7 +103,7 @@ class _CWSlotState extends StateCW<CWSlot> {
     } else {
       //bool hasBoundedHeight = slotDesign.constraints.hasBoundedHeight;
 
-      var slot = const Center(
+      var slotEmpty = const Center(
           child: Text(
         'Drag here', //${widget.ctx.xid}
         style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
@@ -111,7 +113,7 @@ class _CWSlotState extends StateCW<CWSlot> {
           color: Colors.grey,
           dashPattern: const <double>[6, 6],
           strokeWidth: 1,
-          child: slot));
+          child: slotEmpty));
     }
   }
 }

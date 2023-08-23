@@ -26,13 +26,13 @@ class CWTextfield extends CWWidgetMap {
     c
         .addWidget("CWTextfield",
             (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
-        .addAttr('label', CDAttributType.CDtext)
-        .addAttr('withLabel', CDAttributType.CDbool)
+        .addAttr('label', CDAttributType.text)
+        .addAttr('withLabel', CDAttributType.bool)
         .withAction(AttrActionDefault(true))
-        .addAttr('bind', CDAttributType.CDtext)
-        .addAttr('providerName', CDAttributType.CDtext)
-        .addAttr('type', CDAttributType.CDtext)
-        .addAttr('mask', CDAttributType.CDtext);
+        .addAttr('bind', CDAttributType.text)
+        .addAttr('providerName', CDAttributType.text)
+        .addAttr('type', CDAttributType.text)
+        .addAttr('mask', CDAttributType.text);
   }
 
   String? getLabelNull() {
@@ -150,9 +150,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   void dispose() {
     _controller.dispose();
     _focus.removeListener(_onFocusChange);
-  //  if (!isRowFocus) {
+    if (!isRowFocus) {
       _focus.dispose();
-  //  }
+    }
     super.dispose();
   }
 

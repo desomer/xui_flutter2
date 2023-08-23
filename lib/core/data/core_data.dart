@@ -178,8 +178,7 @@ class CoreDataEntity {
     return this;
   }
 
-  CoreDataEntity setAttr(
-      CWWidgetLoaderCtx loader, String attrName, dynamic v) {
+  CoreDataEntity setAttr(CWAppLoaderCtx loader, String attrName, dynamic v) {
     final CoreDataAttribut? attr = getAttrByName(loader, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
@@ -189,12 +188,13 @@ class CoreDataEntity {
     return this;
   }
 
-  CoreDataAttribut? getAttrByName(
-      CWWidgetLoaderCtx loader, String attrName) {
-    final CoreDataObjectBuilder? builder = loader.collectionDataModel.getClass(type) ?? loader.collectionWidget.getClass(type);
+  CoreDataAttribut? getAttrByName(CWAppLoaderCtx loader, String attrName) {
+    final CoreDataObjectBuilder? builder =
+        loader.collectionDataModel.getClass(type) ??
+            loader.collectionWidget.getClass(type);
 
     CoreDataAttribut? attr = builder?.attributsByName[attrName];
-    if (builder!=null && attr == null) {
+    if (builder != null && attr == null) {
       for (var group in builder.groupAttributs) {
         attr = group.attributsByName[attrName];
         if (attr != null) return attr;
@@ -204,7 +204,7 @@ class CoreDataEntity {
   }
 
   CoreDataEntity setOne(
-      CWWidgetLoaderCtx loader, String attrName, CoreDataEntity v) {
+      CWAppLoaderCtx loader, String attrName, CoreDataEntity v) {
     final CoreDataAttribut? attr = getAttrByName(loader, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
@@ -215,7 +215,7 @@ class CoreDataEntity {
   }
 
   CoreDataEntity addMany(
-      CWWidgetLoaderCtx loader, String attrName, CoreDataEntity v) {
+      CWAppLoaderCtx loader, String attrName, CoreDataEntity v) {
     final CoreDataAttribut? attr = getAttrByName(loader, attrName);
     if (attr != null) {
       // ignore: avoid_dynamic_calls
@@ -346,7 +346,7 @@ class CoreDataEntity {
 
     var allAttribut = builder.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
-      if (attr.type == CDAttributType.CDone) {
+      if (attr.type == CDAttributType.one) {
         if (src[attr.name] != null) {
           ctx.pathData.add(attr);
           // un one
@@ -358,7 +358,7 @@ class CoreDataEntity {
           child._browse(ctx, collection, attr, o, '');
           ctx.pathData.removeLast();
         }
-      } else if (attr.type == CDAttributType.CDmany) {
+      } else if (attr.type == CDAttributType.many) {
         // un many
         if (src[attr.name] != null) {
           final List<dynamic> arr = src[attr.name] as List<dynamic>;
@@ -433,7 +433,7 @@ class CoreDataEntity {
     final CoreDataObjectBuilder builder = collection.getClass(type)!;
     var allAttribut = builder.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
-      if (attr.type == CDAttributType.CDone) {
+      if (attr.type == CDAttributType.one) {
         // un one
         if (src[attr.name] != null) {
           final CoreDataObjectBuilder builderOne =
@@ -447,7 +447,7 @@ class CoreDataEntity {
               dest[attr.name] as Map<String, dynamic>,
               src[attr.name] as Map<String, dynamic>);
         }
-      } else if (attr.type == CDAttributType.CDmany) {
+      } else if (attr.type == CDAttributType.many) {
         final List<dynamic> arr = src[attr.name] as List<dynamic>;
 
         // ignore: always_specify_types
@@ -600,7 +600,7 @@ class CoreDataAttribut {
   }
 
   late String name;
-  CDAttributType type = CDAttributType.CDtext;
+  CDAttributType type = CDAttributType.text;
   String? typeName;
 
   Map<int, List<CoreDataValidator>> validators =
@@ -686,17 +686,7 @@ class CoreDataCtx {
   }
 }
 
-// ignore: constant_identifier_names
-enum CDAttributType {
-  CDtext,
-  CDint,
-  CDdec,
-  CDdate,
-  CDbool,
-  CDone,
-  CDmany,
-  CDdynamic
-}
+enum CDAttributType { text, int, dec, date, bool, one, many, dynamic }
 
 enum CDPriority { min, moy, norm, mid, max }
 

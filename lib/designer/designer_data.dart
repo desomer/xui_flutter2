@@ -18,7 +18,7 @@ class DesignerData extends StatefulWidget {
 class _DesignerDataState extends State<DesignerData> {
   @override
   Widget build(BuildContext context) {
-    CWWidgetLoaderCtx loader = CWApplication.of().loaderData;
+    CWAppLoaderCtx loader = CWApplication.of().loaderData;
 
     var tableEntity = CWApplication.of().dataModelProvider.getSelectedEntity();
     if (tableEntity == null) return const Text('');
@@ -62,9 +62,8 @@ class SetDate extends CoreDataAction {
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    event!.provider!.getSelectedEntity()!.setAttr(
-        ctx!.loader,
-        name,
-        DateTime.timestamp().toIso8601String());
+    event!.provider!
+        .getSelectedEntity()!
+        .setAttr(ctx!.loader, name, DateTime.timestamp().toIso8601String());
   }
 }

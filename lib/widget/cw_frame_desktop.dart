@@ -1,8 +1,10 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 
+import '../core/data/core_data.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../designer/cw_factory.dart';
 import '../designer/designer.dart';
 
 class CWFrameDesktop extends CWWidget {
@@ -12,6 +14,16 @@ class CWFrameDesktop extends CWWidget {
 
   @override
   State<CWFrameDesktop> createState() => _CWFrameDesktop();
+
+  static initFactory(CWWidgetCollectionBuilder c) {
+    c
+        .addWidget("CWFrameDesktop",
+            (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
+        .addAttr('title', CDAttributType.text)
+        .addAttr('fill', CDAttributType.bool)
+        .addAttr('nbBtnBottomNavBar', CDAttributType.int)
+        .withAction(AttrActionDefault(0));
+  }
 
   @override
   initSlot(String path) {
@@ -25,6 +37,10 @@ class CWFrameDesktop extends CWWidget {
 
   bool isFill() {
     return ctx.designEntity!.getBool('fill', false);
+  }
+
+  int nbBtnBottomNavBar() {
+    return ctx.designEntity!.getInt('nbBtnBottomNavBar', 0);
   }
 }
 
@@ -61,10 +77,13 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
           CoreDesigner.emit(CDDesignEvent.reselect, null);
         });
       }
+
       var slot = CWSlot(
+          type: "root",
           key: widget.keySlotMain,
           ctx: widget.ctx,
           childForced: MaterialApp(
+              theme: ThemeData().copyWith(scaffoldBackgroundColor: Colors.blue),
               debugShowCheckedModeBanner: false,
               title: 'ElisView',
               builder: DevicePreview.appBuilder,
@@ -73,13 +92,59 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
               // darkTheme: ThemeData.dark(),
               home: Scaffold(
                   appBar: AppBar(
+                    backgroundColor: Colors.blue,
+                    elevation: 0,
+                    leading: const Icon(Icons.menu),
                     title: Text(widget.getTitle()),
+                    actions: [
+                      // Icon(Icons.favorite),
+                      // Padding(
+                      //   padding: EdgeInsets.symmetric(horizontal: 16),
+                      //   child: Icon(Icons.search),
+                      // ),
+                      IconButton(
+                        icon: const Icon(Icons.more_vert),
+                        onPressed: () {},
+                      ),
+                    ],
                   ),
-                  body: getBody())));
+                  body: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20)),
+                      child: Container(color: Colors.white, child: getBody())),
+                  bottomNavigationBar: getBottomBar(context))));
 
       widget.ctx.inSlot = slot;
       return slot;
     });
+  }
+
+  MediaQuery? getBottomBar(BuildContext context) {
+    var bottomBar = getBottomNavigation();
+    if (bottomBar == null) return null;
+    return MediaQuery(
+      data: MediaQuery.of(context).removePadding(removeBottom: true),
+      child: bottomBar,
+    );
+  }
+
+  BottomNavigationBar? getBottomNavigation() {
+    if (widget.nbBtnBottomNavBar() < 2) return null;
+
+    List<BottomNavigationBarItem> listBtn = [];
+    for (var i = 0; i < widget.nbBtnBottomNavBar(); i++) {
+      listBtn.add(const BottomNavigationBarItem(
+        label: "Home",
+        icon: Icon(Icons.home),
+      ));
+    }
+
+    return BottomNavigationBar(
+        currentIndex: 0,
+        //fixedColor: Colors.green,
+        items: listBtn,
+        onTap: (int indexOfItem) {});
   }
 
   Widget getBody() {
@@ -87,6 +152,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
       return Column(children: [
         Expanded(
             child: CWSlot(
+                type: "body",
                 key: GlobalKey(debugLabel: "slot body"),
                 ctx: widget.createChildCtx('Body', null)))
       ]);
@@ -99,6 +165,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
           child: SingleChildScrollView(
             child: Column(children: [
               CWSlot(
+                  type: "body",
                   key: GlobalKey(debugLabel: "slot body"),
                   ctx: widget.createChildCtx('Body', null))
             ]),

@@ -58,7 +58,7 @@ class WidgetAddBtn extends StatefulWidget {
       : super(key: key);
 
   final CWProvider provider;
-  final CWWidgetLoaderCtx loader;
+  final CWAppLoaderCtx loader;
   final String? repaintXid;
 
   @override

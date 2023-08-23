@@ -9,15 +9,15 @@ import 'cw_list.dart';
 class CWArrayRow extends StatefulWidget {
   const CWArrayRow(
       {required this.rowIdx,
-      required this.children,
+      //required this.children,
       required this.stateArray,
-      required this.getRow,
+      required this.getRowBuilder,
       required Key? key})
       : super(key: key);
   final int rowIdx;
-  final List<Widget> children;
+  //final List<Widget> children;
   final StateCW<CWArray> stateArray;
-  final Function getRow;
+  final Function(CWArrayRowState) getRowBuilder;
 
   @override
   State<CWArrayRow> createState() => CWArrayRowState();
@@ -30,8 +30,8 @@ class CWArrayRow extends StatefulWidget {
       ctxWE.provider = provider;
       ctxWE.payload = rowIdx;
       ctxWE.loader = stateArray.widget.ctx.loader;
-      if (provider.idxSelected != rowIdx) {
-        provider.idxSelected = rowIdx;
+      if (provider.getData().idxSelected != rowIdx) {
+        provider.getData().idxSelected = rowIdx;
         provider.doAction(ctx, ctxWE, CWProviderAction.onRowSelected);
       }
     }
@@ -49,18 +49,20 @@ class CWArrayRowState extends State<CWArrayRow> {
   @override
   void dispose() {
     super.dispose();
-    //print("remove row ${widget.rowIdx}");
+    print("remove row ${widget.rowIdx}");
     //widget.stateArray.widget.listState.remove(widget.rowIdx);
-    // for (var element in mapFocus.entries) {
-    //   element.value.dispose();
-    // }
-    //mapFocus.clear();
+    for (var element in mapFocus.entries) {
+      element.value.dispose();
+    }
+    mapFocus.clear();
   }
 
   Map<String, FocusNode> mapFocus = {};
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> listSlot = widget.getRowBuilder(this);
+
     var rowState = InheritedStateContainer(
         key: ValueKey(widget.rowIdx),
         index: widget.rowIdx,
@@ -68,7 +70,7 @@ class CWArrayRowState extends State<CWArrayRow> {
         rowState: this,
         child: Stack(children: [
           Row(
-            children: widget.getRow(),
+            children: listSlot,
           ),
           IgnorePointer(child: LayoutBuilder(
             builder: (context, constraints) {
@@ -78,7 +80,8 @@ class CWArrayRowState extends State<CWArrayRow> {
 
               return CustomPaint(
                 size: Size(constraints.maxWidth, 20),
-                painter: r.operation == CDAction.delete ? MyPainter() : null,
+                painter:
+                    r.operation == CDAction.delete ? RowDeletePainter() : null,
               );
             },
           ))
@@ -87,7 +90,7 @@ class CWArrayRowState extends State<CWArrayRow> {
   }
 }
 
-class MyPainter extends CustomPainter {
+class RowDeletePainter extends CustomPainter {
   //         <-- CustomPainter class
   @override
   void paint(Canvas canvas, Size size) {

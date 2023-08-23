@@ -6,11 +6,11 @@ import '../../designer/cw_factory.dart';
 import 'cw_core_widget.dart';
 
 abstract class CWWidgetLoader {
-  CWWidgetLoader(CWWidgetLoaderCtx ctx) {
+  CWWidgetLoader(CWAppLoaderCtx ctx) {
     ctxLoader = ctx;
   }
 
-  late CWWidgetLoaderCtx ctxLoader;
+  late CWAppLoaderCtx ctxLoader;
 
   CoreDataEntity get cwFactory {
     return ctxLoader.entityCWFactory;
@@ -89,15 +89,23 @@ abstract class CWWidgetLoader {
   CoreDataEntity getCWFactory();
 }
 
-class CWWidgetLoaderCtx {
+class CWAppLoaderCtx {
   late CoreDataCollection collectionWidget;
   late CoreDataCollection collectionDataModel;
   late WidgetFactoryEventHandler factory;
   late CoreDataEntity entityCWFactory;
-  late ModeRendering mode;
+  late ModeRendering _mode;
 
-  CWWidgetLoaderCtx from(CWWidgetLoaderCtx ctx) {
-    mode = ModeRendering.view;
+  ModeRendering get mode {
+    return _mode;
+  }
+
+  setModeRendering(ModeRendering aMode) {
+    _mode = aMode;
+  }
+
+  CWAppLoaderCtx from(CWAppLoaderCtx ctx) {
+    _mode = ModeRendering.view;
     collectionWidget = ctx.collectionWidget;
     collectionDataModel = ctx.collectionDataModel;
     createFactory();

@@ -7,7 +7,7 @@ import '../../core/data/core_provider.dart';
 class FormBuilder {
   //static const String providerName = "Form";
 
-  List<Widget> getFormWidget(CWProvider provider, CWWidgetLoaderCtx ctxLoader) {
+  List<Widget> getFormWidget(CWProvider provider, CWAppLoaderCtx ctxLoader) {
     var listWidget = <Widget>[];
     CoreDataEntity entity = provider.getEntityByIdx(0);
 
@@ -23,11 +23,11 @@ class FormBuilder {
     AttrFormLoader loader = AttrFormLoader(ctxLoader, entity, provider);
     var allAttribut = builder!.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
-      if (attr.type == CDAttributType.CDone) {
+      if (attr.type == CDAttributType.one) {
         if (src[attr.name] != null) {
           // lien one2one
         }
-      } else if (attr.type == CDAttributType.CDmany) {
+      } else if (attr.type == CDAttributType.many) {
       } else {
         loader.addAttr(attr);
       }
@@ -41,7 +41,8 @@ class FormBuilder {
 }
 
 class AttrFormLoader extends CWWidgetLoader {
-  AttrFormLoader(CWWidgetLoaderCtx ctxLoader, this.entity, this.provider) : super(ctxLoader) {
+  AttrFormLoader(CWAppLoaderCtx ctxLoader, this.entity, this.provider)
+      : super(ctxLoader) {
     setRoot("root", "CWExpandPanel");
   }
 
@@ -50,7 +51,7 @@ class AttrFormLoader extends CWWidgetLoader {
   CoreDataEntity entity;
 
   void addAttr(CoreDataAttribut attribut) {
-    if (attribut.type == CDAttributType.CDbool) {
+    if (attribut.type == CDAttributType.bool) {
       addWidget('Col0Cont$nbAttr', 'attr$nbAttr', "CWSwitch", <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
@@ -61,7 +62,7 @@ class AttrFormLoader extends CWWidgetLoader {
           'Col0Cont$nbAttr', 'attr$nbAttr', "CWTextfield", <String, dynamic>{
         'label': attribut.name,
         'bind': attribut.name,
-        'providerName':provider.name
+        'providerName': provider.name
       });
 
       // CoreDataEntity ent = cwFactory.getPath(collection, path).getLast();

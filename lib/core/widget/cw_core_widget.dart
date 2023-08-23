@@ -81,7 +81,7 @@ abstract class CWWidgetMap extends CWWidget {
     if (provider != null) {
       if (row != null) {
         //print("row.index = ${row.index}");
-        provider.idxDisplayed = row.index!;
+        provider.getData().idxDisplayed = row.index!;
       }
     }
   }
@@ -162,7 +162,7 @@ abstract class CWWidgetMap extends CWWidget {
   void setIdx(int idx) {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
-      provider.idxDisplayed = idx;
+      provider.getData().idxDisplayed = idx;
     }
   }
 
@@ -179,7 +179,7 @@ class CWWidgetCtx {
   CWWidgetCtx(this.xid, this.loader, this.pathWidget);
   String xid;
   String pathWidget;
-  CWWidgetLoaderCtx loader;
+  CWAppLoaderCtx loader;
   CoreDataEntity? designEntity;
   String? pathDataDesign;
   String? pathDataCreate;
@@ -276,7 +276,7 @@ class CWWidgetEvent {
   String? action;
   dynamic payload;
   CWProvider? provider;
-  CWWidgetLoaderCtx? loader;
+  CWAppLoaderCtx? loader;
   dynamic ret;
   String? retAction;
 }

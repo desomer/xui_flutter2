@@ -12,26 +12,23 @@ import '../designer/cw_factory.dart';
 enum CWExpandAction { actions }
 
 class CWExpandPanel extends CWWidget {
-  
-
-
   const CWExpandPanel({Key? key, required super.ctx}) : super(key: key);
 
   static initFactory(CWWidgetCollectionBuilder c) {
     c.collection
         .addObject('CWExpandConstraint')
-        .addAttr(CWExpandAction.actions.toString(), CDAttributType.CDmany);
+        .addAttr(CWExpandAction.actions.toString(), CDAttributType.many);
 
     c.collection
         .addObject('CWAction')
-        .addAttr('_idAction_', CDAttributType.CDtext)
-        .addAttr('label', CDAttributType.CDtext)
-        .addAttr('icon', CDAttributType.CDtext);
+        .addAttr('_idAction_', CDAttributType.text)
+        .addAttr('label', CDAttributType.text)
+        .addAttr('icon', CDAttributType.text);
 
     c
         .addWidget("CWExpandPanel",
             (CWWidgetCtx ctx) => CWExpandPanel(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint);
+        .addAttr('count', CDAttributType.int);
   }
 
   @override
@@ -63,8 +60,8 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
     final nb = widget.getNb();
     for (var i = 0; i < nb; i++) {
       listInfo.add(ExpandInfo(
-          CWSlot(key: GlobalKey(), ctx: widget.createChildCtx("Title", i)),
-          CWSlot(key: GlobalKey(), ctx: widget.createChildCtx("Body", i))));
+          CWSlot(type: "title", key: GlobalKey(), ctx: widget.createChildCtx("Title", i)),
+          CWSlot(type: "body",key: GlobalKey(), ctx: widget.createChildCtx("Body", i))));
     }
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -103,7 +100,8 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
   Widget getHeader(ExpandInfo step) {
     CWWidgetCtx? constraint =
         widget.ctx.factory.mapConstraintByXid[step.title.ctx.xid];
-    List<dynamic>? actions = constraint?.designEntity?.value[CWExpandAction.actions.toString()];
+    List<dynamic>? actions =
+        constraint?.designEntity?.value[CWExpandAction.actions.toString()];
 
     List<Widget> header = [
       GestureDetector(

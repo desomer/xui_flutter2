@@ -31,7 +31,7 @@ class _CwLoaderState extends StateCW<CWLoader> {
     getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
-      return CWSlot(
+      return CWSlot( type: "body",
           key: widget.ctx.getSlotKey('Cont', ''),
           ctx: widget.createChildCtx('Cont', null));
     }

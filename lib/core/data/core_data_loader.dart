@@ -22,7 +22,7 @@ abstract class CoreDataLoader {
 }
 
 class CoreDataLoaderMap extends CoreDataLoader {
-  final CWWidgetLoaderCtx _loader;
+  final CWAppLoaderCtx _loader;
 
   String? _mapQueryId;
   final Map<String, CoreDataEntity> _dicoDataContainerEntity;
@@ -175,17 +175,15 @@ class CoreDataLoaderMap extends CoreDataLoader {
 ///////////////////////////////////////////////////////////////////////////////
 
 class CoreDataLoaderNested extends CoreDataLoader {
-  CWWidgetLoaderCtx loader;
+  CWAppLoaderCtx loader;
   CWProvider providerParent;
   String attribut;
   CoreDataLoaderNested(this.loader, this.providerParent, this.attribut);
 
   @override
   addData(CoreDataEntity data) {
-    if (providerParent.idxSelected >= 0 &&
-        providerParent.idxSelected < providerParent.content.length) {
-      CoreDataEntity selected =
-          providerParent.content[providerParent.idxSelected];
+    CoreDataEntity? selected = providerParent.getSelectedEntity();
+    if (selected != null) {
       List<dynamic>? result = selected.value[attribut];
       result?.add(data.value);
     }
@@ -199,10 +197,8 @@ class CoreDataLoaderNested extends CoreDataLoader {
   @override
   List<CoreDataEntity> getDataSync() {
     List<CoreDataEntity> ret = [];
-    if (providerParent.idxSelected >= 0 &&
-        providerParent.idxSelected < providerParent.content.length) {
-      CoreDataEntity selected =
-          providerParent.content[providerParent.idxSelected];
+    CoreDataEntity? selected = providerParent.getSelectedEntity();
+    if (selected != null) {
       List<dynamic>? result = selected.value[attribut];
       if (result != null) {
         for (Map<String, dynamic> element in result) {
@@ -230,8 +226,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
 
   @override
   deleteData(content) {
-    CoreDataEntity selected =
-        providerParent.content[providerParent.idxSelected];
+    CoreDataEntity selected = providerParent.getSelectedEntity()!;
     List<dynamic> result = selected.value[attribut];
     for (var element in content as List) {
       result.remove(element);
@@ -251,8 +246,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    CoreDataEntity selected =
-        providerParent.content[providerParent.idxSelected];
+    CoreDataEntity selected = providerParent.getSelectedEntity()!;
     List<dynamic> result = selected.value[attribut];
     final item = result.removeAt(oldIndex);
     result.insert(newIndex, item);

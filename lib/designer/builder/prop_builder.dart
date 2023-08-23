@@ -36,8 +36,9 @@ class PropBuilder {
 
         designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
 
-        var provider = CWProvider("properties", designEntity.type, null)
-          ..add(designEntity);
+        var provider = CWProvider(
+            "properties", designEntity.type, CWProviderDataSelector.noLoader())
+          ..addContent(designEntity);
         provider.addAction(
             CWProviderAction.onValueChanged, RefreshDesign(aCtx));
         provider.addAction(
@@ -45,7 +46,7 @@ class PropBuilder {
         provider.addAction(
             CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
 
-        CWWidgetLoaderCtx loader = CWWidgetLoaderCtx().from(ctx.loader);
+        CWAppLoaderCtx loader = CWAppLoaderCtx().from(ctx.loader);
         listProp.addAll(FormBuilder().getFormWidget(provider, loader));
       }
 
@@ -78,14 +79,15 @@ class PropBuilder {
       constraintEntity ??=
           PropBuilder.getEmptyEntity(slotCtx.loader, aCtxConstraint);
 
-      var provider = CWProvider("constraint", constraintEntity.type, null)
-        ..add(constraintEntity);
+      var provider = CWProvider("constraint", constraintEntity.type,
+          CWProviderDataSelector.noLoader())
+        ..addContent(constraintEntity);
       provider.addAction(
           CWProviderAction.onValueChanged, RefreshDesignParent(ctxDesign));
       provider.addAction(CWProviderAction.onStateNone2Create,
           MapConstraint(aCtxConstraint, constraintEntity));
 
-      CWWidgetLoaderCtx loader = CWWidgetLoaderCtx().from(slotCtx.loader);
+      CWAppLoaderCtx loader = CWAppLoaderCtx().from(slotCtx.loader);
       listProp.addAll(FormBuilder().getFormWidget(provider, loader));
     }
   }
@@ -93,13 +95,13 @@ class PropBuilder {
   /////////////////////////////////////////////////////////////////////////////
 
   static CoreDataEntity preparePropChange(
-      CWWidgetLoaderCtx loader, DesignCtx aCtx) {
-    // TODO : a faire  : exemple height du Tab  
+      CWAppLoaderCtx loader, DesignCtx aCtx) {
+    // TODO : a faire  : exemple height du Tab
 
     // recherche de la properties Height
     //  soit le slot constraint
     //  soit la height de l'enfant
-    //  soit le parent      
+    //  soit le parent
 
     var prop = aCtx.widget!.ctx.designEntity;
     if (prop == null) {
@@ -111,16 +113,16 @@ class PropBuilder {
     return prop;
   }
 
-  static CoreDataEntity getEmptyEntity(
-      CWWidgetLoaderCtx loader, DesignCtx aCtx) {
+  static CoreDataEntity getEmptyEntity(CWAppLoaderCtx loader, DesignCtx aCtx) {
     CoreDataEntity? emptyEntity;
     if (aCtx.isSlot) {
       SlotConfig sc = loader.factory.mapSlotConstraintByPath[aCtx.pathWidget]!;
-      if (sc.constraintEntity!=null) {
-        emptyEntity = loader.collectionWidget.createEntity(sc.constraintEntity!);
+      if (sc.constraintEntity != null) {
+        emptyEntity =
+            loader.collectionWidget.createEntity(sc.constraintEntity!);
       }
-    } 
-    if (emptyEntity==null) {
+    }
+    if (emptyEntity == null) {
       CoreDataPath? path = loader.entityCWFactory
           .getPath(loader.collectionWidget, aCtx.pathCreate!);
       String impl = path.entities.last.value['implement'];

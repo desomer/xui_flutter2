@@ -19,11 +19,13 @@ class DesignerAttribut extends StatefulWidget {
 class _DesignerAttributState extends State<DesignerAttribut> {
   @override
   Widget build(BuildContext context) {
-    CWWidgetLoaderCtx loader =
-        CWWidgetLoaderCtx().from(CWApplication.of().loaderModel);
+    CWAppLoaderCtx loader =
+        CWAppLoaderCtx().from(CWApplication.of().loaderModel);
 
-    var provider = CWProvider("AttrProvider", 'DataAttribut', null)
-      ..add(loader.collectionDataModel.createEntityByJson("DataAttribut", {}));
+    var provider = CWProvider(
+        "AttrProvider", 'DataAttribut', CWProviderDataSelector.noLoader())
+      ..addContent(
+          loader.collectionDataModel.createEntityByJson("DataAttribut", {}));
 
     provider.header = loader.collectionDataModel
         .createEntityByJson("DataHeader", {"label": "Attribut"});

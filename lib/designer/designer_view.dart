@@ -7,6 +7,7 @@ import '../core/widget/cw_core_widget.dart';
 import '../test_loader.dart';
 import 'application_manager.dart';
 import 'cw_factory.dart';
+import 'designer.dart';
 
 // ignore: must_be_immutable
 class DesignerView extends StatefulWidget {
@@ -29,9 +30,30 @@ class DesignerView extends StatefulWidget {
   void rebuild() {
     rootWidget = null;
     state?.stack = null;
+    loader?.ctxLoader.factory.mapWidgetByXid.clear();
   }
 
+  void repaintAll() {
+    // ignore: invalid_use_of_protected_member
+    CoreDesigner.of().designerKey.currentState?.setState(() {});
+    for (var element in loader!.ctxLoader.factory.mapWidgetByXid.entries) {
+      element.value.repaint();
+    }
+  }
+
+  bool isInitiaziled = false;
   Widget getRoot() {
+    if (!isInitiaziled) {
+      isInitiaziled = true;
+      CoreDesigner.on(CDDesignEvent.preview, (arg) {
+        bool isPreviewMode = arg as bool;
+        loader?.ctxLoader.setModeRendering(
+            isPreviewMode ? ModeRendering.view : ModeRendering.design);
+        rebuild();
+        repaintAll();
+      });
+    }
+
     if (rootWidget != null) return rootWidget!;
 
     loader ??= CWLoaderTest(CWApplication.of().loaderDesigner);

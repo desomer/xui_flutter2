@@ -31,7 +31,8 @@ class _DesignerListModelState extends State<DesignerListModel> {
           "List",
           constraints);
 
-      listModel.add(WidgetHelpBounce(child :  WidgetAddBtn(
+      listModel.add(WidgetHelpBounce(
+          child: WidgetAddBtn(
         provider: CWApplication.of().dataModelProvider,
         loader: CWApplication.of().loaderModel,
         repaintXid: "rootModelCol0",
@@ -45,7 +46,7 @@ class _DesignerListModelState extends State<DesignerListModel> {
 
 class OnInsertModel extends CoreDataAction {
   OnInsertModel(this.loader);
-  CWWidgetLoaderCtx loader;
+  CWAppLoaderCtx loader;
 
   @override
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
@@ -89,7 +90,6 @@ class OnSelectModel extends CoreDataAction {
     CoreDesigner.of().dataFilterKey.currentState?.setState(() {});
     // ignore: invalid_use_of_protected_member
     CoreDesigner.of().dataKey.currentState?.setState(() {});
-
   }
 }
 
@@ -106,7 +106,7 @@ class _DesignerModelState extends State<DesignerModel> {
   Widget build(BuildContext context) {
     CWProvider providerAttr = CWApplication.of().dataAttributProvider;
 
-    if (CWApplication.of().dataModelProvider.idxSelected > -1) {
+    if (CWApplication.of().dataModelProvider.getData().idxSelected > -1) {
       var name = CWApplication.of()
               .dataModelProvider
               .getSelectedEntity()

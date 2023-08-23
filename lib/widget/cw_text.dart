@@ -15,10 +15,10 @@ class CWText extends CWWidgetMap {
     c
         .addWidget(
             "CWText", (CWWidgetCtx ctx) => CWText(key: ctx.getKey(), ctx: ctx))
-        .addAttr('label', CDAttributType.CDtext)
-        .addAttr('bind', CDAttributType.CDtext)
-        .addAttr('providerName', CDAttributType.CDtext)        
-        .addAttr('textColor', CDAttributType.CDtext);
+        .addAttr('label', CDAttributType.text)
+        .addAttr('bind', CDAttributType.text)
+        .addAttr('providerName', CDAttributType.text)
+        .addAttr('textColor', CDAttributType.text);
   }
 
   @override
@@ -56,8 +56,7 @@ class _CWTextState extends StateCW<CWText> {
   Widget getBox(Widget child) {
     return widget.ctx.factory.loader.mode == ModeRendering.design
         ? ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 30),
-            child: child)
+            constraints: const BoxConstraints(minWidth: 30), child: child)
         : child;
   }
 }

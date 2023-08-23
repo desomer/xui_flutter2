@@ -15,10 +15,10 @@ class CWTab extends CWWidget {
     c
         .addWidget(
             "CWTab", (CWWidgetCtx ctx) => CWTab(key: ctx.getKey(), ctx: ctx))
-        .addAttr('tabCount', CDAttributType.CDint)
+        .addAttr('tabCount', CDAttributType.int)
         .withAction(AttrActionDefault(2))
-        .addAttr('heightTabBar', CDAttributType.CDint)
-        .addAttr('height', CDAttributType.CDint);
+        .addAttr('heightTabBar', CDAttributType.int)
+        .addAttr('height', CDAttributType.int);
   }
 
   @override
@@ -79,6 +79,7 @@ class _CWTabState extends StateCW<CWTab> {
           Tab(
               height: heightHeader,
               child: CWSlot(
+                  type: "selector",
                   key: GlobalKey(debugLabel: 'tab btn slot ${widget.ctx.xid}'),
                   ctx: widget.createChildCtx('Tab', i))));
     }
@@ -100,18 +101,20 @@ class _CWTabState extends StateCW<CWTab> {
       Widget slot;
       if (fixedHeight != -1) {
         slot = Container(
-                constraints:
-                    BoxConstraints(minHeight: viewportConstraints.maxHeight),
-                child: Column(children: [
-                  Expanded(
-                      child: CWSlot(
-                          key: GlobalKey(
-                              debugLabel: 'tab cont slot ${widget.ctx.xid}'),
-                          ctx: widget.createChildCtx('Cont', i)))
-                ]));
+            constraints:
+                BoxConstraints(minHeight: viewportConstraints.maxHeight),
+            child: Column(children: [
+              Expanded(
+                  child: CWSlot(
+                      type: "body",
+                      key: GlobalKey(
+                          debugLabel: 'tab cont slot ${widget.ctx.xid}'),
+                      ctx: widget.createChildCtx('Cont', i)))
+            ]));
       } else {
         slot = SingleChildScrollView(
             child: CWSlot(
+                type: "body",
                 key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
                 ctx: widget.createChildCtx('Cont', i)));
       }
@@ -123,10 +126,11 @@ class _CWTabState extends StateCW<CWTab> {
       //     height: widget.getHeight().toDouble(),
       //     child: TabBarView(children: listTab));
       return SizedBox(
-                height: widget.getHeight().toDouble(),
-                child: TabBarView(children: listTab));          
+          height: widget.getHeight().toDouble(),
+          child: TabBarView(children: listTab));
     } else {
-      return SizedBox(height: fixedHeight, child: TabBarView(children: listTab));
+      return SizedBox(
+          height: fixedHeight, child: TabBarView(children: listTab));
     }
   }
 }

@@ -18,7 +18,7 @@ abstract class CWContainer extends CWWidget {
   }
 
   Widget getCell(int i, bool defFill, {required bool canFill}) {
-    var slot = CWSlot(
+    var slot = CWSlot(type: "body",
         key: GlobalKey(debugLabel: 'slot ${ctx.xid}$i'),
         ctx: createChildCtx("Cont", i));
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
@@ -60,16 +60,16 @@ class CWColumn extends CWContainer {
     c
         .addWidget("CWColumn",
             (CWWidgetCtx ctx) => CWColumn(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint)
+        .addAttr('count', CDAttributType.int)
         .withAction(AttrActionDefault(3))
-        .addAttr('fill', CDAttributType.CDbool)
+        .addAttr('fill', CDAttributType.bool)
         .withAction(AttrActionDefault(true));
 
     c.collection
         .addObject('CWColConstraint')
-        .addAttr('flex', CDAttributType.CDint)
-        .addAttr('tight/loose', CDAttributType.CDbool)
-        .addAttr('height', CDAttributType.CDint);
+        .addAttr('flex', CDAttributType.int)
+        .addAttr('tight/loose', CDAttributType.bool)
+        .addAttr('height', CDAttributType.int);
     // .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
     // .addAttr('max (ConstrainedBox)', CDAttributType.CDint);
     //    .addAttr('% ()', CDAttributType.CDint);
@@ -156,9 +156,9 @@ class CWRow extends CWContainer {
   static initFactory(CWWidgetCollectionBuilder c) {
     c.collection
             .addObject('CWRowConstraint')
-            .addAttr('flex', CDAttributType.CDint)
-            .addAttr('tight/loose', CDAttributType.CDbool)
-            .addAttr('width (sizedBox)', CDAttributType.CDint)
+            .addAttr('flex', CDAttributType.int)
+            .addAttr('tight/loose', CDAttributType.bool)
+            .addAttr('width (sizedBox)', CDAttributType.int)
         // .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
         // .addAttr('max (ConstrainedBox)', CDAttributType.CDint)
         // .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
@@ -168,9 +168,9 @@ class CWRow extends CWContainer {
     c
         .addWidget(
             "CWRow", (CWWidgetCtx ctx) => CWRow(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint)
+        .addAttr('count', CDAttributType.int)
         .withAction(AttrActionDefault(3))
-        .addAttr('fill', CDAttributType.CDbool)
+        .addAttr('fill', CDAttributType.bool)
         .withAction(AttrActionDefault(true));
   }
 

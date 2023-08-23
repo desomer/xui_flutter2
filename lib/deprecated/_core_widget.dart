@@ -47,12 +47,12 @@ class CoreWidgetFactory {
 
   void processProp(CoreDataCtx ctx, CoreWidgetCtx ctxW) {
     // init les one 2 one
-    if (ctx.event!.attr.type == CDAttributType.CDone) {
+    if (ctx.event!.attr.type == CDAttributType.one) {
       ctxW.current!.param[ctx.event!.attr.name] = ctxW.current!.widgetValue;
     }
 
     // init les one 2 many
-    if (ctx.event!.attr.type == CDAttributType.CDmany) {
+    if (ctx.event!.attr.type == CDAttributType.many) {
       if (ctx.event!.attr.typeName == 'Widget') {
         ctxW.current!.param[ctx.event!.attr.name] = <Widget>[];
       }
@@ -187,7 +187,7 @@ class CoreWidgetFactoryEventHandler extends CoreBrowseEventHandler {
     if (ctx.event!.action == 'browserAttr') {
       final String id = ctx.getPathData();
       trace('---> browserAttr <$id> ${ctx.event!.attr.type}');
-      if (ctx.event!.attr.type == CDAttributType.CDmany) {
+      if (ctx.event!.attr.type == CDAttributType.many) {
         dictionaryWidgets[ctx.event!.builder.name]
             ?.processProp(ctx, CoreWidgetCtx(tree[id]!, tree[idParent]));
       } else {

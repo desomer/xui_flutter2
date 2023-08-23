@@ -7,7 +7,7 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/cw_factory.dart';
-import 'cw_row.dart';
+import 'cw_array_row.dart';
 import 'cw_toolkit.dart';
 
 // ignore: must_be_immutable
@@ -28,8 +28,8 @@ class CWList extends CWWidgetMap {
     c
         .addWidget(
             "CWList", (CWWidgetCtx ctx) => CWList(key: ctx.getKey(), ctx: ctx))
-        .addAttr('reorder', CDAttributType.CDbool)
-        .addAttr('providerName', CDAttributType.CDtext);
+        .addAttr('reorder', CDAttributType.bool)
+        .addAttr('providerName', CDAttributType.text);
   }
 
   bool getReorder() {
@@ -112,10 +112,11 @@ class _CwListState extends StateCW<CWList> {
           index: index,
           arrayState: this,
           child: CWSlot(
+              type: "dataCell",
               key: widget.ctx.getSlotKey('Cont$index', ''),
               ctx: widget.createInArrayCtx('Cont', null)));
 
-      if (provider!.idxSelected == index) {
+      if (provider!.getData().idxSelected == index) {
         keyObserve = rowState.key as GlobalKey<State<StatefulWidget>>?;
       }
 
@@ -232,8 +233,8 @@ class InheritedStateContainer extends InheritedWidget {
       ctxWE.provider = provider;
       ctxWE.payload = index;
       ctxWE.loader = arrayState.widget.ctx.loader;
-      if (provider.idxSelected != index) {
-        provider.idxSelected = index!;
+      if (provider.getData().idxSelected != index) {
+        provider.getData().idxSelected = index!;
         provider.doAction(ctx, ctxWE, CWProviderAction.onRowSelected);
         if (arrayState is _CwListState) {
           // affiche la ligne selectionné

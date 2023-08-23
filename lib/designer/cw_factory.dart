@@ -25,19 +25,15 @@ class CWWidgetCollectionBuilder {
 
   /////////////////////////////////////////////////////////////////////////
   void _initWidget() {
-    addWidget("CWFrameDesktop",
-            (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
-        .addAttr('title', CDAttributType.CDtext)
-        .addAttr('fill', CDAttributType.CDbool);
-
+    CWFrameDesktop.initFactory(this);
     CWTab.initFactory(this);
     CWTextfield.initFactory(this);
 
     addWidget("CWSwitch",
             (CWWidgetCtx ctx) => CWSwitch(key: ctx.getKey(), ctx: ctx))
-        .addAttr('label', CDAttributType.CDtext)
-        .addAttr('bind', CDAttributType.CDtext)
-        .addAttr('providerName', CDAttributType.CDtext);
+        .addAttr('label', CDAttributType.text)
+        .addAttr('bind', CDAttributType.text)
+        .addAttr('providerName', CDAttributType.text);
 
     CWLoader.initFactory(this);
     CWExpandPanel.initFactory(this);
@@ -52,20 +48,20 @@ class CWWidgetCollectionBuilder {
   void _initCollection() {
     collection
         .addObject('CWFactory')
-        .addAttr('child', CDAttributType.CDone, tname: 'CWChild')
-        .addAttr('designs', CDAttributType.CDmany, tname: 'CWDesign');
+        .addAttr('child', CDAttributType.one, tname: 'CWChild')
+        .addAttr('designs', CDAttributType.many, tname: 'CWDesign');
 
     collection
         .addObject('CWDesign')
-        .addAttr('xid', CDAttributType.CDtext)
-        .addAttr('child', CDAttributType.CDone, tname: 'CWChild')
-        .addAttr('properties', CDAttributType.CDone, tname: 'CWWidget')
-        .addAttr('constraint', CDAttributType.CDone, tname: 'CWWidget');
+        .addAttr('xid', CDAttributType.text)
+        .addAttr('child', CDAttributType.one, tname: 'CWChild')
+        .addAttr('properties', CDAttributType.one, tname: 'CWWidget')
+        .addAttr('constraint', CDAttributType.one, tname: 'CWWidget');
 
     collection
         .addObject('CWChild')
-        .addAttr('xid', CDAttributType.CDtext)
-        .addAttr('implement', CDAttributType.CDtext);
+        .addAttr('xid', CDAttributType.text)
+        .addAttr('implement', CDAttributType.text);
   }
 
   CoreDataObjectBuilder addWidget(String type, Function f) {
@@ -73,11 +69,20 @@ class CWWidgetCollectionBuilder {
   }
 }
 
+class WidgetDesign {
+  WidgetDesign(this.path, this.prop);
+
+  String path;
+  CoreDataEntity? prop;
+}
+
 class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   WidgetFactoryEventHandler(this.loader);
-  CWWidgetLoaderCtx loader;
+  CWAppLoaderCtx loader;
 
   Map<String, CWWidget> mapWidgetByXid = <String, CWWidget>{};
+  Map<String, WidgetDesign> mapDesignByXid = <String, WidgetDesign>{};
+
   Map<String, CWWidgetCtx> mapConstraintByXid = <String, CWWidgetCtx>{};
   Map<String, SlotConfig> mapSlotConstraintByPath = <String, SlotConfig>{};
 
@@ -164,28 +169,27 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
               wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
           mapWidgetByXid[xid] = r;
           r.ctx.pathDataCreate = ctx.getPathData();
+          WidgetDesign? design = mapDesignByXid[xid];
+          if (design != null) {
+            mapDesignByXid.remove(xid);
+            initWidgetDesign(xid, design.path, design.prop);
+          }
         }
         //debugPrint(' $xid >>>>>>>>>>>>>>> ${mapWidgetByXid[xid]!}');
       }
       if (ctx.event!.builder.name == 'CWDesign') {
         final String xid = ctx.event!.entity.getString('xid', def: '')!;
         String path = ctx.getPathData();
-        mapWidgetByXid[xid]?.ctx.pathDataDesign = path;
-
         final CoreDataEntity? prop = ctx.event!.entity
             .getOneEntity(loader.collectionWidget, 'properties');
-        if (prop != null) {
-          mapWidgetByXid[xid]?.ctx.designEntity = prop;
-          CWWidgetEvent ctxWE = CWWidgetEvent();
-          ctxWE.action = CWProviderAction.onFactoryMountWidget.name;
-          ctxWE.payload = mapWidgetByXid[xid];
 
-          mapProvider[mapProvider.keys.firstOrNull]
-              ?.actions[CWProviderAction.onFactoryMountWidget]
-              ?.first
-              .execute(mapWidgetByXid[xid]!.ctx, ctxWE);
+        if (mapWidgetByXid[xid] == null) {
+          mapDesignByXid[xid] = WidgetDesign(path, prop);
+        } else {
+          initWidgetDesign(xid, path, prop);
         }
 
+        ////////////////////////////  constraint ///////////////////////////////
         final CoreDataEntity? constraint = ctx.event!.entity
             .getOneEntity(loader.collectionWidget, 'constraint');
         if (constraint != null) {
@@ -195,13 +199,30 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
           mapConstraintByXid[xid] = ctxConstraint;
         }
 
+        ////////////////////////////  child   //////////////////////////////////
         final CoreDataEntity? child =
             ctx.event!.entity.getOneEntity(loader.collectionWidget, 'child');
         if (child != null) {
           mapChildXidByXid[xid] = child.getString('xid', def: '')!;
-          //debugPrint('$xid ==== ${mapChildXidByXid[xid]}');
         }
       }
+    }
+  }
+
+  void initWidgetDesign(String xid, String path, CoreDataEntity? prop) {
+    mapWidgetByXid[xid]?.ctx.pathDataDesign = path;
+
+    if (prop != null) {
+      mapWidgetByXid[xid]?.ctx.designEntity = prop;
+      CWWidgetEvent ctxWE = CWWidgetEvent();
+      ctxWE.action = CWProviderAction.onFactoryMountWidget.name;
+      ctxWE.payload = mapWidgetByXid[xid];
+
+      mapProvider[mapProvider.keys.firstOrNull]
+          ?.getData()
+          .actions[CWProviderAction.onFactoryMountWidget]
+          ?.first
+          .execute(mapWidgetByXid[xid]!.ctx, ctxWE);
     }
   }
 }

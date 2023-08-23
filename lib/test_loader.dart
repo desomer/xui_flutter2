@@ -15,7 +15,7 @@ class CWLoaderTest extends CWWidgetLoader {
       setProp(
           'root',
           ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',
-              <String, dynamic>{'title': 'un titre modifiable'}));
+              <String, dynamic>{'title': 'un titre modifiable', 'fill':true}));
     }
 
     //------------------------------------------------------------------

@@ -9,7 +9,7 @@ import '../designer/builder/array_builder.dart';
 import '../designer/cw_factory.dart';
 import '../designer/designer_query.dart';
 import '../designer/widget_crud.dart';
-import 'cw_row.dart';
+import 'cw_array_row.dart';
 
 class CWArray extends CWWidgetMap {
   const CWArray({super.key, required super.ctx});
@@ -33,12 +33,12 @@ class CWArray extends CWWidgetMap {
     c
         .addWidget("CWArray",
             (CWWidgetCtx ctx) => CWArray(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.CDint)
-        .addAttr('providerName', CDAttributType.CDtext);
+        .addAttr('count', CDAttributType.int)
+        .addAttr('providerName', CDAttributType.text);
 
     c.collection
         .addObject('CWColArrayConstraint')
-        .addAttr('width', CDAttributType.CDint);
+        .addAttr('width', CDAttributType.int);
   }
 }
 
@@ -188,54 +188,55 @@ class _CwArrayState extends StateCW<CWArray> {
         shrinkWrap: true,
         itemCount: nbRow,
         itemBuilder: (context, index) {
-          List<Widget> listConts = getRow(nbCol, index, maxWidth);
-
-          getARow() {
-            return getRow(nbCol, index, maxWidth);
+          getARowBuilder(CWArrayRowState rowState) {
+            return getRowBuilder(rowState, nbCol, index, maxWidth);
           }
 
           widget.setIdx(index);
-          var rowState = CWArrayRow(
+          var aCWRow = CWArrayRow(
             key: ValueKey(index),
             rowIdx: index,
             stateArray: this,
-            getRow: getARow,
-            children: listConts,
+            getRowBuilder: getARowBuilder,
           );
 
           return GestureDetector(
               // la row
               onTap: () {
-                rowState.selected(widget.ctx);
+                aCWRow.selected(widget.ctx);
               },
               child: Container(
                   decoration: const BoxDecoration(
                       border: Border(
                           bottom: BorderSide(width: 1.0, color: Colors.grey))),
-                  child: rowState));
+                  child: aCWRow));
         });
     return listView;
   }
 
   CWProvider? provider;
-  List<Widget> getRow(int nbCol, int idxRow, double maxWidth) {
+  List<Widget> getRowBuilder(
+      CWArrayRowState rowState, int nbCol, int idxRow, double maxWidth) {
     final List<Widget> listConts = [];
     provider = CWProvider.of(widget.ctx);
     for (var i = 0; i < nbCol; i++) {
       //dynamic content = "";
+      // recupére le slot du design
       var createInArrayCtx = widget.createInArrayCtx('RowCont$i', null);
       var w = createInArrayCtx.getWidgetInSlot();
       if (w is CWWidgetMap) {
         if (provider != null) {
-          provider!.idxDisplayed = idxRow;
+          provider!.getData().idxDisplayed = idxRow;
           //content = w.getMapValue();
         }
       }
-      // duplique les slot 
+      // duplique les slot par ligne de tableau
       listConts.add(getCell(
           CWSlot(
-              key: widget.ctx
-                  .getSlotKey(idxRow==0?'RowCont{$i}':'RowCont{$i}_$idxRow', ''), // content.toString()),
+              type: "datacell",
+              key: widget.ctx.getSlotKey(
+                  idxRow == 0 ? 'RowCont{$i}' : 'RowCont{$i}_$idxRow',
+                  ''), // content.toString()),
               ctx: createInArrayCtx),
           i,
           maxWidth,
@@ -272,6 +273,7 @@ class _CwArrayState extends StateCW<CWArray> {
         i,
         getCell(
             CWSlot(
+                type: "dataHeader",
                 key: widget.ctx.getSlotKey('Header$i', ''),
                 ctx: widget.createInArrayCtx('Header$i', null)),
             i,
@@ -285,9 +287,10 @@ class _CwArrayState extends StateCW<CWArray> {
         height: height,
         child: Container(
             alignment: Alignment.center,
-            decoration: const BoxDecoration(
-                border:
-                    Border(right: BorderSide(color: Colors.black, width: 1))),
+            decoration: BoxDecoration(
+                border: Border(
+                    right: BorderSide(
+                        color: Theme.of(context).dividerColor, width: 1))),
             child: cell));
   }
 }
