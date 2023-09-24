@@ -21,6 +21,7 @@ class ArrayBuilder {
     return listWidget;
   }
 
+  /// creation d'un array au drop de query
   initArray(CWArray widget, CoreDataEntity query) async {
     var app = CWApplication.of();
     await app.dataModelProvider.getItemsCount();

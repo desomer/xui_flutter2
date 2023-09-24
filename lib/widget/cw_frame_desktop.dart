@@ -144,6 +144,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
         currentIndex: 0,
         //fixedColor: Colors.green,
         items: listBtn,
+        type: BottomNavigationBarType.fixed,
         onTap: (int indexOfItem) {});
   }
 

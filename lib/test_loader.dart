@@ -1,21 +1,30 @@
 import 'core/data/core_data.dart';
+import 'core/store/driver.dart';
 import 'core/widget/cw_core_loader.dart';
 
 class CWLoaderTest extends CWWidgetLoader {
   CWLoaderTest(super.ctx);
 
-  bool load = true;
+  bool loadEmpty = true;
+
+  @override
+  Future<CoreDataEntity> loadCWFactory() async {
+    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+    loadEmpty = false;
+    var v = await storage?.getJsonData("#pages", null);
+    cwFactory.value = v;
+    return cwFactory;
+  }
 
   @override
   CoreDataEntity getCWFactory() {
-    if (load) {
-      load = false;
-
+    if (loadEmpty) {
+      loadEmpty = false;
       setRoot('root', 'CWFrameDesktop');
       setProp(
           'root',
           ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',
-              <String, dynamic>{'title': 'un titre modifiable', 'fill':true}));
+              <String, dynamic>{'title': 'un titre modifiable', 'fill': true}));
     }
 
     //------------------------------------------------------------------

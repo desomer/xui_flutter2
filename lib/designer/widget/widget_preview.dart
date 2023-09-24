@@ -13,7 +13,7 @@ class _WidgetPreviewState extends State<WidgetPreview> {
   Widget build(BuildContext context) {
     return Container(
         height: 50,
-        margin: const EdgeInsets.all(10),
+        margin: const EdgeInsets.all(0),
         padding: const EdgeInsets.all(10),
         child: ToggleButtons(
           borderRadius: const BorderRadius.all(Radius.circular(8)),

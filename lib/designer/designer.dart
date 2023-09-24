@@ -5,12 +5,14 @@ import 'package:flutter_material_color_picker/flutter_material_color_picker.dart
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
+import 'package:xui_flutter/designer/designer_pages.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
 import 'package:xui_flutter/designer/widget_debug.dart';
 import 'package:xui_flutter/designer/widget_drag_file.dart';
 import 'package:xui_flutter/designer/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
+import '../core/store/driver.dart';
 import '../db_icon_icons.dart';
 import '../widget/cw_dialog.dart';
 import '../widget/cw_image.dart';
@@ -26,13 +28,18 @@ import 'widget_model_attribut.dart';
 import 'widget_properties.dart';
 import 'widget_filter_builder.dart';
 
-enum CDDesignEvent { select, reselect, preview }
+enum CDDesignEvent { select, reselect, preview, save }
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
   CoreDesigner({super.key}) {
     designView = DesignerView(key: designerKey);
     _coreDesigner = this;
+    CoreDesigner.on(CDDesignEvent.save, (arg) async {
+      print("save action");
+      StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+      storage?.setData("#pages", CoreDesigner.ofLoader().cwFactory.value);
+    });
   }
 
   static Function(dynamic) on(CDDesignEvent event, Function(dynamic) fct) {
@@ -106,12 +113,6 @@ class _CoreDesignerState extends State<CoreDesigner>
   @override
   void initState() {
     super.initState();
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      CWWidget wid =
-          CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
-      CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
-    });
   }
 
   @override
@@ -178,6 +179,13 @@ class _CoreDesignerState extends State<CoreDesigner>
                   BreadCrumbNavigator(currentRouteStack),
                   const Spacer(),
                   const WidgetPreview(),
+                  InkWell(
+                    child: const Icon(size: 25, Icons.save),
+                    onTap: () {
+                      CoreDesigner.emit(CDDesignEvent.save, null);
+                    },
+                  ),
+                  const SizedBox(width: 20),
                   const Text('ElisView v0.3.0'),
                   const SizedBox(width: 5),
                   IconButton(
@@ -413,6 +421,12 @@ class _CoreDesignerState extends State<CoreDesigner>
         .collectionWidget
         .createEntityByJson("CWArray", {"providerName": "DataModelProvider"});
 
+    CWWidgetCtx ctxPages = CWWidgetCtx("", CWApplication.of().loaderModel, "");
+    ctxPages.designEntity = CWApplication.of()
+        .loaderModel
+        .collectionWidget
+        .createEntityByJson("CWArray", {"providerName": "PagesProvider"});
+
     return Row(children: [
       SizedBox(
         width: 300,
@@ -420,7 +434,7 @@ class _CoreDesignerState extends State<CoreDesigner>
           Tab(icon: Icon(Icons.near_me)),
           Tab(icon: Icon(Icons.filter_alt))
         ], listTabCont: [
-          const Text(" Navigation"),
+          DesignerPages(ctx: ctxPages),
           DesignerQuery(ctx: ctxQuery)
         ]),
       ),

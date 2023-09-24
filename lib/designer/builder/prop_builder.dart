@@ -107,9 +107,10 @@ class PropBuilder {
     if (prop == null) {
       prop = getEmptyEntity(loader, aCtx);
       setDesignOn(aCtx, prop);
-    } else {
-      prop.operation = CDAction.read;
-    }
+    } 
+    // else {
+    //   prop.operation = CDAction.read;
+    // }
     return prop;
   }
 
@@ -137,11 +138,11 @@ class PropBuilder {
       CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!] = aCtx.widget!.ctx;
       aCtx.widget?.ctx.designEntity = prop;
       aCtx.widget?.ctx.pathDataDesign =
-          CoreDesigner.ofLoader().setConstraint(aCtx.xid!, prop);
+          CoreDesigner.ofLoader().setConstraint(aCtx.xid!, prop, path : aCtx.widget?.ctx.pathDataDesign);
     } else {
       aCtx.widget?.ctx.designEntity = prop;
       aCtx.widget?.ctx.pathDataDesign =
-          CoreDesigner.ofLoader().setProp(aCtx.xid!, prop);
+          CoreDesigner.ofLoader().setProp(aCtx.xid!, prop, path : aCtx.widget?.ctx.pathDataDesign);
     }
   }
 }

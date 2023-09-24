@@ -60,6 +60,30 @@ class SupabaseDriver extends StoreDriver {
 
   @override
   dynamic getJsonData(String idTable, CoreDataEntity? filters) async {
+    if (idTable == "#pages") {
+      var query = client['main']!
+          .from('ListApp')
+          .select('json')
+          .eq("idData", "Home")
+          .eq("idCustomer", idCustomer)
+          .eq("idNamespace", idNamespace);
+
+      var ret = await query;
+      var result = [];
+      if (ret is List) {
+        if (ret.isNotEmpty) {
+          for (var r in ret) {
+            result.add(r["json"]);
+          }
+        }
+      }
+      return result[0];
+    } else {
+      return getJsonDataModel(idTable, filters);
+    }
+  }
+
+  dynamic getJsonDataModel(String idTable, CoreDataEntity? filters) async {
     var query = client['main']!
             .from('ListModel')
             .select('json')
@@ -112,21 +136,33 @@ class SupabaseDriver extends StoreDriver {
 
   @override
   setData(String idTable, Map<String, dynamic> data) async {
-    for (var element in data["listData"]) {
-      if (element["_operation_"] == CDAction.create.index ||
-          element["_operation_"] == CDAction.update.index) {
-        element["_operation_"] = CDAction.read.index;
-        await client['main']!.from('ListModel').upsert([
-          {
-            "idTable": idTable,
-            "idCustomer": idCustomer,
-            "idNamespace": idNamespace,
-            "idData": element["_id_"],
-            "json": element // json.encode(element)
-          }
-        ]); //.select('json').eq("idTable", idTable);
+    if (idTable == "#pages") {
+      await client['main']!.from('ListApp').upsert([
+        {
+          "idCustomer": idCustomer,
+          "idNamespace": idNamespace,
+          "idData": "Home",
+          "json": data // json.encode(element)
+        }
+      ]); //.select('json').eq("idTable", idTable);
+    } else if (data[CoreDataEntity.cstTypeAttr] == 'DataContainer') {
+      // save data & model
+      for (var element in data["listData"]) {
+        if (element["_operation_"] == CDAction.create.index ||
+            element["_operation_"] == CDAction.update.index) {
+          element["_operation_"] = CDAction.read.index;
+          await client['main']!.from('ListModel').upsert([
+            {
+              "idTable": idTable,
+              "idCustomer": idCustomer,
+              "idNamespace": idNamespace,
+              "idData": element["_id_"],
+              "json": element // json.encode(element)
+            }
+          ]); //.select('json').eq("idTable", idTable);
+        }
       }
-    }
+    } else {}
   }
 
   @override

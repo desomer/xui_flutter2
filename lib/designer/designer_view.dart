@@ -41,10 +41,12 @@ class DesignerView extends StatefulWidget {
     }
   }
 
-  bool isInitiaziled = false;
-  Widget getRoot() {
-    if (!isInitiaziled) {
-      isInitiaziled = true;
+  bool isLoad = false;
+  Future<Widget> getPageRoot() async {
+    loader ??= CWLoaderTest(CWApplication.of().loaderDesigner);
+
+    if (!isLoad) {
+      isLoad = true;
       CoreDesigner.on(CDDesignEvent.preview, (arg) {
         bool isPreviewMode = arg as bool;
         loader?.ctxLoader.setModeRendering(
@@ -52,11 +54,19 @@ class DesignerView extends StatefulWidget {
         rebuild();
         repaintAll();
       });
+
+      await (loader as CWLoaderTest).loadCWFactory();
+      await Future.delayed(const Duration(milliseconds: 500)); // pour faire apparaitre le tournicotton
     }
 
     if (rootWidget != null) return rootWidget!;
+    rootWidget = loader!.getWidget("root", "root");
+    return rootWidget!;
+  }
 
-    loader ??= CWLoaderTest(CWApplication.of().loaderDesigner);
+  getPageRootSync() {
+    if (rootWidget != null) return rootWidget!;
+
     rootWidget = loader!.getWidget("root", "root");
     return rootWidget!;
   }
@@ -68,6 +78,7 @@ class DesignerView extends StatefulWidget {
 
 class DesignerViewState extends State<DesignerView> {
   Widget? stack;
+  bool isInitialized = false;
 
   @override
   void initState() {
@@ -77,8 +88,10 @@ class DesignerViewState extends State<DesignerView> {
 
   @override
   Widget build(BuildContext context) {
+    FutureBuilder<Widget> futureBuilder = getFutureWidget();
+
     stack ??= Stack(key: SelectorActionWidget.designerKey, children: [
-      widget.getRoot(),
+      isInitialized ? widget.getPageRootSync() : futureBuilder,
       SelectorActionWidget(key: SelectorActionWidget.actionPanKey)
     ]);
 
@@ -106,6 +119,47 @@ class DesignerViewState extends State<DesignerView> {
           return stack!;
         });
 
-    return preview;
+    return Stack(children: [preview]);
+  }
+
+  FutureBuilder<Widget> getFutureWidget() {
+    var futureBuilder = FutureBuilder(
+      future: widget.getPageRoot(),
+      builder: (
+        BuildContext context,
+        AsyncSnapshot<Widget> snapshot,
+      ) {
+        debugPrint(snapshot.connectionState.toString());
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+              child: SizedBox(
+            width: 100,
+            height: 100,
+            child: CircularProgressIndicator(
+              strokeWidth: 10,
+              backgroundColor: Colors.grey,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.deepOrange),
+            ),
+          ));
+        } else if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return const Text('Error');
+          } else if (snapshot.hasData) {
+            Future.delayed(const Duration(milliseconds: 100), () {
+              CWWidget wid =
+                  CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
+              CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
+            });
+            isInitialized = true;
+            return snapshot.data!;
+          } else {
+            return const Text('Empty data');
+          }
+        } else {
+          return Text('State: ${snapshot.connectionState}');
+        }
+      },
+    );
+    return futureBuilder;
   }
 }

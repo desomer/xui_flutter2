@@ -331,10 +331,10 @@ class CoreDataEntity {
   }
 
   // ignore: constant_identifier_names
-  static const String _TypeAttr = r'$type';
+  static const String cstTypeAttr = r'$type';
 
   String getType(CoreDataAttribut? attr, Map<String, dynamic> src) {
-    return src[_TypeAttr]! as String;
+    return src[cstTypeAttr]! as String;
   }
 
   void _browse(CoreDataCtx ctx, CoreDataCollection collection,
@@ -429,7 +429,7 @@ class CoreDataEntity {
 
   void _getCloneByEntity(CoreDataCollection collection,
       Map<String, dynamic> dest, Map<String, dynamic> src) {
-    dest[_TypeAttr] = src[_TypeAttr];
+    dest[cstTypeAttr] = src[cstTypeAttr];
     final CoreDataObjectBuilder builder = collection.getClass(type)!;
     var allAttribut = builder.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
@@ -441,7 +441,7 @@ class CoreDataEntity {
           final CoreDataEntity child = builderOne.getEntityModel();
           dest[attr.name] = <String, dynamic>{};
           // ignore: avoid_dynamic_calls
-          dest[attr.name][_TypeAttr] = src[attr.name][_TypeAttr];
+          dest[attr.name][cstTypeAttr] = src[attr.name][cstTypeAttr];
           child._getCloneByEntity(
               collection,
               dest[attr.name] as Map<String, dynamic>,

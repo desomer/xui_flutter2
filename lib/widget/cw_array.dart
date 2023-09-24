@@ -1,3 +1,4 @@
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
@@ -110,15 +111,14 @@ class _CwArrayState extends StateCW<CWArray> {
     }, onWillAccept: (item) {
       return true;
     }, onAccept: (item) async {
-      print("acccep $item");
-
       ArrayBuilder().initArray(widget, item.query);
     });
   }
 
-  Widget getArray(double w, double h, int nbCol, Row header, ListView content) {
-    double heightBorder = 1;
+  static const double heightBorder = 1;
+  static const double borderDrag = 10;
 
+  Widget getArray(double w, double h, int nbCol, Row header, ListView content) {
     Widget sizedContent = content;
     if (nbCol == 0) {
       sizedContent = ListView(
@@ -126,17 +126,7 @@ class _CwArrayState extends StateCW<CWArray> {
           controller: vertical,
           shrinkWrap: true,
           children: [
-            getDropZone(Container(
-                margin: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.grey)),
-                height: 100,
-                child: const Center(
-                    child: IntrinsicWidth(
-                        child: Row(children: [
-                  Text("Drag query here"),
-                  Icon(Icons.filter_alt)
-                ])))))
+            getDropQuery(h)
           ]);
     } else if (h != double.infinity) {
       sizedContent = SizedBox(
@@ -177,6 +167,24 @@ class _CwArrayState extends StateCW<CWArray> {
                 ))
         //)
         );
+  }
+
+  Widget getDropQuery(double h) {
+    return getDropZone(Container(
+              margin: const EdgeInsets.fromLTRB(borderDrag, borderDrag, borderDrag, 0),
+              height: h != double.infinity
+                  ? h - heightScroll - (heightBorder * 2) - borderDrag
+                  : 100,
+              child: DottedBorder(
+                  color: Colors.grey,
+                  dashPattern: const <double>[6, 4],
+                  strokeWidth: 2,
+                  child: const Center(
+                      child: IntrinsicWidth(
+                          child: Row(children: [
+                    Text("Drag query here"),
+                    Icon(Icons.filter_alt)
+                  ]))))));
   }
 
   ListView getListView(int nbCol, double maxWidth, nbRow) {
@@ -220,14 +228,14 @@ class _CwArrayState extends StateCW<CWArray> {
     final List<Widget> listConts = [];
     provider = CWProvider.of(widget.ctx);
     for (var i = 0; i < nbCol; i++) {
-      //dynamic content = "";
+      dynamic content = "";
       // recupére le slot du design
       var createInArrayCtx = widget.createInArrayCtx('RowCont$i', null);
       var w = createInArrayCtx.getWidgetInSlot();
       if (w is CWWidgetMap) {
         if (provider != null) {
           provider!.getData().idxDisplayed = idxRow;
-          //content = w.getMapValue();
+          content = w.getMapValue();
         }
       }
       // duplique les slot par ligne de tableau
@@ -236,7 +244,7 @@ class _CwArrayState extends StateCW<CWArray> {
               type: "datacell",
               key: widget.ctx.getSlotKey(
                   idxRow == 0 ? 'RowCont{$i}' : 'RowCont{$i}_$idxRow',
-                  ''), // content.toString()),
+                  content.toString()),
               ctx: createInArrayCtx),
           i,
           maxWidth,

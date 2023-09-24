@@ -28,6 +28,9 @@ class CWApplication {
   late CWProvider dataAttributProvider;
   late CWProvider dataProvider;
 
+  CWProvider pagesProvider = CWProvider(
+      "PagesProvider", "DataModel", CWProviderDataSelector.noLoader());
+
   Map<String, CoreDataEntity> cacheMapData = {};
 
   initDesigner() {
@@ -75,10 +78,11 @@ class CWApplication {
     var setProdiverName =
         c.createEntityByJson('CWLoader', {'providerName': "DataModelProvider"});
 
-    loaderModel.setProp("rootAttr", setProdiverName);
+    loaderModel.setProp("rootAttr", setProdiverName, null);
 
     loaderData.collectionWidget = loaderDesigner.collectionWidget;
     loaderData.createFactory();
+
   }
 
   initModel() {
@@ -204,6 +208,11 @@ class CWApplication {
         CWProviderAction.onStateNone2Create, SetDate("_createAt_"));
     dataProvider.addAction(
         CWProviderAction.onValueChanged, SetDate("_updateAt_"));
+
+    //----------------------------------------------------------------
+    loaderModel.addProvider(pagesProvider);
+    pagesProvider.addContent(collection
+        .createEntityByJson("DataModel", {"_id_": "?", "name": "Home"}));
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -266,12 +275,16 @@ class CWApplication {
     //var label = tableEntity.value["name"];
     var idData = tableEntity.value["_id_"];
 
-    CWProviderData dataLoaderFinal = CWProviderData(CoreDataLoaderMap(loader, cacheMapData, "listData")..setMapID(idData));
+    CWProviderData dataLoaderFinal = CWProviderData(
+        CoreDataLoaderMap(loader, cacheMapData, "listData")..setMapID(idData));
     CWProviderData dataLoaderDesign = CWProviderData(null);
 
-    CWProvider designData =
-        CWProvider(idData, idData, CWProviderDataSelector(dataLoaderFinal, dataLoaderDesign, loaderDesigner));
-    
+    CWProvider designData = CWProvider(
+        idData,
+        idData,
+        CWProviderDataSelector(
+            dataLoaderFinal, dataLoaderDesign, loaderDesigner));
+
     designData.type = idData;
     designData.content.add(loader.collectionDataModel.createEntity(idData));
     designData.getData().idxSelected = 0;

@@ -32,12 +32,12 @@ abstract class CWWidgetLoader {
             'CWChild', <String, dynamic>{'xid': xid, 'implement': implement}));
   }
 
-  String setProp(String xid, CoreDataEntity prop) {
-    return ctxLoader.setProp(xid, prop);
+  String setProp(String xid, CoreDataEntity prop, {String? path}) {
+    return ctxLoader.setProp(xid, prop, path);
   }
 
-  String setConstraint(String xid, CoreDataEntity prop) {
-    return ctxLoader.setConstraint(xid, prop);
+  String setConstraint(String xid, CoreDataEntity prop, {String? path}) {
+    return ctxLoader.setConstraint(xid, prop, path);
   }
 
   String addChildProp(
@@ -87,6 +87,9 @@ abstract class CWWidgetLoader {
   }
 
   CoreDataEntity getCWFactory();
+  Future<CoreDataEntity>? loadCWFactory() {
+    return null;
+  }
 }
 
 class CWAppLoaderCtx {
@@ -129,31 +132,43 @@ class CWAppLoaderCtx {
     return factory.mapWidgetByXid[name];
   }
 
-  String setProp(String xid, CoreDataEntity prop) {
-    entityCWFactory.addMany(
-        this,
-        'designs',
-        collectionWidget
-            .createEntity('CWDesign')
-            .setAttr(this, 'xid', xid)
-            .setOne(this, 'properties', prop));
-    return "designs[${(entityCWFactory.value["designs"] as List).length - 1}].properties";
+  String setProp(String xid, CoreDataEntity prop, String? path) {
+    if (path != null) {
+      var p = entityCWFactory.getPath(collectionWidget, path);
+      p.getLastEntity().value = prop.value;
+      return path;
+    } else {
+      entityCWFactory.addMany(
+          this,
+          'designs',
+          collectionWidget
+              .createEntity('CWDesign')
+              .setAttr(this, 'xid', xid)
+              .setOne(this, 'properties', prop));
+      return "designs[${(entityCWFactory.value["designs"] as List).length - 1}].properties";
+    }
   }
 
-  String setConstraint(String xid, CoreDataEntity prop) {
-    entityCWFactory.addMany(
-        this,
-        'designs',
-        collectionWidget
-            .createEntity('CWDesign')
-            .setAttr(this, 'xid', xid)
-            .setOne(this, 'constraint', prop));
-    return "designs[${(entityCWFactory.value["designs"] as List).length - 1}].constraint";
+  String setConstraint(String xid, CoreDataEntity prop, String? path) {
+    if (path != null) {
+      var p = entityCWFactory.getPath(collectionWidget, path);
+      p.getLastEntity().value = prop.value;
+      return path;
+    } else {
+      entityCWFactory.addMany(
+          this,
+          'designs',
+          collectionWidget
+              .createEntity('CWDesign')
+              .setAttr(this, 'xid', xid)
+              .setOne(this, 'constraint', prop));
+      return "designs[${(entityCWFactory.value["designs"] as List).length - 1}].constraint";
+    }
   }
 
   CoreDataEntity addConstraint(String xid, String type) {
     var constraint = collectionWidget.createEntity(type);
-    setConstraint(xid, constraint);
+    setConstraint(xid, constraint, null);
     return constraint;
   }
 
