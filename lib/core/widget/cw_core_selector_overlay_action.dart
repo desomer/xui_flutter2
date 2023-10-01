@@ -14,9 +14,23 @@ class SelectorActionWidget extends StatefulWidget {
 
   static final GlobalKey actionPanKey = GlobalKey(debugLabel: "actionPanKey");
   static final GlobalKey designerKey = GlobalKey(debugLabel: "designerKey");
-  static final GlobalKey rootKey = GlobalKey(debugLabel: "rootKey");
+  static final GlobalKey scaleKeyMin = GlobalKey(debugLabel: "scaleKey1");
+  static final GlobalKey scaleKey2 = GlobalKey(debugLabel: "scaleKey2");
+  static final GlobalKey scaleKeyMax = GlobalKey(debugLabel: "scaleKeyMax");
+  // static final GlobalKey rootKey = GlobalKey(debugLabel: "rootKey");
+
   @override
   State<SelectorActionWidget> createState() => SelectorActionWidgetState();
+
+  static void removeActionWidget() {
+    final SelectorActionWidgetState st = SelectorActionWidget
+        .actionPanKey.currentState as SelectorActionWidgetState;
+    // ignore: invalid_use_of_protected_member
+    st.setState(() {
+      CoreDesignerSelector.of().unselect();
+      st.visible = false;
+    });
+  }
 
   static void showActionWidget(GlobalKey key) {
     // ignore: cast_nullable_to_non_nullable
@@ -24,6 +38,7 @@ class SelectorActionWidget extends StatefulWidget {
         .actionPanKey.currentState as SelectorActionWidgetState;
 
     if (key.currentContext == null) {
+      print("showActionWidget none");
       return;
     }
 
@@ -32,13 +47,32 @@ class SelectorActionWidget extends StatefulWidget {
       final Offset position =
           CwToolkit.getPosition(key, SelectorActionWidget.designerKey);
 
+      Offset positionRefMin = CwToolkit.getPosition(
+          SelectorActionWidget.scaleKeyMin, CoreDesigner.of().designerKey);
+      Offset positionRef100 = CwToolkit.getPosition(
+          SelectorActionWidget.scaleKey2, CoreDesigner.of().designerKey);
+      Offset positionRefMax = CwToolkit.getPosition(
+          SelectorActionWidget.scaleKeyMax, CoreDesigner.of().designerKey);
+
+      double previewPixelRatio = (positionRef100.dx - positionRefMin.dx) / 100;
+      //double p2 = positionRef2.dy - positionRefMin.dy;
+      //print("showActionWidget $p1 $p2");
+
       // ignore: cast_nullable_to_non_nullable
       final RenderBox box = key.currentContext!.findRenderObject() as RenderBox;
 
-      st.gLeft = position.dx;
-      st.gBottom = position.dy + box.size.height;
-      st.gTop = position.dy;
-      st.gRight = position.dx + box.size.width;
+      st.gLeft = position.dx * previewPixelRatio + positionRefMin.dx;
+      st.gBottom = position.dy * previewPixelRatio +
+          positionRefMin.dy +
+          box.size.height * previewPixelRatio;
+      st.gTop = position.dy * previewPixelRatio + positionRefMin.dy;
+      st.gRight = position.dx * previewPixelRatio +
+          positionRefMin.dx +
+          box.size.width * previewPixelRatio;
+
+      if (st.gTop < positionRefMin.dy) st.gTop = positionRefMin.dy;
+      if (st.gBottom > positionRefMax.dy) st.gBottom = positionRefMax.dy;
+
       st.visible = true;
     });
   }
@@ -303,9 +337,32 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
               DesignCtx aCtx = DesignCtx().forDesign(selected!);
 
+              Offset positionRefMin = CwToolkit.getPosition(
+                  SelectorActionWidget.scaleKeyMin,
+                  CoreDesigner.of().designerKey);
+              Offset positionRef100 = CwToolkit.getPosition(
+                  SelectorActionWidget.scaleKey2,
+                  CoreDesigner.of().designerKey);
+
+              double previewPixelRatio =
+                  (positionRef100.dx - positionRefMin.dx) / 100;
+
               CoreDataEntity prop =
                   PropBuilder.preparePropChange(selected.loader, aCtx);
-              prop.value["height"] = box.widget.getSize().height.toInt();
+              double h = box.widget.getSize().height / previewPixelRatio;
+              prop.value["height"] = h.toInt();
+
+              double w = box.widget.getSize().width / previewPixelRatio;
+              prop.value["width"] = w.toInt();              
+
+              if (bottomZone.visibility) {
+                final SelectorActionWidgetState st = SelectorActionWidget
+                    .actionPanKey.currentState as SelectorActionWidgetState;
+                st.setState(() {
+                  bottomZone.visibility = false;
+                  sizeZone.visibility = false;
+                });
+              }
 
               CoreDesignerSelector.of()
                   .getSelectedSlotContext()!

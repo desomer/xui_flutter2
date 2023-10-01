@@ -17,21 +17,34 @@ abstract class CWContainer extends CWWidget {
     return ctx.designEntity?.getBool("fill", def) ?? def;
   }
 
-  Widget getCell(int i, bool defFill, {required bool canFill}) {
-    var slot = CWSlot(type: "body",
+  Widget getCell(int i, bool defFill,
+      {required bool canFill, bool? canHeight, bool? canWidth}) {
+    var slot = CWSlot(
+        type: "body",
         key: GlobalKey(debugLabel: 'slot ${ctx.xid}$i'),
         ctx: createChildCtx("Cont", i));
+
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
     //print("getCell -------- ${slot.ctx.xid} $constraint");
 
     int flex = constraint?.designEntity?.value["flex"] ?? 1;
     bool loose = constraint?.designEntity?.value["tight/loose"] ?? false;
     int? height = constraint?.designEntity?.value["height"];
+    int? width = constraint?.designEntity?.value["width"];
 
     // var slot2 = IntrinsicHeight(child: slot);
 
-    if (height != null && height > 5) {
+    if (canHeight != true && height != null) {
+      constraint?.designEntity?.value.remove("height");
+    }
+    if (canWidth != true && width != null) {
+      constraint?.designEntity?.value.remove("width");
+    }    
+
+    if (canHeight == true && height != null && height > 5) {
       return SizedBox(height: height.toDouble(), child: slot);
+    } else if (canWidth == true && width != null && width > 5) {
+      return SizedBox(width: width.toDouble(), child: slot);
     } else if (isFill(defFill) && canFill) {
       return Flexible(
           flex: flex, fit: loose ? FlexFit.loose : FlexFit.tight, child: slot);
@@ -109,7 +122,7 @@ class CWColumnState extends StateCW<CWColumn> {
 
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      debugPrint("viewportConstraints ${viewportConstraints.hasBoundedHeight}");
+      // debugPrint("viewportConstraints ${viewportConstraints.hasBoundedHeight}");
 
       final List<Widget> listStack = [];
 
@@ -117,7 +130,7 @@ class CWColumnState extends StateCW<CWColumn> {
       final nb = widget.getNbChild();
       for (var i = 0; i < nb; i++) {
         listSlot.add(widget.getCell(i, true,
-            canFill: viewportConstraints.hasBoundedHeight));
+            canHeight: true, canFill: viewportConstraints.hasBoundedHeight));
       }
       listStack.add(Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -158,7 +171,7 @@ class CWRow extends CWContainer {
             .addObject('CWRowConstraint')
             .addAttr('flex', CDAttributType.int)
             .addAttr('tight/loose', CDAttributType.bool)
-            .addAttr('width (sizedBox)', CDAttributType.int)
+            .addAttr('width', CDAttributType.int)
         // .addAttr('min (ConstrainedBox)', CDAttributType.CDint)
         // .addAttr('max (ConstrainedBox)', CDAttributType.CDint)
         // .addAttr('% (FractionallySizedBox)', CDAttributType.CDint)
@@ -193,7 +206,7 @@ class CWRowState extends StateCW<CWRow> {
     final List<Widget> listSlot = [];
     final nb = widget.getNbChild();
     for (var i = 0; i < nb; i++) {
-      listSlot.add(widget.getCell(i, true, canFill: true));
+      listSlot.add(widget.getCell(i, true, canFill: true, canWidth: true));
     }
 
     return Row(

@@ -62,6 +62,12 @@ class CWWidgetCollectionBuilder {
         .addObject('CWChild')
         .addAttr('xid', CDAttributType.text)
         .addAttr('implement', CDAttributType.text);
+
+    addWidget('CWProvider', (CWWidgetCtx ctx) {
+      return CWProviderCtx(ctx);
+    })
+        .addAttr('type', CDAttributType.text)
+        .addAttr('providerName', CDAttributType.text);
   }
 
   CoreDataObjectBuilder addWidget(String type, Function f) {
@@ -81,6 +87,9 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   CWAppLoaderCtx loader;
 
   Map<String, CWWidget> mapWidgetByXid = <String, CWWidget>{};
+  Map<String, CWWidgetVirtual> mapWidgetVirtualByXid =
+      <String, CWWidgetVirtual>{};
+  //sauvegarde temporaire avec build     
   Map<String, WidgetDesign> mapDesignByXid = <String, WidgetDesign>{};
 
   Map<String, CWWidgetCtx> mapConstraintByXid = <String, CWWidgetCtx>{};
@@ -165,10 +174,17 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
           ctx.payload = ctxW;
           final CoreDataObjectBuilder wid =
               loader.collectionWidget.getClass(implement)!;
-          final CWWidget r =
-              wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
-          mapWidgetByXid[xid] = r;
-          r.ctx.pathDataCreate = ctx.getPathData();
+          final dynamic widg = wid.actions['BuildWidget']?.execute(ctx);
+
+          if (widg is CWWidget) {
+            mapWidgetByXid[xid] = widg;
+            widg.ctx.pathDataCreate = ctx.getPathData();
+          }
+          if (widg is CWProviderCtx) {
+            mapWidgetVirtualByXid[xid] = widg;
+            widg.ctx.pathDataCreate = ctx.getPathData();
+          }
+
           WidgetDesign? design = mapDesignByXid[xid];
           if (design != null) {
             mapDesignByXid.remove(xid);
@@ -183,7 +199,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         final CoreDataEntity? prop = ctx.event!.entity
             .getOneEntity(loader.collectionWidget, 'properties');
 
-        if (mapWidgetByXid[xid] == null) {
+        if (mapWidgetByXid[xid] == null && mapWidgetVirtualByXid[xid] == null) {
           mapDesignByXid[xid] = WidgetDesign(path, prop);
         } else {
           initWidgetDesign(xid, path, prop);
@@ -209,20 +225,28 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
     }
   }
 
-  void initWidgetDesign(String xid, String path, CoreDataEntity? prop) {
-    mapWidgetByXid[xid]?.ctx.pathDataDesign = path;
+  void initWidgetDesign(String xid, String path, CoreDataEntity? prop) async {
+    CWWidget? wid = mapWidgetByXid[xid];
+    CWWidgetVirtual? widVir = mapWidgetVirtualByXid[xid];
+
+    wid?.ctx.pathDataDesign = path;
+    widVir?.ctx.pathDataDesign = path;
 
     if (prop != null) {
-      mapWidgetByXid[xid]?.ctx.designEntity = prop;
-      CWWidgetEvent ctxWE = CWWidgetEvent();
-      ctxWE.action = CWProviderAction.onFactoryMountWidget.name;
-      ctxWE.payload = mapWidgetByXid[xid];
+      wid?.ctx.designEntity = prop;
+      widVir?.ctx.designEntity = prop;
 
-      mapProvider[mapProvider.keys.firstOrNull]
-          ?.getData()
-          .actions[CWProviderAction.onFactoryMountWidget]
-          ?.first
-          .execute(mapWidgetByXid[xid]!.ctx, ctxWE);
+      if (wid != null) {
+        CWWidgetEvent ctxWE = CWWidgetEvent();
+        ctxWE.action = CWProviderAction.onFactoryMountWidget.name;
+        ctxWE.payload = mapWidgetByXid[xid];
+
+        mapProvider[mapProvider.keys.firstOrNull]
+            ?.getData()
+            .actions[CWProviderAction.onFactoryMountWidget]
+            ?.first
+            .execute(wid.ctx, ctxWE);
+      }
     }
   }
 }

@@ -19,6 +19,12 @@ class SlotConfig {
   CWSlot? slot;
 }
 
+abstract class CWWidgetVirtual {
+  CWWidgetVirtual(this.ctx);
+  final CWWidgetCtx ctx;
+  init();
+}
+
 abstract class CWWidget extends StatefulWidget {
   const CWWidget({super.key, required this.ctx});
   final CWWidgetCtx ctx;

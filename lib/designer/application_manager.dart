@@ -286,6 +286,7 @@ class CWApplication {
             dataLoaderFinal, dataLoaderDesign, loaderDesigner));
 
     designData.type = idData;
+    // une ligne par défaut
     designData.content.add(loader.collectionDataModel.createEntity(idData));
     designData.getData().idxSelected = 0;
     return designData;

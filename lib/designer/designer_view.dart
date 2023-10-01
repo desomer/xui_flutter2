@@ -2,7 +2,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 
 import '../core/widget/cw_core_loader.dart';
-import '../core/widget/cw_core_selector_action.dart';
+import '../core/widget/cw_core_selector_overlay_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../test_loader.dart';
 import 'application_manager.dart';
@@ -29,7 +29,7 @@ class DesignerView extends StatefulWidget {
 
   void rebuild() {
     rootWidget = null;
-    state?.stack = null;
+    state?.stackDesigner = null;
     loader?.ctxLoader.factory.mapWidgetByXid.clear();
   }
 
@@ -42,8 +42,11 @@ class DesignerView extends StatefulWidget {
   }
 
   bool isLoad = false;
-  Future<Widget> getPageRoot() async {
+  Future<Widget> getPageRoot({ModeRendering? mode}) async {
     loader ??= CWLoaderTest(CWApplication.of().loaderDesigner);
+    if (mode != null) {
+      loader?.ctxLoader.setModeRendering(mode);
+    }
 
     if (!isLoad) {
       isLoad = true;
@@ -56,11 +59,28 @@ class DesignerView extends StatefulWidget {
       });
 
       await (loader as CWLoaderTest).loadCWFactory();
-      await Future.delayed(const Duration(milliseconds: 500)); // pour faire apparaitre le tournicotton
+      await Future.delayed(const Duration(
+          milliseconds: 500)); // pour faire apparaitre le tournicotton
     }
 
     if (rootWidget != null) return rootWidget!;
     rootWidget = loader!.getWidget("root", "root");
+
+    var app = CWApplication.of();
+    // init les data models
+    await app.dataModelProvider.getItemsCount();
+
+    if (mode != null) {
+      loader?.ctxLoader.setModeRendering(ModeRendering.design);
+    }
+    for (var widVir in loader!.ctxLoader.factory.mapWidgetVirtualByXid.values) {
+      //print(widVir);
+      widVir.init();
+    }
+    if (mode != null) {
+      loader?.ctxLoader.setModeRendering(mode);
+    }
+
     return rootWidget!;
   }
 
@@ -77,7 +97,7 @@ class DesignerView extends StatefulWidget {
 }
 
 class DesignerViewState extends State<DesignerView> {
-  Widget? stack;
+  Widget? stackDesigner;
   bool isInitialized = false;
 
   @override
@@ -86,16 +106,13 @@ class DesignerViewState extends State<DesignerView> {
     widget.state = this;
   }
 
+  DevicePreview? preview;
+
   @override
   Widget build(BuildContext context) {
     FutureBuilder<Widget> futureBuilder = getFutureWidget();
 
-    stack ??= Stack(key: SelectorActionWidget.designerKey, children: [
-      isInitialized ? widget.getPageRootSync() : futureBuilder,
-      SelectorActionWidget(key: SelectorActionWidget.actionPanKey)
-    ]);
-
-    var preview = DevicePreview(
+    preview = DevicePreview(
         storage: DevicePreviewStorage.none(),
         backgroundColor: Colors.black,
         enabled: true,
@@ -116,10 +133,50 @@ class DesignerViewState extends State<DesignerView> {
                 backgroundTheme: DevicePreviewBackgroundThemeData.dark,
                 toolbarPosition: DevicePreviewToolBarPositionData.left)),
         builder: (context) {
-          return stack!;
+          return stackDesigner!;
         });
 
-    return Stack(children: [preview]);
+    return LayoutBuilder(builder: (context, constraints) {
+      stackDesigner ??= Stack(key: SelectorActionWidget.designerKey, children: [
+        isInitialized ? widget.getPageRootSync() : futureBuilder,
+        Positioned(
+          left: 0,
+          top: 0,
+          child: SizedBox(
+            key: SelectorActionWidget.scaleKeyMin,
+            //color: Colors.red,
+            height: 1,
+            width: 1,
+          ),
+        ),
+        Positioned(
+          left: 100,
+          top: 100,
+          child: SizedBox(
+            key: SelectorActionWidget.scaleKey2,
+            //color: Colors.red,
+            height: 1,
+            width: 1,
+          ),
+        ),
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: SizedBox(
+            key: SelectorActionWidget.scaleKeyMax,
+            //color: Colors.red,
+            height: 1,
+            width: 1,
+          ),
+        )
+        // SelectorActionWidget(key: SelectorActionWidget.actionPanKey)
+      ]);
+
+      return Stack(children: [
+        preview!,
+        SelectorActionWidget(key: SelectorActionWidget.actionPanKey)
+      ]);
+    });
   }
 
   FutureBuilder<Widget> getFutureWidget() {
@@ -143,7 +200,7 @@ class DesignerViewState extends State<DesignerView> {
           ));
         } else if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            return const Text('Error');
+            return const Text('     Error');
           } else if (snapshot.hasData) {
             Future.delayed(const Duration(milliseconds: 100), () {
               CWWidget wid =

@@ -13,7 +13,7 @@ class ArrayBuilder {
       CWAppLoaderCtx loaderCtx, String type, BoxConstraints constraints) {
     var listWidget = <Widget>[];
     ColRowLoader? loader =
-        initDesign(loaderCtx, provider, type, name, name, false);
+        _createDesign(loaderCtx, provider, type, name, name, false);
 
     listWidget.add(Container(
         constraints: BoxConstraints(maxHeight: constraints.maxHeight - 32),
@@ -22,22 +22,24 @@ class ArrayBuilder {
   }
 
   /// creation d'un array au drop de query
-  initArray(CWArray widget, CoreDataEntity query) async {
+  createArray(CWArray widget, CoreDataEntity query) async {
     var app = CWApplication.of();
+    // init les data models
     await app.dataModelProvider.getItemsCount();
 
-    List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
+    CWProvider provider = CWProviderCtx.createFromTable(query.value["_id_"], widget.ctx);
 
-    var tableEntity = listTableEntity.firstWhere((CoreDataEntity element) =>
-        element.value["_id_"] == query.value["_id_"]);
+    // List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
+    // var tableEntity = listTableEntity.firstWhere((CoreDataEntity element) =>
+    //     element.value["_id_"] == query.value["_id_"]);
+    // app.initDataModelWithAttr(widget.ctx.loader, tableEntity);
 
-    app.initDataModelWithAttr(widget.ctx.loader, tableEntity);
-    CWProvider provider = widget.ctx.factory.loader.mode == ModeRendering.design
-        ? app.getDesignDataProvider(widget.ctx.loader, tableEntity)
-        : app.getDataProvider(widget.ctx.loader, tableEntity);
+    // CWProvider provider = widget.ctx.factory.loader.mode == ModeRendering.design
+    //     ? app.getDesignDataProvider(widget.ctx.loader, tableEntity)
+    //     : app.getDataProvider(widget.ctx.loader, tableEntity);
 
-    ArrayBuilder().initDesign(widget.ctx.loader, provider, "Array",
-        widget.ctx.xid, widget.ctx.pathWidget, true);
+    _createDesign(widget.ctx.loader, provider, "Array", widget.ctx.xid,
+        widget.ctx.pathWidget, true);
 
     CoreDesigner.ofView().rebuild();
     // ignore: invalid_use_of_protected_member
@@ -45,7 +47,7 @@ class ArrayBuilder {
     widget.repaint();
   }
 
-  ColRowLoader initDesign(CWAppLoaderCtx loaderCtx, CWProvider provider,
+  ColRowLoader _createDesign(CWAppLoaderCtx loaderCtx, CWProvider provider,
       String typeArray, String xid, String path, bool designOnly) {
     final CoreDataObjectBuilder builder =
         loaderCtx.collectionDataModel.getClass(provider.type)!;
@@ -65,6 +67,12 @@ class ArrayBuilder {
     }
 
     loader.ctxLoader.factory.mapProvider[provider.name] = provider;
+    loader.addWidget(
+        'root', 'provider_${provider.name}', "CWProvider", <String, dynamic>{
+      'type': provider.type,
+      'providerName': provider.name
+    });
+
     if (!designOnly) {
       loaderCtx.factory.disposePath(path);
     }
@@ -111,6 +119,8 @@ class ArrayBuilder {
     return loader;
   }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////
 
 abstract class ColRowLoader extends CWWidgetLoader {
   ColRowLoader(this.xid, super.ctx);

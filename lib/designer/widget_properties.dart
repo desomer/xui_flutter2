@@ -94,14 +94,17 @@ class MapConstraint extends CoreDataAction {
   execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     debugPrint("set constraint on ${aCtx.xid}");
 
-    CWWidgetCtx ctxConstraint =
-        CWWidgetCtx(aCtx.xid!, CoreDesigner.ofLoader().ctxLoader, "?");
-    ctxConstraint.designEntity = prop;
-    CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!] = ctxConstraint;
+    // CWWidgetCtx ctxConstraint =
+    //     CWWidgetCtx(aCtx.xid!, CoreDesigner.ofLoader().ctxLoader, "?");
+    // ctxConstraint.designEntity = prop;
+    // CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!] = ctxConstraint;
 
-    // aCtx.widget?.ctx.entityForFactory = prop;
-    ctxConstraint.pathDataDesign = CoreDesigner.ofLoader()
-        .setConstraint(aCtx.xid!, prop, path: ctxConstraint.pathDataDesign);
+    // // aCtx.widget?.ctx.entityForFactory = prop;
+    // ctxConstraint.pathDataDesign = CoreDesigner.ofLoader()
+    //     .setConstraint(aCtx.xid!, prop, path: ctxConstraint.pathDataDesign);
+
+    PropBuilder.setDesignOn(aCtx, prop);
+
     debugPrint('object  ${CoreDesigner.ofLoader().cwFactory}');
   }
 }

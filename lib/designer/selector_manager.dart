@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 // import 'package:rich_clipboard/rich_clipboard.dart';
 
-import '../core/widget/cw_core_selector_action.dart';
+import '../core/widget/cw_core_selector_overlay_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
 import 'builder/prop_builder.dart';

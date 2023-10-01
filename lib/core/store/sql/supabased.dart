@@ -75,6 +75,8 @@ class SupabaseDriver extends StoreDriver {
           for (var r in ret) {
             result.add(r["json"]);
           }
+        } else {
+          return null;
         }
       }
       return result[0];

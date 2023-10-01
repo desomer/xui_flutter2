@@ -1,5 +1,6 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/core/widget/cw_core_selector_overlay_action.dart';
 
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_slot.dart';
@@ -61,6 +62,15 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
   @override
   void didChangeMetrics() {
     debugPrint("physical Size ${View.of(context).physicalSize}");
+    if (widget.ctx.loader.mode == ModeRendering.design) {
+      // double refresh car animation de resize par le composant Preview
+      Future.delayed(const Duration(milliseconds: 50), () {
+        CoreDesigner.emit(CDDesignEvent.reselect, null);
+      });
+      Future.delayed(const Duration(milliseconds: 300), () {
+        CoreDesigner.emit(CDDesignEvent.reselect, null);
+      });
+    }
   }
 
   double lastHeight = -1;
@@ -73,9 +83,16 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
       }
       /*   controle d'ajustement de la taille */
       if (lastHeight != constraints.maxHeight) {
-        Future.delayed(const Duration(milliseconds: 100), () {
-          CoreDesigner.emit(CDDesignEvent.reselect, null);
-        });
+        if (widget.ctx.loader.mode == ModeRendering.design) {
+          // double refresh car animation de resize par le composant Preview
+          Future.delayed(const Duration(milliseconds: 50), () {
+            CoreDesigner.emit(CDDesignEvent.reselect, null);
+          });
+          Future.delayed(const Duration(milliseconds: 300), () {
+            CoreDesigner.emit(CDDesignEvent.reselect, null);
+          });
+        }
+        lastHeight = constraints.maxHeight;
       }
 
       var slot = CWSlot(
@@ -160,7 +177,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     } else {
       return NotificationListener<ScrollNotification>(
           onNotification: (scrollNotification) {
-            debugPrint("onNotification $scrollNotification");
+            //debugPrint("onNotification $scrollNotification");
+            SelectorActionWidget.removeActionWidget();
             return false;
           },
           child: SingleChildScrollView(

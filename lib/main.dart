@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'core/store/driver.dart';
+import 'core/widget/cw_core_widget.dart';
 import 'designer/designer.dart';
 
 class MyErrorsHandler {
@@ -32,8 +33,6 @@ void main() async {
   CWApplication.of().initDesigner();
   CWApplication.of().initModel();
 
-  // await WidgetsFlutterBinding.ensureInitialized();
-
   await StoreDriver.getDefautDriver("main");
 
   //*_r$y-74WSMFKk8
@@ -41,14 +40,20 @@ void main() async {
 
   //StartMongo().init();
 
-  runApp(CoreDesigner());
+  CoreDesigner();
+  Widget view = CoreDesigner.of();
+  if (true) {
+    view = await CoreDesigner.of()
+        .designView
+        .getPageRoot(mode: ModeRendering.view);
+  }
+
+  runApp(view);
 
   html.document.onContextMenu
       .listen((html.MouseEvent event) => event.preventDefault());
   //runApp(const MyApp());
 }
-
-
 
 typedef OnWidgetSizeChange = void Function(Size size);
 

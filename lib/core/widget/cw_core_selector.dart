@@ -4,14 +4,21 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:xui_flutter/core/widget/cw_core_selector_overlay_action.dart';
 import 'package:xui_flutter/designer/designer.dart';
 
 import '../../designer/action_manager.dart';
 import '../../widget/cw_image.dart';
 import '../../widget/cw_toolkit.dart';
-import 'cw_core_selector_action.dart';
 import 'cw_core_widget.dart';
 
+/// surround le slot
+///  - Gestion du hover
+///  - gestion de la bordure
+///  - gestion du drag
+///  - gestion de la selection
+///       - gestion de la capture
+///
 class SelectorWidget extends StatefulWidget {
   const SelectorWidget({super.key, required this.child, required this.ctx});
 
@@ -28,7 +35,7 @@ class SelectorWidget extends StatefulWidget {
 class SelectorWidgetState extends State<SelectorWidget> {
   Offset dragAnchorStrategy(
       Draggable<Object> d, BuildContext context, Offset point) {
-    return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy + 30);
+    return Offset(d.feedbackOffset.dx + 10, d.feedbackOffset.dy + 10);
   }
 
   bool isHover = false;
@@ -86,10 +93,11 @@ class SelectorWidgetState extends State<SelectorWidget> {
     return Draggable<DragCtx>(
       dragAnchorStrategy: dragAnchorStrategy,
       data: DragCtx(null, widget.ctx),
-      feedback: const SizedBox(
-        height: 50.0,
-        width: 50.0,
-        child: Icon(Icons.circle),
+      feedback: Container(
+        // height: 200.0,
+        // width: 200.0,
+        color: Colors.white,
+        child: Material(elevation: 10, child:CwImage()),
       ),
       child: MouseRegion(
           onHover: onHover,
@@ -128,8 +136,9 @@ class SelectorWidgetState extends State<SelectorWidget> {
   }
 
   void doRightSelection(PointerDownEvent d) {
+    // ignore: unused_local_variable
     final Offset position =
-        CwToolkit.getPosition(captureKey!, SelectorActionWidget.rootKey);
+        CwToolkit.getPosition(captureKey!, SelectorActionWidget.designerKey);
 
     menuIsOpen = true;
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -138,6 +147,10 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
     _showPopupMenu(Offset(position.dx + d.localPosition.dx + 10,
         position.dy + d.localPosition.dy + 10));
+
+    print(position);
+
+   // _showPopupMenu(Offset(position.dx + 10, position.dy + 10));
   }
 
   void onExit(PointerExitEvent e) {
@@ -146,7 +159,6 @@ class SelectorWidgetState extends State<SelectorWidget> {
     if (isHover) {
       setState(() {
         if (SelectorWidget.hoverPath == widget.ctx.pathWidget) {
-          //debugPrint('onExit hover ${widget.ctx.pathWidget} =>$e');
           SelectorWidget.hoverPath = '';
           SelectorWidget.lastStateOver = null;
         }
@@ -184,11 +196,9 @@ class SelectorWidgetState extends State<SelectorWidget> {
   }
 
   void _showPopupMenu(Offset offset) async {
-    final double left = offset.dx;
-    final double top = offset.dy;
 
     // showDialog(
-    //     context: ctx,
+    //     context: context,
     //     builder: (BuildContext c1) => PopupMenuButton(
     //           child: Center(child: Text('click here')),
     //           itemBuilder: (c2) {
@@ -202,7 +212,12 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
     showMenu(
       context: context,
-      position: RelativeRect.fromLTRB(left, top, left, 100),
+      position: RelativeRect.fromLTRB(
+        offset.dx,
+        offset.dy,
+        MediaQuery.of(context).size.width - offset.dx,
+        MediaQuery.of(context).size.height - offset.dy,
+      ),
       items: [
         const PopupMenuItem(
           value: 1,
@@ -231,11 +246,11 @@ class SelectorWidgetState extends State<SelectorWidget> {
         ?.findRenderObject() as RenderRepaintBoundary?;
 
     /// convert boundary to image
-    final image = await boundary!.toImage(pixelRatio: 0.5);
+    final image = await boundary!.toImage(pixelRatio: 0.9);
     final byteData = await image.toByteData(format: ImageByteFormat.png);
     final imageBytes = byteData?.buffer.asUint8List();
 
-    Widget wi = Image.memory(imageBytes!);
+    Widget wi = Image.memory(imageBytes!, scale: 1);
 
     CwImageState.wi = wi;
 

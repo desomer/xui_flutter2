@@ -71,15 +71,15 @@ class CoreDesigner extends StatefulWidget {
     return ofLoader().ctxLoader.factory;
   }
 
-  final GlobalKey designerKey =
-      GlobalKey(debugLabel: "CoreDesignerdesignerKey");
 
   static late CoreDesigner _coreDesigner;
   late DesignerView designView;
 
   final GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
+  final GlobalKey rootKey = GlobalKey(debugLabel: "rootKey");
+  final GlobalKey designerKey = GlobalKey(debugLabel: "CoreDesignerdesignerKey");
   final GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
-  final GlobalKey appKey = GlobalKey(debugLabel: "CoreDesignerdesignerKey");
+  
 
   final GlobalKey dataKey = GlobalKey(debugLabel: "CoreDesigner.dataKey");
   final GlobalKey dataFilterKey =
@@ -157,7 +157,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         //   }
         //   return supportedLocales.first;
         // },
-        key: CoreDesigner.of().appKey,
+        key: CoreDesigner.of().rootKey,
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
         theme: ThemeData(

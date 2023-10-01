@@ -1,5 +1,6 @@
 import 'package:xui_flutter/core/data/core_data_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../widget/cw_core_widget.dart';
 import 'core_data.dart';
@@ -56,6 +57,30 @@ class CWProviderDataSelector {
       default:
         return designData;
     }
+  }
+}
+
+class CWProviderCtx extends CWWidgetVirtual {
+  CWProviderCtx(super.ctx);
+
+  @override
+  init() {
+    CWProvider provider = createFromTable(ctx.designEntity!.value['type'], ctx);
+    ctx.loader.factory.mapProvider[provider.name] = provider;
+  }
+
+  static createFromTable(String id, CWWidgetCtx ctx) {
+    var app = CWApplication.of();
+    List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
+    var tableEntity = listTableEntity
+        .firstWhere((CoreDataEntity element) => element.value["_id_"] == id);
+    app.initDataModelWithAttr(ctx.loader, tableEntity);
+
+    CWProvider provider = ctx.factory.loader.mode == ModeRendering.design
+        ? app.getDesignDataProvider(ctx.loader, tableEntity)
+        : app.getDataProvider(ctx.loader, tableEntity);
+
+    return provider;
   }
 }
 

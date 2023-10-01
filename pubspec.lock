@@ -21,10 +21,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: "20071638cbe4e5964a427cfa0e86dce55d060bc7d82d56f3554095d7239a8765"
+      sha256: "06a96f1249f38a00435b3b0c9a3246d934d7dbc8183fc7c9e56989860edb99d4"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.2"
+    version: "3.4.4"
   assorted_layout_widgets:
     dependency: "direct main"
     description:
@@ -77,10 +77,10 @@ packages:
     dependency: transitive
     description:
       name: buffer
-      sha256: "8962c12174f53e2e848a6acd7ac7fd63d8a1a6a316c20c458a832d87eba5422a"
+      sha256: "94f60815065a8f0fd4f05be51faf86cf86519327e039d5c2aac72e1d1cc1dad4"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.2.2"
   characters:
     dependency: transitive
     description:
@@ -165,10 +165,10 @@ packages:
     dependency: "direct main"
     description:
       name: desktop_drop
-      sha256: ebba9c9cb0b54385998a977d741cc06fd8324878c08d5a36e9da61cd56b04cc6
+      sha256: d55a010fe46c8e8fcff4ea4b451a9ff84a162217bdb3b2a0aa1479776205e15d
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.3"
+    version: "0.4.4"
   device_frame:
     dependency: transitive
     description:
@@ -197,10 +197,10 @@ packages:
     dependency: "direct main"
     description:
       name: dotted_border
-      sha256: "07a5c5e8d4e6e992279e190e0352be8faa5b8f96d81c77a78b2d42f060279840"
+      sha256: "108837e11848ca776c53b30bc870086f84b62ed6e01c503ed976e8f8c7df9c04"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0+3"
+    version: "2.1.0"
   equatable:
     dependency: transitive
     description:
@@ -681,10 +681,10 @@ packages:
     dependency: transitive
     description:
       name: realtime_client
-      sha256: e84e328dbca6830dec6c4b168ba452ea8c667f5bf45039505b3c8acb5e2c9d82
+      sha256: bf25420988263ba3811f65756685bf4813a527277a784150b8b7de0a583e122f
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.2"
+    version: "1.2.3"
   retry:
     dependency: transitive
     description:
@@ -926,18 +926,18 @@ packages:
     dependency: transitive
     description:
       name: supabase
-      sha256: "0b4625845558b42639a3cd13b0d3ea69132e6228bdbf484f38ef4c71363f82b1"
+      sha256: ee6ab8aa31438de59027888f87e53df97e138cdd00c0125d4f6f5244c31fc21e
       url: "https://pub.dev"
     source: hosted
-    version: "1.11.5"
+    version: "1.11.6"
   supabase_flutter:
     dependency: "direct main"
     description:
       name: supabase_flutter
-      sha256: cbc955e44f5feaa2958793f0df1fe055ea7a5ca003184a51172492bcdde8a724
+      sha256: "27ae595efb3ef6612be1270bd368237916e41b2ba20ea99fedd2df220b424888"
       url: "https://pub.dev"
     source: hosted
-    version: "1.10.18"
+    version: "1.10.19"
   term_glyph:
     dependency: transitive
     description:
@@ -1094,18 +1094,18 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter
-      sha256: "82f6787d5df55907aa01e49bd9644f4ed1cc82af7a8257dd9947815959d2e755"
+      sha256: "053d454c9475546b4382e9498601fb46293cdac9b3ca93f1a738375bc9a1eee4"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.4"
+    version: "4.3.0"
   webview_flutter_android:
     dependency: transitive
     description:
       name: webview_flutter_android
-      sha256: ddc167c6676f57c8b367d19fcbee267d6dc6adf81bd6c3cb87981d30746e0a6d
+      sha256: b0cd33dd7d3dd8e5f664e11a19e17ba12c352647269921a3b568406b001f1dff
       url: "https://pub.dev"
     source: hosted
-    version: "3.10.1"
+    version: "3.12.0"
   webview_flutter_platform_interface:
     dependency: transitive
     description:
@@ -1118,18 +1118,18 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter_wkwebview
-      sha256: "485af05f2c5f83c7f78c20e236b170ad02df7153b299ae9917345be43871d29f"
+      sha256: "3c7d56ca4b82654ad1f58aeefb8d593a59224f26d6b2bf8feed074361eb34c86"
       url: "https://pub.dev"
     source: hosted
-    version: "3.8.0"
+    version: "3.9.0"
   win32:
     dependency: transitive
     description:
       name: win32
-      sha256: c97defd418eef4ec88c0d1652cdce84b9f7b63dd7198e266d06ac1710d527067
+      sha256: "350a11abd2d1d97e0cc7a28a81b781c08002aa2864d9e3f192ca0ffa18b06ed3"
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.8"
+    version: "5.0.9"
   xdg_directories:
     dependency: transitive
     description:

@@ -111,7 +111,7 @@ class _CwArrayState extends StateCW<CWArray> {
     }, onWillAccept: (item) {
       return true;
     }, onAccept: (item) async {
-      ArrayBuilder().initArray(widget, item.query);
+      ArrayBuilder().createArray(widget, item.query);
     });
   }
 
@@ -125,9 +125,7 @@ class _CwArrayState extends StateCW<CWArray> {
           scrollDirection: Axis.vertical,
           controller: vertical,
           shrinkWrap: true,
-          children: [
-            getDropQuery(h)
-          ]);
+          children: [getDropQuery(h)]);
     } else if (h != double.infinity) {
       sizedContent = SizedBox(
           height: h - heightHeader - heightScroll - heightBorder * 2,
@@ -171,20 +169,21 @@ class _CwArrayState extends StateCW<CWArray> {
 
   Widget getDropQuery(double h) {
     return getDropZone(Container(
-              margin: const EdgeInsets.fromLTRB(borderDrag, borderDrag, borderDrag, 0),
-              height: h != double.infinity
-                  ? h - heightScroll - (heightBorder * 2) - borderDrag
-                  : 100,
-              child: DottedBorder(
-                  color: Colors.grey,
-                  dashPattern: const <double>[6, 4],
-                  strokeWidth: 2,
-                  child: const Center(
-                      child: IntrinsicWidth(
-                          child: Row(children: [
-                    Text("Drag query here"),
-                    Icon(Icons.filter_alt)
-                  ]))))));
+        margin:
+            const EdgeInsets.fromLTRB(borderDrag, borderDrag, borderDrag, 0),
+        height: h != double.infinity
+            ? h - heightScroll - (heightBorder * 2) - borderDrag
+            : 100,
+        child: DottedBorder(
+            color: Colors.grey,
+            dashPattern: const <double>[6, 4],
+            strokeWidth: 2,
+            child: const Center(
+                child: IntrinsicWidth(
+                    child: Row(children: [
+              Text("Drag query here"),
+              Icon(Icons.filter_alt)
+            ]))))));
   }
 
   ListView getListView(int nbCol, double maxWidth, nbRow) {
