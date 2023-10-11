@@ -39,8 +39,12 @@ class CoreGlobalCacheResultQuery {
     }
 
     debugPrint("save cache $idCache");
-    provider.loader?.deleteData(contentToDelete);
-    provider.loader?.saveData(contentToSave);
+    if (contentToDelete.isNotEmpty) {
+      provider.loader?.deleteData(contentToDelete);
+    }
+    if (contentToSave.isNotEmpty) {
+      provider.loader?.saveData(contentToSave);
+    }
   }
 
   static setCacheValue(CWProvider provider, List<CoreDataEntity> rows) {

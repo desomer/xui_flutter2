@@ -42,7 +42,8 @@ void main() async {
 
   CoreDesigner();
   Widget view = CoreDesigner.of();
-  if (true) {
+  bool m = false;
+  if (m) {
     view = await CoreDesigner.of()
         .designView
         .getPageRoot(mode: ModeRendering.view);

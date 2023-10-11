@@ -15,7 +15,7 @@ class ComponentDesc {
       ]),
       CardComponents("Array & Form", [
         ComponentDesc('Array', Icons.table_chart, "CWArray"),
-        ComponentDesc('Form', Icons.feed, "CWText"),
+        ComponentDesc('Form', Icons.feed, "CWForm"),
       ]),
       
       // "Column", "Row", "Tab"

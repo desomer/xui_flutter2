@@ -13,7 +13,7 @@ class ArrayBuilder {
       CWAppLoaderCtx loaderCtx, String type, BoxConstraints constraints) {
     var listWidget = <Widget>[];
     ColRowLoader? loader =
-        _createDesign(loaderCtx, provider, type, name, name, false);
+        _createDesign(loaderCtx, provider, type, name, name, true);
 
     listWidget.add(Container(
         constraints: BoxConstraints(maxHeight: constraints.maxHeight - 32),
@@ -27,19 +27,11 @@ class ArrayBuilder {
     // init les data models
     await app.dataModelProvider.getItemsCount();
 
-    CWProvider provider = CWProviderCtx.createFromTable(query.value["_id_"], widget.ctx);
-
-    // List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
-    // var tableEntity = listTableEntity.firstWhere((CoreDataEntity element) =>
-    //     element.value["_id_"] == query.value["_id_"]);
-    // app.initDataModelWithAttr(widget.ctx.loader, tableEntity);
-
-    // CWProvider provider = widget.ctx.factory.loader.mode == ModeRendering.design
-    //     ? app.getDesignDataProvider(widget.ctx.loader, tableEntity)
-    //     : app.getDataProvider(widget.ctx.loader, tableEntity);
+    CWProvider provider =
+        CWProviderCtx.createFromTable(query.value["_id_"], widget.ctx);
 
     _createDesign(widget.ctx.loader, provider, "Array", widget.ctx.xid,
-        widget.ctx.pathWidget, true);
+        widget.ctx.pathWidget, false);
 
     CoreDesigner.ofView().rebuild();
     // ignore: invalid_use_of_protected_member
@@ -48,14 +40,14 @@ class ArrayBuilder {
   }
 
   ColRowLoader _createDesign(CWAppLoaderCtx loaderCtx, CWProvider provider,
-      String typeArray, String xid, String path, bool designOnly) {
+      String typeArray, String xid, String path, bool isRoot) {
     final CoreDataObjectBuilder builder =
         loaderCtx.collectionDataModel.getClass(provider.type)!;
 
     late ColRowLoader loader;
     switch (typeArray) {
       case "Array":
-        loader = AttrArrayLoader(xid, loaderCtx, provider, designOnly);
+        loader = AttrArrayLoader(xid, loaderCtx, provider, isRoot);
         break;
       case "List":
         loader = AttrListLoader(xid, loaderCtx, provider);
@@ -73,7 +65,7 @@ class ArrayBuilder {
       'providerName': provider.name
     });
 
-    if (!designOnly) {
+    if (isRoot) {
       loaderCtx.factory.disposePath(path);
     }
 
@@ -113,7 +105,7 @@ class ArrayBuilder {
     }
 
     loader.addRow();
-    if (designOnly) {
+    if (!isRoot) {
       loader.getCWFactory();
     }
     return loader;
@@ -132,20 +124,24 @@ abstract class ColRowLoader extends CWWidgetLoader {
 
 /////////////////////////////////////////////////////////////////////////////////////
 class AttrArrayLoader extends ColRowLoader {
-  AttrArrayLoader(xid, CWAppLoaderCtx ctxDesign, this.provider, this.arrayOnly)
+  AttrArrayLoader(xid, CWAppLoaderCtx ctxDesign, this.provider, this.isRoot)
       : super(xid, ctxDesign) {
-    if (!arrayOnly) {
+    if (isRoot) {
       setRoot(xid, "CWExpandPanel");
     }
   }
 
   int nbAttr = 0;
   CWProvider provider;
-  bool arrayOnly;
+  bool isRoot;
 
   @override
   void addAttr(CoreDataAttribut attribut, Map<String, dynamic> infoAttr) {
-    String tag = arrayOnly ? "" : "Col0";
+    if (!isRoot && infoAttr["name"].toString().startsWith("_")) {
+      return;
+    }
+
+    String tag = isRoot ? "Col0" : "";
 
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onMapWidget.toString();
@@ -184,7 +180,7 @@ class AttrArrayLoader extends ColRowLoader {
 
   @override
   CoreDataEntity getCWFactory() {
-    if (arrayOnly) {
+    if (!isRoot) {
       // array sans header expandable
       setProp(
           xid,

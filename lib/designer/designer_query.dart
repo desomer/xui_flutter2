@@ -30,7 +30,7 @@ class _DesignerQueryState extends State<DesignerQuery> {
 
   @override
   Widget build(BuildContext context) {
-    var futureData = widget.initFutureDataOrNot(provider);
+    var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
     getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);

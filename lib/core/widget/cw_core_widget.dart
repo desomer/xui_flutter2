@@ -79,7 +79,55 @@ abstract class StateCW<T extends CWWidget> extends State<T> {
   }
 }
 
-abstract class CWWidgetMap extends CWWidget {
+mixin class CWWidgetProvider {
+  
+  Future<int> getItemsCountAsync( CWWidgetCtx ctx) async {
+    CWProvider? provider = CWProvider.of(ctx);
+    if (provider != null) {
+      return await provider.getItemsCount();
+    }
+    return -1;
+  }
+
+  int getItemsCountSync( CWWidgetCtx ctx ) {
+    CWProvider? provider = CWProvider.of(ctx);
+    if (provider != null) {
+      return provider.getItemsCountSync();
+    }
+    return -1;
+  }
+
+  setProviderDataOK(CWProvider? provider, int ok) {
+    if (provider != null &&
+        provider.loader != null &&
+        !provider.loader!.isSync()) {
+      CoreGlobalCacheResultQuery.setCache(provider, ok);
+    }
+  }
+
+  dynamic initFutureDataOrNot(CWProvider? provider, CWWidgetCtx ctx) {
+    bool isSync = true;
+    if (provider != null &&
+        provider.loader != null &&
+        !provider.loader!.isSync()) {
+      isSync = false;
+      String idCache = provider.name + provider.type;
+      var cacheNbRow = CoreGlobalCacheResultQuery.cacheNbData[idCache];
+      if (cacheNbRow != null && cacheNbRow != -1) {
+        var result = CoreGlobalCacheResultQuery.cacheDataValue[idCache];
+        provider.content = result!;
+        return cacheNbRow;
+      }
+    }
+    if (isSync) {
+      return getItemsCountSync(ctx);
+    } else {
+      return getItemsCountAsync(ctx);
+    }
+  }
+}
+
+abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
   const CWWidgetMap({super.key, required super.ctx});
 
   setDisplayRow(InheritedStateContainer? row) {
@@ -117,51 +165,6 @@ abstract class CWWidgetMap extends CWWidget {
       ctxWE.payload = null;
       ctxWE.loader = ctx.loader;
       provider.setValueOf(ctx, ctxWE, "bind", val);
-    }
-  }
-
-  Future<int> getItemsCountAsync() async {
-    CWProvider? provider = CWProvider.of(ctx);
-    if (provider != null) {
-      return await provider.getItemsCount();
-    }
-    return -1;
-  }
-
-  int getItemsCountSync() {
-    CWProvider? provider = CWProvider.of(ctx);
-    if (provider != null) {
-      return provider.getItemsCountSync();
-    }
-    return -1;
-  }
-
-  setProviderDataOK(CWProvider? provider, int ok) {
-    if (provider != null &&
-        provider.loader != null &&
-        !provider.loader!.isSync()) {
-      CoreGlobalCacheResultQuery.setCache(provider, ok);
-    }
-  }
-
-  dynamic initFutureDataOrNot(CWProvider? provider) {
-    bool isSync = true;
-    if (provider != null &&
-        provider.loader != null &&
-        !provider.loader!.isSync()) {
-      isSync = false;
-      String idCache = provider.name + provider.type;
-      var cacheNbRow = CoreGlobalCacheResultQuery.cacheNbData[idCache];
-      if (cacheNbRow != null && cacheNbRow != -1) {
-        var result = CoreGlobalCacheResultQuery.cacheDataValue[idCache];
-        provider.content = result!;
-        return cacheNbRow;
-      }
-    }
-    if (isSync) {
-      return getItemsCountSync();
-    } else {
-      return getItemsCountAsync();
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
@@ -7,14 +8,13 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/cw_factory.dart';
+import '../designer/designer_query.dart';
 import 'cw_array_row.dart';
 import 'cw_toolkit.dart';
 
 // ignore: must_be_immutable
 class CWList extends CWWidgetMap {
-  CWList({super.key, required super.ctx}) {
-    //print("create list ${ctx.xid} h=$hashCode");
-  }
+  CWList({super.key, required super.ctx});
 
   @override
   State<CWList> createState() => _CwListState();
@@ -101,9 +101,51 @@ class _CwListState extends StateCW<CWList> {
     keyPosCalculator.currentState?.setState(() {});
   }
 
+  Widget getDropZone(Widget child) {
+    return DragTarget<DragQueryCtx>(
+        builder: (context, candidateItems, rejectedItems) {
+      return AnimatedScale(
+          scale: candidateItems.isEmpty ? 1 : 0.95,
+          duration: const Duration(milliseconds: 100),
+          child: child);
+    }, onWillAccept: (item) {
+      return true;
+    }, onAccept: (item) async {
+      print("object");
+      
+     // FormBuilder().createForm(widget, item.query);
+
+      /// ArrayBuilder().createArray(widget, item.query);
+    });
+  }
+
+  static const double borderDrag = 10;
+
+  Widget getDropQuery(double h) {
+    return getDropZone(Container(
+        margin: const EdgeInsets.fromLTRB(
+            borderDrag, borderDrag, borderDrag, borderDrag),
+        height: h,
+        child: DottedBorder(
+            color: Colors.grey,
+            dashPattern: const <double>[6, 4],
+            strokeWidth: 2,
+            child: const Center(
+                child: IntrinsicWidth(
+                    child: Row(children: [
+              Text("Drag query here"),
+              Icon(Icons.filter_alt)
+            ]))))));
+  }
+
   getListView(int nbRow) {
     CWProvider? provider = CWProvider.of(widget.ctx);
 
+    if (nbRow == -1) {
+      return getDropQuery(50);
+    }
+
+    //////////////////////////////////////////////////////
     itemBuilder(context, index) {
       widget.setIdx(index);
 
@@ -128,6 +170,8 @@ class _CwListState extends StateCW<CWList> {
           child: rowState);
     }
 
+    //////////////////////////////////////////////////////
+
     return widget.getReorder()
         ? ReorderableListView.builder(
             scrollDirection: Axis.vertical,
@@ -151,7 +195,7 @@ class _CwListState extends StateCW<CWList> {
 
   @override
   Widget build(BuildContext context) {
-    var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx));
+    var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
 
     getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);

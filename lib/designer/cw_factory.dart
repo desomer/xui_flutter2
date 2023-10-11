@@ -9,6 +9,7 @@ import '../widget/cw_container.dart';
 import '../widget/cw_expand_panel.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_event.dart';
+import '../widget/cw_form.dart';
 import '../widget/cw_frame_desktop.dart';
 import '../widget/cw_list.dart';
 import '../widget/cw_tab.dart';
@@ -39,6 +40,7 @@ class CWWidgetCollectionBuilder {
     CWExpandPanel.initFactory(this);
     CWText.initFactory(this);
     CWColumn.initFactory(this);
+    CWForm.initFactory(this);
     CWRow.initFactory(this);
     CWList.initFactory(this);
     CWArray.initFactory(this);

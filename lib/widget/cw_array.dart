@@ -61,7 +61,7 @@ class _CwArrayState extends StateCW<CWArray> {
   @override
   Widget build(BuildContext context) {
     var provider = CWProvider.of(widget.ctx);
-    var futureData = widget.initFutureDataOrNot(provider);
+    var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
     return LayoutBuilder(builder: (context, constraint) {
       final nbCol = widget.getCountChildren();
@@ -153,7 +153,6 @@ class _CwArrayState extends StateCW<CWArray> {
                           Container(
                               color: Theme.of(context).secondaryHeaderColor,
                               child: header),
-
                           Scrollbar(
                               thumbVisibility: true,
                               trackVisibility: true,

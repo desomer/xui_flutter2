@@ -26,7 +26,7 @@ class CWLoader extends CWWidgetMap {
 class _CwLoaderState extends StateCW<CWLoader> {
   @override
   Widget build(BuildContext context) {
-    var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx));
+    var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
 
     getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);

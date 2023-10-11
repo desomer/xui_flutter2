@@ -131,7 +131,15 @@ class CWProvider {
     return getData().content[idx];
   }
 
-  CoreDataEntity getDisplayedEntity() {
+  CoreDataEntity? getDisplayedEntity() {
+    if (getData().idxDisplayed == -1) {
+      getData().idxDisplayed = 0;
+      print("getData().idxDisplayed == -1");
+    }
+    if (getData().idxDisplayed >= getData().content.length) {
+      getData().idxDisplayed = -1;
+      return null;
+    }    
     return getData().content[getData().idxDisplayed];
   }
 
@@ -187,19 +195,19 @@ class CWProvider {
   }
 
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
-    var val = getDisplayedEntity().value[ctx.designEntity?.getString(propName)];
+    var val = getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
     return val?.toString() ?? "";
   }
 
   bool getBoolValueOf(CWWidgetCtx ctx, String propName) {
-    var val = getDisplayedEntity().value[ctx.designEntity?.getString(propName)];
+    var val = getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
     return val ?? false;
   }
 
   void setValueOf(
       CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
     dynamic v = val;
-    CoreDataAttribut? attr = getDisplayedEntity()
+    CoreDataAttribut? attr = getDisplayedEntity()!
         .getAttrByName(ctx.loader, ctx.designEntity!.getString(propName)!);
     if (attr?.type == CDAttributType.int) {
       v = int.tryParse(val);
@@ -207,12 +215,12 @@ class CWProvider {
       v = double.tryParse(val);
     }
 
-    getDisplayedEntity()
+    getDisplayedEntity()!
         .setAttr(ctx.loader, ctx.designEntity!.getString(propName)!, v);
 
     var displayedEntity = getDisplayedEntity();
 
-    var rowOperation = displayedEntity.operation;
+    var rowOperation = displayedEntity!.operation;
     if (rowOperation == CDAction.none) {
       doAction(ctx, event, CWProviderAction.onStateNone2Create);
     }

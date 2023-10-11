@@ -1,16 +1,20 @@
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 import 'package:xui_flutter/designer/cw_factory.dart';
-import 'package:xui_flutter/designer/designer.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../designer/builder/form_builder.dart';
+import '../designer/designer_query.dart';
 
 abstract class CWContainer extends CWWidget {
   const CWContainer({Key? key, required super.ctx}) : super(key: key);
 
-  int getNbChild() {
-    return ctx.designEntity?.getInt("count", 3) ?? 3;
+  int getNbChild(int def) {
+    return ctx.designEntity?.getInt("count", def) ?? def;
   }
 
   bool isFill(bool def) {
@@ -39,7 +43,7 @@ abstract class CWContainer extends CWWidget {
     }
     if (canWidth != true && width != null) {
       constraint?.designEntity?.value.remove("width");
-    }    
+    }
 
     if (canHeight == true && height != null && height > 5) {
       return SizedBox(height: height.toDouble(), child: slot);
@@ -54,15 +58,17 @@ abstract class CWContainer extends CWWidget {
   }
 }
 
+// ignore: must_be_immutable
 class CWColumn extends CWContainer {
-  const CWColumn({Key? key, required super.ctx}) : super(key: key);
+  CWColumn({Key? key, required super.ctx}) : super(key: key);
+  bool isForm = false;
 
   @override
   State<CWColumn> createState() => CWColumnState();
 
   @override
   initSlot(String path) {
-    final nb = getNbChild();
+    final nb = getNbChild(isForm ? 1 : 3);
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
           SlotConfig('${ctx.xid}Cont$i', constraintEntity: "CWColConstraint"));
@@ -90,62 +96,40 @@ class CWColumn extends CWContainer {
   }
 }
 
-class CWColumnState extends StateCW<CWColumn> {
+class CWColumnState extends StateCW<CWColumn>
+    with CWDroppable, CWWidgetProvider {
   @override
   Widget build(BuildContext context) {
-    if (widget.ctx.loader.mode == ModeRendering.design) {
-      double lasth = h;
-
-      // gestion de la zone de drop Filler
-      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-        if (context.mounted && context.size is Size) {
-          hm = context.size!.height;
-          wm = context.size!.width;
-          final nb = widget.getNbChild();
-          h = 0;
-          for (int i = 0; i < nb; i++) {
-            String slotName = "${widget.ctx.pathWidget}.Cont$i";
-            SlotConfig? sc =
-                CoreDesigner.ofFactory().mapSlotConstraintByPath[slotName];
-            if (sc != null) {
-              GlobalKey ks = sc.slot!.key! as GlobalKey;
-              h = h + ks.currentContext!.size!.height;
-            }
-          }
-          h = hm - h;
-          if (h != lasth) {
-            setState(() {});
-          }
-        }
-      });
+    if (widget.isForm) {
+      return buildProvider(context);
+    } else {
+      return getWidget();
     }
+  }
 
+  getWidget() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
-      // debugPrint("viewportConstraints ${viewportConstraints.hasBoundedHeight}");
-
       final List<Widget> listStack = [];
-
       final List<Widget> listSlot = [];
-      final nb = widget.getNbChild();
+
+      final nb = widget.getNbChild(widget.isForm ? 0 : 3);
       for (var i = 0; i < nb; i++) {
         listSlot.add(widget.getCell(i, true,
             canHeight: true, canFill: viewportConstraints.hasBoundedHeight));
       }
+
       listStack.add(Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: listSlot));
-      // if (widget.ctx.modeRendering == ModeRendering.design) {
-      //   Widget? filler = getFiller();
-      //   if (filler != null) {
-      //     listStack.add(filler);
-      //   }
-      // }
 
-      return Stack(
-          key: GlobalKey(debugLabel: "CWColumnState"), children: listStack);
+      if (nb == 0) {
+        return Column(children: [getDropQuery(100)]);
+      }
+
+      return listStack[0];
     });
   }
 
@@ -153,12 +137,29 @@ class CWColumnState extends StateCW<CWColumn> {
   double hm = 0;
   double wm = 0;
 
-  Widget? getFiller() {
-    return Positioned(
-        bottom: 0,
-        left: 0,
-        child: Container(
-            height: h, width: wm, color: Colors.red.withOpacity(0.3)));
+  @override
+  onDragQuery(DragQueryCtx query) {
+    FormBuilder().createForm(widget, query.query);
+  }
+
+  Widget buildProvider(BuildContext context) {
+    var futureData = initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
+
+    getContent(int ok) {
+      var provider = CWProvider.of(widget.ctx);
+      setProviderDataOK(provider, ok);
+      return getWidget();
+    }
+
+    if (futureData is Future) {
+      return CWFutureWidget(
+        futureData: futureData,
+        getContent: getContent,
+        nbCol: 1,
+      );
+    } else {
+      return getContent(futureData as int);
+    }
   }
 }
 
@@ -192,7 +193,7 @@ class CWRow extends CWContainer {
 
   @override
   initSlot(String path) {
-    final nb = getNbChild();
+    final nb = getNbChild(2);
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
           SlotConfig('${ctx.xid}Cont$i', constraintEntity: "CWRowConstraint"));
@@ -204,7 +205,7 @@ class CWRowState extends StateCW<CWRow> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> listSlot = [];
-    final nb = widget.getNbChild();
+    final nb = widget.getNbChild(2);
     for (var i = 0; i < nb; i++) {
       listSlot.add(widget.getCell(i, true, canFill: true, canWidth: true));
     }
@@ -214,5 +215,46 @@ class CWRowState extends StateCW<CWRow> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: listSlot);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+mixin CWDroppable {
+  Widget getDropZone(Widget child) {
+    return DragTarget<DragQueryCtx>(
+        builder: (context, candidateItems, rejectedItems) {
+      return AnimatedScale(
+          scale: candidateItems.isEmpty ? 1 : 0.95,
+          duration: const Duration(milliseconds: 100),
+          child: child);
+    }, onWillAccept: (item) {
+      return true;
+    }, onAccept: (item) async {
+      onDragQuery(item);
+      //print("object");
+      // FormBuilder().createForm(widget, item.query);
+      /// ArrayBuilder().createArray(widget, item.query);
+    });
+  }
+
+  onDragQuery(DragQueryCtx query);
+
+  static const double borderDrag = 10;
+
+  Widget getDropQuery(double h) {
+    return getDropZone(Container(
+        margin: const EdgeInsets.fromLTRB(
+            borderDrag, borderDrag, borderDrag, borderDrag),
+        height: h,
+        child: DottedBorder(
+            color: Colors.grey,
+            dashPattern: const <double>[6, 4],
+            strokeWidth: 2,
+            child: const Center(
+                child: IntrinsicWidth(
+                    child: Row(children: [
+              Text("Drag query here"),
+              Icon(Icons.filter_alt)
+            ]))))));
   }
 }

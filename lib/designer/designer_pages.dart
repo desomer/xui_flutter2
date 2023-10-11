@@ -30,7 +30,7 @@ class _DesignerPagesState extends State<DesignerPages> {
 
   @override
   Widget build(BuildContext context) {
-    var futureData = widget.initFutureDataOrNot(provider);
+    var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
     getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);
@@ -85,12 +85,12 @@ class _DesignerPagesState extends State<DesignerPages> {
   }
 
   Widget getDrag(IndexedTreeNode<CoreDataEntity> node, Widget child) {
-    return Draggable<DragQueryCtx>(
+    return Draggable<DragPagesCtx>(
         dragAnchorStrategy: dragAnchorStrategy,
         onDragStarted: () {
           // GlobalSnackBar.show(context, 'Drag started');
         },
-        data: DragQueryCtx(node.data!),
+        data: DragPagesCtx(node.data!),
         feedback: Container(
             height: 30,
             width: 100,
@@ -126,7 +126,7 @@ class _DesignerPagesState extends State<DesignerPages> {
 
 }
 
-class DragQueryCtx {
-  DragQueryCtx(this.query);
+class DragPagesCtx {
+  DragPagesCtx(this.query);
   CoreDataEntity query;
 }

@@ -186,7 +186,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                     },
                   ),
                   const SizedBox(width: 20),
-                  const Text('ElisView v0.3.0'),
+                  const Text('ElisView v0.4.0'),
                   const SizedBox(width: 5),
                   IconButton(
                     iconSize: 30,
@@ -231,7 +231,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                         )),
                   ]),
                   const Spacer(),
-                  const Text("Desomer G.  07/08/23"),
+                  const Text("Desomer G.  10/10/23"),
                   IconButton(
                     icon: const Icon(Icons.help),
                     onPressed: () {},
