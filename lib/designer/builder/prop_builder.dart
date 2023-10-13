@@ -15,7 +15,7 @@ class PropBuilder {
   Map<String, CoreDataEntity> mapEntityWidgetByPath =
       <String, CoreDataEntity>{};
 
-  buildWidgetProperties(CWWidgetCtx ctx, int buttonId) {
+  void buildWidgetProperties(CWWidgetCtx ctx, int buttonId) {
     String pathWidget = ctx.pathWidget;
 
     listProp.clear();
@@ -31,13 +31,13 @@ class PropBuilder {
       } else {
         CoreDataEntity? designEntity = aCtx.designEntity;
         if (designEntity?.operation == CDAction.inherit) {
-          designEntity?.operation == CDAction.read;
+          designEntity?.operation = CDAction.read;
         }
 
         designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
 
         var provider = CWProvider(
-            "properties", designEntity.type, CWProviderDataSelector.noLoader())
+            'properties', designEntity.type, CWProviderDataSelector.noLoader())
           ..addContent(designEntity);
         provider.addAction(
             CWProviderAction.onValueChanged, RefreshDesign(aCtx));
@@ -73,13 +73,13 @@ class PropBuilder {
 
       CoreDataEntity? constraintEntity = aCtxConstraint.designEntity;
       if (constraintEntity?.operation == CDAction.inherit) {
-        constraintEntity?.operation == CDAction.read;
+        constraintEntity?.operation = CDAction.read;
       }
 
       constraintEntity ??=
           PropBuilder.getEmptyEntity(slotCtx.loader, aCtxConstraint);
 
-      var provider = CWProvider("constraint", constraintEntity.type,
+      var provider = CWProvider('constraint', constraintEntity.type,
           CWProviderDataSelector.noLoader())
         ..addContent(constraintEntity);
       provider.addAction(
@@ -133,7 +133,7 @@ class PropBuilder {
     return emptyEntity;
   }
 
-  static setDesignOn(DesignCtx aCtx, CoreDataEntity prop) {
+  static void setDesignOn(DesignCtx aCtx, CoreDataEntity prop) {
     if (aCtx.isSlot) {
       var old = CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!];
       aCtx.widget?.ctx.pathDataDesign = old?.pathDataDesign;

@@ -20,20 +20,20 @@ class CWList extends CWWidgetMap {
   State<CWList> createState() => _CwListState();
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     addSlotPath('$path[].Cont', SlotConfig('${ctx.xid}Cont'));
   }
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c
         .addWidget(
-            "CWList", (CWWidgetCtx ctx) => CWList(key: ctx.getKey(), ctx: ctx))
+            'CWList', (CWWidgetCtx ctx) => CWList(key: ctx.getKey(), ctx: ctx))
         .addAttr('reorder', CDAttributType.bool)
         .addAttr('providerName', CDAttributType.text);
   }
 
   bool getReorder() {
-    return ctx.designEntity?.getBool("reorder", false) ?? false;
+    return ctx.designEntity?.getBool('reorder', false) ?? false;
   }
 
   Rect? selectorPos;
@@ -96,7 +96,7 @@ class _CwListState extends StateCW<CWList> {
     );
   }
 
-  changeObserve(GlobalKey key) {
+  void changeObserve(GlobalKey key) {
     keyObserve = key;
     keyPosCalculator.currentState?.setState(() {});
   }
@@ -111,7 +111,7 @@ class _CwListState extends StateCW<CWList> {
     }, onWillAccept: (item) {
       return true;
     }, onAccept: (item) async {
-      print("object");
+      debugPrint('accept list');
       
      // FormBuilder().createForm(widget, item.query);
 
@@ -133,12 +133,12 @@ class _CwListState extends StateCW<CWList> {
             child: const Center(
                 child: IntrinsicWidth(
                     child: Row(children: [
-              Text("Drag query here"),
+              Text('Drag query here'),
               Icon(Icons.filter_alt)
             ]))))));
   }
 
-  getListView(int nbRow) {
+  Widget getListView(int nbRow) {
     CWProvider? provider = CWProvider.of(widget.ctx);
 
     if (nbRow == -1) {
@@ -146,7 +146,7 @@ class _CwListState extends StateCW<CWList> {
     }
 
     //////////////////////////////////////////////////////
-    itemBuilder(context, index) {
+    InkWell itemBuilder(context, index) {
       widget.setIdx(index);
 
       var rowState = InheritedStateContainer(
@@ -154,7 +154,7 @@ class _CwListState extends StateCW<CWList> {
           index: index,
           arrayState: this,
           child: CWSlot(
-              type: "dataCell",
+              type: 'dataCell',
               key: widget.ctx.getSlotKey('Cont$index', ''),
               ctx: widget.createInArrayCtx('Cont', null)));
 
@@ -197,7 +197,7 @@ class _CwListState extends StateCW<CWList> {
   Widget build(BuildContext context) {
     var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
 
-    getContent(int ok) {
+    Widget getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
       return Stack(key: keyListOrigin, children: [

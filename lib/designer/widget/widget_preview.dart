@@ -30,7 +30,7 @@ class _WidgetPreviewState extends State<WidgetPreview> {
   }
 
   List<bool> isSelected = <bool>[true, false];
-  onPressed(int index) {
+  void onPressed(int index) {
     setState(() {
       isSelected[0] = !isSelected[0];
       isSelected[1] = !isSelected[1];

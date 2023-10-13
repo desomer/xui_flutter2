@@ -15,7 +15,7 @@ class _WidgetHiddenBoxState extends State<WidgetHiddenBox> {
   @override
   void initState() {
     super.initState();
-    CWApplication.of().dataModelProvider.addUserAction("showAttr",
+    CWApplication.of().dataModelProvider.addUserAction('showAttr',
         CoreDataActionFunction((e) {
       widget.show.value = true;
     }));

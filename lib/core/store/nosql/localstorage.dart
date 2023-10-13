@@ -13,13 +13,13 @@ class LocalstorageDriver extends StoreDriver {
   }
 
   @override
-  setData(String idTable, Map<String, dynamic> data) async {
+  Future setData(String idTable, Map<String, dynamic> data) async {
     LocalStorage storage = LocalStorage('$idTable.json');
     storage.setItem('data', data);
   }
 
   @override
-  deleteTable(String idTable) async {
+  Future deleteTable(String idTable) async {
     LocalStorage storage = LocalStorage('$idTable.json');
     await storage.ready;
     storage.clear();

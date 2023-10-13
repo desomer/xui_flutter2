@@ -96,7 +96,7 @@ class DesignActionManager {
   void _move(CWWidgetCtx toCtxSlot, CWWidget child, CoreDataEntity cwchild,
       CWWidgetCtx ctxSlot) {
     String pathCreate = CoreDesigner.ofLoader()
-        .addChild(toCtxSlot.xid, child.ctx.xid, cwchild.value["implement"]);
+        .addChild(toCtxSlot.xid, child.ctx.xid, cwchild.value['implement']);
 
     final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, ctxSlot.loader,
         '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
@@ -104,7 +104,7 @@ class DesignActionManager {
     CoreDataCtx ctx = CoreDataCtx();
     ctx.payload = ctxW;
     final CoreDataObjectBuilder wid =
-        ctxSlot.loader.collectionWidget.getClass(cwchild.value["implement"])!;
+        ctxSlot.loader.collectionWidget.getClass(cwchild.value['implement'])!;
     final CWWidget newWidget =
         wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
 

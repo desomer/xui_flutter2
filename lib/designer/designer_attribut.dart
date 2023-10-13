@@ -23,14 +23,14 @@ class _DesignerAttributState extends State<DesignerAttribut> {
         CWAppLoaderCtx().from(CWApplication.of().loaderModel);
 
     var provider = CWProvider(
-        "AttrProvider", 'DataAttribut', CWProviderDataSelector.noLoader())
+        'AttrProvider', 'DataAttribut', CWProviderDataSelector.noLoader())
       ..addContent(
-          loader.collectionDataModel.createEntityByJson("DataAttribut", {}));
+          loader.collectionDataModel.createEntityByJson('DataAttribut', {}));
 
     provider.header = loader.collectionDataModel
-        .createEntityByJson("DataHeader", {"label": "Attribut"});
+        .createEntityByJson('DataHeader', {'label': 'Attribut'});
 
-    deleteAttr(CWWidgetEvent e) async {
+    void deleteAttr(CWWidgetEvent e) async {
       var attrEntity =
           CWApplication.of().dataAttributProvider.getSelectedEntity()!;
       // print(attrEntity!.value);
@@ -41,21 +41,21 @@ class _DesignerAttributState extends State<DesignerAttribut> {
           CWApplication.of().dataModelProvider);
       CWApplication.of().dataAttributProvider.doEvent(
           CWProviderAction.onStateDelete, CWApplication.of().loaderModel,
-          repaintXid: "rootAttrExp");
+          repaintXid: 'rootAttrExp');
 
       //TODO supprimer la colonne de le bdd
     }
 
-    provider.addUserAction("deleteAttr", CoreDataActionFunction(deleteAttr));
+    provider.addUserAction('deleteAttr', CoreDataActionFunction(deleteAttr));
 
     var c = loader.collectionWidget;
     loader.addConstraint('rootTitle0', 'CWExpandConstraint').addMany(
         loader,
         CWExpandAction.actions.toString(),
-        c.createEntityByJson("CWAction", {
-          "_idAction_": "deleteAttr@AttrProvider",
-          "label": "Delete attribut",
-          "icon": Icons.delete_forever
+        c.createEntityByJson('CWAction', {
+          '_idAction_': 'deleteAttr@AttrProvider',
+          'label': 'Delete attribut',
+          'icon': Icons.delete_forever
         }));
 
     return Row(children: [

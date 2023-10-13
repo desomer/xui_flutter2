@@ -9,8 +9,8 @@ class CWLoaderTest extends CWWidgetLoader {
 
   @override
   Future<CoreDataEntity> loadCWFactory() async {
-    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
-    dynamic v = await storage?.getJsonData("#pages", null);
+    StoreDriver? storage = await StoreDriver.getDefautDriver('main');
+    dynamic v = await storage?.getJsonData('#pages', null);
     if (v!=null) {
       cwFactory.value = v;
       loadEmpty = false;

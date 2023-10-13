@@ -12,11 +12,11 @@ import 'cw_core_widget.dart';
 class SelectorActionWidget extends StatefulWidget {
   const SelectorActionWidget({super.key});
 
-  static final GlobalKey actionPanKey = GlobalKey(debugLabel: "actionPanKey");
-  static final GlobalKey designerKey = GlobalKey(debugLabel: "designerKey");
-  static final GlobalKey scaleKeyMin = GlobalKey(debugLabel: "scaleKey1");
-  static final GlobalKey scaleKey2 = GlobalKey(debugLabel: "scaleKey2");
-  static final GlobalKey scaleKeyMax = GlobalKey(debugLabel: "scaleKeyMax");
+  static final GlobalKey actionPanKey = GlobalKey(debugLabel: 'actionPanKey');
+  static final GlobalKey designerKey = GlobalKey(debugLabel: 'designerKey');
+  static final GlobalKey scaleKeyMin = GlobalKey(debugLabel: 'scaleKey1');
+  static final GlobalKey scaleKey2 = GlobalKey(debugLabel: 'scaleKey2');
+  static final GlobalKey scaleKeyMax = GlobalKey(debugLabel: 'scaleKeyMax');
   // static final GlobalKey rootKey = GlobalKey(debugLabel: "rootKey");
 
   @override
@@ -38,7 +38,7 @@ class SelectorActionWidget extends StatefulWidget {
         .actionPanKey.currentState as SelectorActionWidgetState;
 
     if (key.currentContext == null) {
-      print("showActionWidget none");
+      debugPrint('showActionWidget none');
       return;
     }
 
@@ -313,7 +313,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
                   padding: const EdgeInsets.all(0)),
               child: Icon(ic, size: 15),
               onPressed: () {
-                debugPrint("doAction $action");
+                debugPrint('doAction $action');
                 doAction(action);
               },
             )));
@@ -327,7 +327,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
         top: top,
         left: left,
         child: Draggable(
-            data: "ok",
+            data: 'ok',
             onDragUpdate: (details) {
               dragInProgess = true;
               BoxSelectedState box = boxkey.currentState as BoxSelectedState;
@@ -350,10 +350,10 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
               CoreDataEntity prop =
                   PropBuilder.preparePropChange(selected.loader, aCtx);
               double h = box.widget.getSize().height / previewPixelRatio;
-              prop.value["height"] = h.toInt();
+              prop.value['height'] = h.toInt();
 
               double w = box.widget.getSize().width / previewPixelRatio;
-              prop.value["width"] = w.toInt();              
+              prop.value['width'] = w.toInt();              
 
               if (bottomZone.visibility) {
                 final SelectorActionWidgetState st = SelectorActionWidget
@@ -390,7 +390,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
                       padding: const EdgeInsets.all(0)),
                   child: Icon(ic, size: 15),
                   onPressed: () {
-                    debugPrint("doAction $action");
+                    debugPrint('doAction $action');
                     doAction(action);
                   },
                 ))));
@@ -403,7 +403,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
         DesignActionManager().doDelete(ctx);
       } else {
         CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
-        debugPrint("delete slot ${ctx?.xid}");
+        debugPrint('delete slot ${ctx?.xid}');
       }
     }
   }
@@ -435,14 +435,14 @@ class BoxSelected extends StatefulWidget {
 }
 
 class BoxSelectedState extends State<BoxSelected> {
-  changeSize(double h, double w) {
+  void changeSize(double h, double w) {
     setState(() {
       widget.bottom = h + widget.top;
       widget.right = w + widget.left;
     });
   }
 
-  addSize(double h, double w) {
+  void addSize(double h, double w) {
     setState(() {
       if (h > 0 || widget.bottom + h > widget.top + 5) {
         widget.bottom = h + widget.bottom;

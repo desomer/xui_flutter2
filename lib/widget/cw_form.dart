@@ -9,9 +9,9 @@ class CWForm extends CWColumn {
     isForm = true;
   }
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget("CWForm",
+        .addWidget('CWForm',
             (CWWidgetCtx ctx) => CWForm(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.int)
         .withAction(AttrActionDefault(1))

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/designer/widget_filter_builder.dart';
@@ -8,40 +9,40 @@ import '../driver.dart';
 
 class SupabaseDriver extends StoreDriver {
   Map<String, SupabaseClient> client = {};
-  String idCustomer = "demo";
-  String idNamespace = "demo";
+  String idCustomer = 'demo';
+  String idNamespace = 'demo';
 
   static final Map<String, String> _mapOpe = {
-    "=": "eq",
-    ">": "gt",
-    ">=": "gte",
-    "<": "lt",
-    "<=": "lte",
-    "like": "like",
-    "ilike": "ilike"
+    '=': 'eq',
+    '>': 'gt',
+    '>=': 'gte',
+    '<': 'lt',
+    '<=': 'lte',
+    'like': 'like',
+    'ilike': 'ilike'
   };
 
   Future<void> init() async {
     try {
       await Supabase.initialize(
-        url: "https://pkrutsmghgjxapkozcyn.supabase.co",
+        url: 'https://pkrutsmghgjxapkozcyn.supabase.co',
         anonKey:
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcnV0c21naGdqeGFwa296Y3luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTEyNzI4MjgsImV4cCI6MjAwNjg0ODgyOH0.nlADIUSTgwWCZ9Q2vUgr6iwPHBZwxSjLlQKCV_zdt8I",
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrcnV0c21naGdqeGFwa296Y3luIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTEyNzI4MjgsImV4cCI6MjAwNjg0ODgyOH0.nlADIUSTgwWCZ9Q2vUgr6iwPHBZwxSjLlQKCV_zdt8I',
       );
 
       // It's handy to then extract the Supabase client in a variable for later uses
       client['main'] = Supabase.instance.client;
 
       AuthResponse res = await client['main']!.auth.signInWithPassword(
-            email: "gauthier.desomer@gmail.com",
-            password: "Charley.30",
+            email: 'gauthier.desomer@gmail.com',
+            password: 'Charley.30',
           );
       // ignore: unused_local_variable
       final Session? session = res.session;
       // ignore: unused_local_variable
       final User? user = res.user;
     } on Exception catch (e) {
-      print("object $e");
+      debugPrint('Exception catch $e');
     }
 
     // Listen to auth state changes
@@ -60,20 +61,20 @@ class SupabaseDriver extends StoreDriver {
 
   @override
   dynamic getJsonData(String idTable, CoreDataEntity? filters) async {
-    if (idTable == "#pages") {
+    if (idTable == '#pages') {
       var query = client['main']!
           .from('ListApp')
           .select('json')
-          .eq("idData", "Home")
-          .eq("idCustomer", idCustomer)
-          .eq("idNamespace", idNamespace);
+          .eq('idData', 'Home')
+          .eq('idCustomer', idCustomer)
+          .eq('idNamespace', idNamespace);
 
       var ret = await query;
       var result = [];
       if (ret is List) {
         if (ret.isNotEmpty) {
           for (var r in ret) {
-            result.add(r["json"]);
+            result.add(r['json']);
           }
         } else {
           return null;
@@ -89,9 +90,9 @@ class SupabaseDriver extends StoreDriver {
     var query = client['main']!
             .from('ListModel')
             .select('json')
-            .eq("idTable", idTable)
-            .eq("idCustomer", idCustomer)
-            .eq("idNamespace", idNamespace)
+            .eq('idTable', idTable)
+            .eq('idCustomer', idCustomer)
+            .eq('idNamespace', idNamespace)
         // .appendSearchParams(key, value)
         //.or(filters)
         ;
@@ -104,11 +105,11 @@ class SupabaseDriver extends StoreDriver {
         //var op = f.getGroupOp(group);
         List listClause = f.getListClause(group);
         for (var clause in listClause) {
-          var colId = clause["colId"];
-          var operator = clause["operator"];
-          var value1 = clause["value1"];
+          var colId = clause['colId'];
+          var operator = clause['operator'];
+          var value1 = clause['value1'];
           if (colId != null) {
-            query.filter("json->>$colId", _mapOpe[operator]!, value1);
+            query.filter('json->>$colId', _mapOpe[operator]!, value1);
           }
         }
       }
@@ -121,45 +122,45 @@ class SupabaseDriver extends StoreDriver {
         if (ret.isNotEmpty) {
           var result = [];
           for (var r in ret) {
-            result.add(r["json"]);
+            result.add(r['json']);
           }
           return {
-            r"$type": 'DataContainer',
-            "idData": idTable,
-            "listData": result
+            r'$type': 'DataContainer',
+            'idData': idTable,
+            'listData': result
           };
         }
       }
     } on Exception catch (e) {
-      print('Exception $e');
+      debugPrint('Exception $e');
     }
     return null;
   }
 
   @override
-  setData(String idTable, Map<String, dynamic> data) async {
-    if (idTable == "#pages") {
+  Future setData(String idTable, Map<String, dynamic> data) async {
+    if (idTable == '#pages') {
       await client['main']!.from('ListApp').upsert([
         {
-          "idCustomer": idCustomer,
-          "idNamespace": idNamespace,
-          "idData": "Home",
-          "json": data // json.encode(element)
+          'idCustomer': idCustomer,
+          'idNamespace': idNamespace,
+          'idData': 'Home',
+          'json': data // json.encode(element)
         }
       ]); //.select('json').eq("idTable", idTable);
     } else if (data[CoreDataEntity.cstTypeAttr] == 'DataContainer') {
       // save data & model
-      for (var element in data["listData"]) {
-        if (element["_operation_"] == CDAction.create.index ||
-            element["_operation_"] == CDAction.update.index) {
-          element["_operation_"] = CDAction.read.index;
+      for (var element in data['listData']) {
+        if (element['_operation_'] == CDAction.create.index ||
+            element['_operation_'] == CDAction.update.index) {
+          element['_operation_'] = CDAction.read.index;
           await client['main']!.from('ListModel').upsert([
             {
-              "idTable": idTable,
-              "idCustomer": idCustomer,
-              "idNamespace": idNamespace,
-              "idData": element["_id_"],
-              "json": element // json.encode(element)
+              'idTable': idTable,
+              'idCustomer': idCustomer,
+              'idNamespace': idNamespace,
+              'idData': element['_id_'],
+              'json': element // json.encode(element)
             }
           ]); //.select('json').eq("idTable", idTable);
         }
@@ -168,28 +169,28 @@ class SupabaseDriver extends StoreDriver {
   }
 
   @override
-  deleteTable(String idTable) async {
+  Future deleteTable(String idTable) async {
     await client['main']!
         .from('ListModel')
         .delete()
-        .eq("idTable", idTable)
-        .eq("idCustomer", idCustomer)
-        .eq("idNamespace", idNamespace);
+        .eq('idTable', idTable)
+        .eq('idCustomer', idCustomer)
+        .eq('idNamespace', idNamespace);
 
-    print("delete table $idTable");
+    debugPrint('delete table $idTable');
   }
 
   @override
-  deleteData(String idTable, List data) async {
+  Future deleteData(String idTable, List data) async {
     for (var element in data) {
       await client['main']!
           .from('ListModel')
           .delete()
-          .eq("idTable", idTable)
-          .eq("idCustomer", idCustomer)
-          .eq("idNamespace", idNamespace)
-          .eq("idData", element["_id_"]);
-      print("delete row $idTable $element");
+          .eq('idTable', idTable)
+          .eq('idCustomer', idCustomer)
+          .eq('idNamespace', idNamespace)
+          .eq('idData', element['_id_']);
+      debugPrint('delete row $idTable $element');
     }
   }
 }

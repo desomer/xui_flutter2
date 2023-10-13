@@ -11,14 +11,14 @@ import 'core/widget/cw_core_widget.dart';
 import 'designer/designer.dart';
 
 class MyErrorsHandler {
-  initialize() {}
+  void initialize() {}
 
-  onErrorDetails(FlutterErrorDetails details) {
+  void onErrorDetails(FlutterErrorDetails details) {
     //FlutterError.presentError(details);
     debugPrint('onErrorDetails ${details.summary}');
   }
 
-  onError(Object error, StackTrace stack) {
+  void onError(Object error, StackTrace stack) {
     debugPrint('onError $error $stack');
   }
 }
@@ -28,12 +28,12 @@ class MyErrorsHandler {
 void main() async {
   var myErrorsHandler = MyErrorsHandler();
 
-  await myErrorsHandler.initialize();
+  myErrorsHandler.initialize();
 
   CWApplication.of().initDesigner();
   CWApplication.of().initModel();
 
-  await StoreDriver.getDefautDriver("main");
+  await StoreDriver.getDefautDriver('main');
 
   //*_r$y-74WSMFKk8
   //await supabase();
@@ -79,6 +79,41 @@ class WidgetSizeRenderObject extends RenderProxyBox {
     } catch (e) {
       debugPrint(e.toString());
     }
+  }
+
+  dynamic overriddenSymbolFrom(dynamic classType, String name) {
+    if (classType.isUnknown()) {
+      return classType.unknownMethodSymbol;
+    }
+    bool unknownFound = false;
+    List<dynamic> symbols = classType.getSymbol().members().lookup(name);
+    for (dynamic overrideSymbol in symbols) {
+      if (overrideSymbol.isKind('') && !overrideSymbol.isStatic()) {
+        dynamic methodJavaSymbol = overrideSymbol;
+        if (methodJavaSymbol.canOverride(methodJavaSymbol)) {
+          dynamic overriding =
+              classType.checkOverridingParameters(methodJavaSymbol, classType);
+          if (overriding == null) {
+            if (!unknownFound) {
+              unknownFound = true;
+              if (classType.checkOverridingParameters(methodJavaSymbol, classType) &&  !overrideSymbol.isStatic())
+              {
+                if (unknownFound)
+                {
+                   unknownFound = true;
+                }
+              }
+            }
+          } else if (overriding) {
+            return methodJavaSymbol;
+          }
+        }
+      }
+    }
+    if (unknownFound) {
+      return classType.unknownMethodSymbol;
+    }
+    return null;
   }
 }
 

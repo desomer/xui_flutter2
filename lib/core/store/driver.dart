@@ -7,9 +7,9 @@ class StoreDriver {
   static SupabaseDriver? supra;
 
   dynamic getJsonData(String idTable, CoreDataEntity? filters) async {}
-  setData(String idTable, Map<String, dynamic> data) async {}
-  deleteData(String idTable, List data) async {}
-  deleteTable(String idTable) async {}
+  Future setData(String idTable, Map<String, dynamic> data) async {}
+  Future deleteData(String idTable, List data) async {}
+  Future deleteTable(String idTable) async {}
 
   static Future<StoreDriver>? getDefautDriver(String id) async {
     if (supra == null) {

@@ -19,20 +19,20 @@ class CWArray extends CWWidgetMap {
   State<CWArray> createState() => _CwArrayState();
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     final nb = getCountChildren();
     for (var i = 0; i < nb; i++) {
       addSlotPath(
           '$path[].Header$i',
           SlotConfig('${ctx.xid}Header$i',
-              constraintEntity: "CWColArrayConstraint"));
+              constraintEntity: 'CWColArrayConstraint'));
       addSlotPath('$path[].RowCont$i', SlotConfig('${ctx.xid}RowCont$i'));
     }
   }
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget("CWArray",
+        .addWidget('CWArray',
             (CWWidgetCtx ctx) => CWArray(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.int)
         .addAttr('providerName', CDAttributType.text);
@@ -71,7 +71,7 @@ class _CwArrayState extends StateCW<CWArray> {
       List<Widget> listHeader =
           getListWidgetHeader(nbCol, widthCol, heightHeader);
 
-      getContent(int ok) {
+      Widget getContent(int ok) {
         widget.setProviderDataOK(provider, ok);
 
         if (widget.ctx.loader.mode == ModeRendering.design) ok = 1;
@@ -180,7 +180,7 @@ class _CwArrayState extends StateCW<CWArray> {
             child: const Center(
                 child: IntrinsicWidth(
                     child: Row(children: [
-              Text("Drag query here"),
+              Text('Drag query here'),
               Icon(Icons.filter_alt)
             ]))))));
   }
@@ -194,7 +194,7 @@ class _CwArrayState extends StateCW<CWArray> {
         shrinkWrap: true,
         itemCount: nbRow,
         itemBuilder: (context, index) {
-          getARowBuilder(CWArrayRowState rowState) {
+          List<Widget> getARowBuilder(CWArrayRowState rowState) {
             return getRowBuilder(rowState, nbCol, index, maxWidth);
           }
 
@@ -226,7 +226,7 @@ class _CwArrayState extends StateCW<CWArray> {
     final List<Widget> listConts = [];
     provider = CWProvider.of(widget.ctx);
     for (var i = 0; i < nbCol; i++) {
-      dynamic content = "";
+      dynamic content = '';
       // recupére le slot du design
       var createInArrayCtx = widget.createInArrayCtx('RowCont$i', null);
       var w = createInArrayCtx.getWidgetInSlot();
@@ -239,7 +239,7 @@ class _CwArrayState extends StateCW<CWArray> {
       // duplique les slot par ligne de tableau
       listConts.add(getCell(
           CWSlot(
-              type: "datacell",
+              type: 'datacell',
               key: widget.ctx.getSlotKey(
                   idxRow == 0 ? 'RowCont{$i}' : 'RowCont{$i}_$idxRow',
                   content.toString()),
@@ -279,7 +279,7 @@ class _CwArrayState extends StateCW<CWArray> {
         i,
         getCell(
             CWSlot(
-                type: "dataHeader",
+                type: 'dataHeader',
                 key: widget.ctx.getSlotKey('Header$i', ''),
                 ctx: widget.createInArrayCtx('Header$i', null)),
             i,

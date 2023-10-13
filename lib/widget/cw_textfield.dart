@@ -20,11 +20,11 @@ class CWTextfield extends CWWidgetMap {
   State<CWTextfield> createState() => _CWTextfieldState();
 
   @override
-  initSlot(String path) {}
+  void initSlot(String path) {}
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget("CWTextfield",
+        .addWidget('CWTextfield',
             (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.text)
         .addAttr('withLabel', CDAttributType.bool)
@@ -36,13 +36,13 @@ class CWTextfield extends CWWidgetMap {
   }
 
   String? getLabelNull() {
-    return (ctx.designEntity?.getBool("withLabel", true) ?? true)
+    return (ctx.designEntity?.getBool('withLabel', true) ?? true)
         ? super.getLabel()
         : null;
   }
 
   String getType() {
-    return ctx.designEntity?.getString("type", def: "TEXT") ?? "TEXT";
+    return ctx.designEntity?.getString('type', def: 'TEXT') ?? 'TEXT';
   }
 }
 
@@ -164,14 +164,14 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     String? label = widget.getLabelNull();
     String type = widget.getType();
 
-    if (type == "INTEGER") {
+    if (type == 'INTEGER') {
       mask = MaskConfig(
           controller: _controller,
           focus: _focus,
           label: label,
           formatter: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
           textInputType: TextInputType.number);
-    } else if (type == "DOUBLE") {
+    } else if (type == 'DOUBLE') {
       mask = MaskConfig(
           controller: _controller,
           focus: _focus,
@@ -179,10 +179,10 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
             FilteringTextInputFormatter.allow(RegExp(r'(^-?\d*\.?\d*)'))
           ],
           textInputType: TextInputType.number);
-    } else if (type == "DATE") {
+    } else if (type == 'DATE') {
       var maskFormatter = MaskTextInputFormatter(
           mask: '##/##/####',
-          filter: {"#": RegExp(r'[0-9]')},
+          filter: {'#': RegExp(r'[0-9]')},
           type: MaskAutoCompletionType.lazy);
 
       mask = MaskConfig(
@@ -190,13 +190,13 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
           focus: _focus,
           label: label,
           formatter: [maskFormatter],
-          hint: "__/__/____",
+          hint: '__/__/____',
           textInputType: TextInputType.number,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return null;
             }
-            final components = value.split("/");
+            final components = value.split('/');
             if (components.length == 3) {
               final day = int.tryParse(components[0]);
               final month = int.tryParse(components[1]);
@@ -210,7 +210,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
                 }
               }
             }
-            return "wrong date";
+            return 'wrong date';
           });
     } else {
       mask = MaskConfig(controller: _controller, focus: _focus, label: label);
@@ -226,7 +226,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   }
 
   Widget getCell(String type, Widget content) {
-    if (type == "DATE") {
+    if (type == 'DATE') {
       content = getDatePicker(content);
     }
 
@@ -254,13 +254,13 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
         onDoubleTap: () async {
           if (kIsWeb) {}
           String l = await findSystemLocale();
-          List lsp = l.split("_");
+          List lsp = l.split('_');
           // ignore: use_build_context_synchronously
           DateTime? pickedDate = await showDatePicker(
-              helpText: "",
+              helpText: '',
               context: context,
               locale: Locale(lsp[0], lsp[1]),
-              initialDate: _controller.text == ""
+              initialDate: _controller.text == ''
                   ? DateTime.now()
                   : DateFormat('dd/MM/yyyy').parse(_controller.text),
               firstDate: DateTime(1900),
@@ -273,7 +273,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
               _controller.text = formattedDate;
             });
           } else {
-            print("Date is not selected");
+            debugPrint('Date is not selected');
           }
         },
         child: content);

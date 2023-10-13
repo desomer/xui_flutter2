@@ -24,7 +24,7 @@ abstract class CWWidgetLoader {
     return ctxLoader.factory.mapProvider[name];
   }
 
-  setRoot(String xid, String implement) {
+  void setRoot(String xid, String implement) {
     cwFactory.setOne(
         ctxLoader,
         'child',
@@ -103,7 +103,7 @@ class CWAppLoaderCtx {
     return _mode;
   }
 
-  setModeRendering(ModeRendering aMode) {
+  void setModeRendering(ModeRendering aMode) {
     _mode = aMode;
   }
 

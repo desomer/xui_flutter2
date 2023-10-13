@@ -13,13 +13,13 @@ class CWLoader extends CWWidgetMap {
   StateCW<CWLoader> createState() => _CwLoaderState();
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     addSlotPath('$path.Cont', SlotConfig('${ctx.xid}Cont'));
   }
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c.addWidget(
-        "CWLoader", (CWWidgetCtx ctx) => CWLoader(key: ctx.getKey(), ctx: ctx));
+        'CWLoader', (CWWidgetCtx ctx) => CWLoader(key: ctx.getKey(), ctx: ctx));
   }
 }
 
@@ -28,10 +28,10 @@ class _CwLoaderState extends StateCW<CWLoader> {
   Widget build(BuildContext context) {
     var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
 
-    getContent(int ok) {
+    Widget getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
-      return CWSlot( type: "body",
+      return CWSlot( type: 'body',
           key: widget.ctx.getSlotKey('Cont', ''),
           ctx: widget.createChildCtx('Cont', null));
     }

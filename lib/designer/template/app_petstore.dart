@@ -13,48 +13,48 @@ class AppPetStore {
 
     // if (items == null) {
     CoreDataEntity modelCustomer =
-        collection.createEntityByJson("DataModel", {"name": "Customers"});
+        collection.createEntityByJson('DataModel', {'name': 'Customers'});
 
     CoreDataEntity modelPets =
-        collection.createEntityByJson("DataModel", {"name": "Pets"});
+        collection.createEntityByJson('DataModel', {'name': 'Pets'});
 
     //////////////////////////////////////////
     modelCustomer.addMany(
         loader,
-        "listAttr",
+        'listAttr',
         collection.createEntityByJson(
-            "ModelAttributs", {"name": "First name", "type": "TEXT"}));
+            'ModelAttributs', {'name': 'First name', 'type': 'TEXT'}));
     modelCustomer.addMany(
         loader,
-        "listAttr",
+        'listAttr',
         collection.createEntityByJson(
-            "ModelAttributs", {"name": "Last name", "type": "TEXT"}));
+            'ModelAttributs', {'name': 'Last name', 'type': 'TEXT'}));
     /////////////////////////////////////////////////
     modelPets.addMany(
         loader,
-        "listAttr",
+        'listAttr',
         collection.createEntityByJson(
-            "ModelAttributs", {"name": "Name", "type": "TEXT"}));
+            'ModelAttributs', {'name': 'Name', 'type': 'TEXT'}));
     modelPets.addMany(
         loader,
-        "listAttr",
+        'listAttr',
         collection.createEntityByJson(
-            "ModelAttributs", {"name": "Category", "type": "TEXT"}));
+            'ModelAttributs', {'name': 'Category', 'type': 'TEXT'}));
     modelPets.addMany(
         loader,
-        "listAttr",
+        'listAttr',
         collection.createEntityByJson(
-            "ModelAttributs", {"name": "Breed", "type": "TEXT"}));
+            'ModelAttributs', {'name': 'Breed', 'type': 'TEXT'}));
     /////////////////////////////////////
     // dataModelProvider
     //   ..add(modelCustomer)
     //   ..add(modelPets);
 
     CoreDataEntity modelContainer = collection.createEntityByJson(
-        "DataContainer", {"idData": "models", "listData": []});
+        'DataContainer', {'idData': 'models', 'listData': []});
 
-    modelContainer.addMany(loader, "listData", modelCustomer);
-    modelContainer.addMany(loader, "listData", modelPets);
+    modelContainer.addMany(loader, 'listData', modelCustomer);
+    modelContainer.addMany(loader, 'listData', modelPets);
 
     //Map<String, CoreDataEntity> listModel = {"models": modelContainer};
 

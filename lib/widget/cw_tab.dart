@@ -11,10 +11,10 @@ class CWTab extends CWWidget {
     required super.ctx,
   });
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c
         .addWidget(
-            "CWTab", (CWWidgetCtx ctx) => CWTab(key: ctx.getKey(), ctx: ctx))
+            'CWTab', (CWWidgetCtx ctx) => CWTab(key: ctx.getKey(), ctx: ctx))
         .addAttr('tabCount', CDAttributType.int)
         .withAction(AttrActionDefault(2))
         .addAttr('heightTabBar', CDAttributType.int)
@@ -25,19 +25,19 @@ class CWTab extends CWWidget {
   State<CWTab> createState() => _CWTabState();
 
   int getNb() {
-    return ctx.designEntity?.getInt("tabCount", 2) ?? 2;
+    return ctx.designEntity?.getInt('tabCount', 2) ?? 2;
   }
 
   int getHeight() {
-    return ctx.designEntity?.getInt("height", 100) ?? 100;
+    return ctx.designEntity?.getInt('height', 100) ?? 100;
   }
 
   int getTabHeight() {
-    return ctx.designEntity?.getInt("heightTabBar", 35) ?? 35;
+    return ctx.designEntity?.getInt('heightTabBar', 35) ?? 35;
   }
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     final nb = getNb();
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Tab$i', SlotConfig('${ctx.xid}Tab$i'));
@@ -79,7 +79,7 @@ class _CWTabState extends StateCW<CWTab> {
           Tab(
               height: heightHeader,
               child: CWSlot(
-                  type: "selector",
+                  type: 'selector',
                   key: GlobalKey(debugLabel: 'tab btn slot ${widget.ctx.xid}'),
                   ctx: widget.createChildCtx('Tab', i))));
     }
@@ -106,7 +106,7 @@ class _CWTabState extends StateCW<CWTab> {
             child: Column(children: [
               Expanded(
                   child: CWSlot(
-                      type: "body",
+                      type: 'body',
                       key: GlobalKey(
                           debugLabel: 'tab cont slot ${widget.ctx.xid}'),
                       ctx: widget.createChildCtx('Cont', i)))
@@ -114,7 +114,7 @@ class _CWTabState extends StateCW<CWTab> {
       } else {
         slot = SingleChildScrollView(
             child: CWSlot(
-                type: "body",
+                type: 'body',
                 key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
                 ctx: widget.createChildCtx('Cont', i)));
       }

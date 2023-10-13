@@ -29,12 +29,12 @@ class _DesignerDataState extends State<DesignerData> {
 
     return LayoutBuilder(builder: (context, constraints) {
       List<Widget> listData = ArrayBuilder()
-          .getArrayWidget("rootData", provider, loader, "Array", constraints);
+          .getArrayWidget('rootData', provider, loader, 'Array', constraints);
 
       listData.add(WidgetAddBtn(
         provider: provider,
         loader: loader,
-        repaintXid: "rootDataCol0",
+        repaintXid: 'rootDataCol0',
       ));
 
       return Column(
@@ -48,7 +48,7 @@ class OnInsertData extends CoreDataAction {
   OnInsertData();
 
   @override
-  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+  void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     CoreDataEntity newRow = event!.loader!.collectionDataModel
         .createEntityByJson(event.provider!.type, {});
 
@@ -61,7 +61,7 @@ class SetDate extends CoreDataAction {
   String name;
 
   @override
-  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+  void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     event!.provider!
         .getSelectedEntity()!
         .setAttr(ctx!.loader, name, DateTime.timestamp().toIso8601String());

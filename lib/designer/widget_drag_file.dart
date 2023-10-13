@@ -36,11 +36,11 @@ class _WidgetDragTargetState extends State<WidgetDragTarget> {
           var excel = Excel.decodeBytes(bytes);
 
           for (var table in excel.tables.keys) {
-            print(table); //sheet Name
-            print(excel.tables[table]!.maxCols);
-            print(excel.tables[table]!.maxRows);
+            debugPrint(table); //sheet Name
+            debugPrint(excel.tables[table]!.maxCols.toString());
+            debugPrint(excel.tables[table]!.maxRows.toString());
             for (var row in excel.tables[table]!.rows) {
-              print('${row[0]!.value}');
+              debugPrint('${row[0]!.value}');
             }
           }
         }
@@ -69,9 +69,9 @@ class _WidgetDragTargetState extends State<WidgetDragTarget> {
         child: Stack(
           children: [
             if (_list.isEmpty)
-              const Center(child: Text("Drop here"))
+              const Center(child: Text('Drop here'))
             else
-              Text(_list.map((e) => e.path).join("\n")),
+              Text(_list.map((e) => e.path).join('\n')),
             if (offset != null)
               Align(
                 alignment: Alignment.topRight,

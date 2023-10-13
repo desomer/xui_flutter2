@@ -14,7 +14,7 @@ enum CWExpandAction { actions }
 class CWExpandPanel extends CWWidget {
   const CWExpandPanel({Key? key, required super.ctx}) : super(key: key);
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c.collection
         .addObject('CWExpandConstraint')
         .addAttr(CWExpandAction.actions.toString(), CDAttributType.many);
@@ -26,7 +26,7 @@ class CWExpandPanel extends CWWidget {
         .addAttr('icon', CDAttributType.text);
 
     c
-        .addWidget("CWExpandPanel",
+        .addWidget('CWExpandPanel',
             (CWWidgetCtx ctx) => CWExpandPanel(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.int);
   }
@@ -35,11 +35,11 @@ class CWExpandPanel extends CWWidget {
   State<CWExpandPanel> createState() => CWExpandPanelState();
 
   int getNb() {
-    return ctx.designEntity?.getInt("count", 1) ?? 1;
+    return ctx.designEntity?.getInt('count', 1) ?? 1;
   }
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     final nb = getNb();
     for (int i = 0; i < nb; i++) {
       addSlotPath(
@@ -60,8 +60,8 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
     final nb = widget.getNb();
     for (var i = 0; i < nb; i++) {
       listInfo.add(ExpandInfo(
-          CWSlot(type: "title", key: GlobalKey(), ctx: widget.createChildCtx("Title", i)),
-          CWSlot(type: "body",key: GlobalKey(), ctx: widget.createChildCtx("Body", i))));
+          CWSlot(type: 'title', key: GlobalKey(), ctx: widget.createChildCtx('Title', i)),
+          CWSlot(type: 'body',key: GlobalKey(), ctx: widget.createChildCtx('Body', i))));
     }
 
     return LayoutBuilder(builder: (context, constraints) {
@@ -148,8 +148,8 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
         onPressed: () {
           Navigator.pop(context);
           CWWidgetEvent ctxWE = CWWidgetEvent();
-          String actionId = action["_idAction_"];
-          var p = actionId.split("@");
+          String actionId = action['_idAction_'];
+          var p = actionId.split('@');
           ctxWE.action = p[0];
           CWProvider? provider = widget.ctx.loader.factory.mapProvider[p[1]];
           if (provider != null) {
@@ -158,8 +158,8 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
             provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
           }
         },
-        icon: Icon(action["icon"] as IconData),
-        label: Text(action["label"] as String),
+        icon: Icon(action['icon'] as IconData),
+        label: Text(action['label'] as String),
       ));
     }
 

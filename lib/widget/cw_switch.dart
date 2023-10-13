@@ -12,7 +12,7 @@ class CWSwitch extends CWWidgetMap {
   State<CWSwitch> createState() => _CWSwitchState();
 
   @override
-  initSlot(String path) {}
+  void initSlot(String path) {}
 }
 
 class _CWSwitchState extends StateCW<CWSwitch> {

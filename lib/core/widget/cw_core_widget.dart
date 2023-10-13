@@ -22,14 +22,14 @@ class SlotConfig {
 abstract class CWWidgetVirtual {
   CWWidgetVirtual(this.ctx);
   final CWWidgetCtx ctx;
-  init();
+  void init();
 }
 
 abstract class CWWidget extends StatefulWidget {
   const CWWidget({super.key, required this.ctx});
   final CWWidgetCtx ctx;
 
-  initSlot(String path);
+  void initSlot(String path);
 
   void addSlotPath(String pathWid, SlotConfig config) {
     final String childXid = ctx.factory.mapChildXidByXid[config.xid] ?? '';
@@ -72,7 +72,7 @@ abstract class StateCW<T extends CWWidget> extends State<T> {
 
   @override
   void initState() {
-    if (widget.ctx.xid != "root" || widget is! CWSlot) {
+    if (widget.ctx.xid != 'root' || widget is! CWSlot) {
       widget.ctx.state = this;
     }
     super.initState();
@@ -97,7 +97,7 @@ mixin class CWWidgetProvider {
     return -1;
   }
 
-  setProviderDataOK(CWProvider? provider, int ok) {
+  void setProviderDataOK(CWProvider? provider, int ok) {
     if (provider != null &&
         provider.loader != null &&
         !provider.loader!.isSync()) {
@@ -130,7 +130,7 @@ mixin class CWWidgetProvider {
 abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
   const CWWidgetMap({super.key, required super.ctx});
 
-  setDisplayRow(InheritedStateContainer? row) {
+  void setDisplayRow(InheritedStateContainer? row) {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
       if (row != null) {
@@ -148,12 +148,12 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
 
   String getMapValue() {
     CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getStringValueOf(ctx, "bind") ?? "no map";
+    return provider?.getStringValueOf(ctx, 'bind') ?? 'no map';
   }
 
   bool getMapBool() {
     CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getBoolValueOf(ctx, "bind") ?? false;
+    return provider?.getBoolValueOf(ctx, 'bind') ?? false;
   }
 
   void setValue(dynamic val) {
@@ -164,7 +164,7 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
       ctxWE.provider = provider;
       ctxWE.payload = null;
       ctxWE.loader = ctx.loader;
-      provider.setValueOf(ctx, ctxWE, "bind", val);
+      provider.setValueOf(ctx, ctxWE, 'bind', val);
     }
   }
 
@@ -209,8 +209,8 @@ class CWWidgetCtx {
 
   Key? getSlotKey(String prefix, String change) {
     return loader.mode == ModeRendering.design
-        ? GlobalKey(debugLabel: "$xid$prefix")
-        : ValueKey("$xid$prefix$change");
+        ? GlobalKey(debugLabel: '$xid$prefix')
+        : ValueKey('$xid$prefix$change');
   }
 
   static String getParentPathFrom(String path) {
@@ -233,13 +233,13 @@ class CWWidgetCtx {
 
   CWWidget? getParentCWWidget() {
     String? xid = factory.mapXidByPath[getParentPath()];
-    CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
+    CWWidget? widget = factory.mapWidgetByXid[xid ?? ''];
     return widget;
   }
 
   CWWidget? getCWWidget() {
     String? xid = factory.mapXidByPath[pathWidget];
-    CWWidget? widget = factory.mapWidgetByXid[xid ?? ""];
+    CWWidget? widget = factory.mapWidgetByXid[xid ?? ''];
     return widget;
   }
 

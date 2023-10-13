@@ -14,7 +14,7 @@ class DesignerPages extends CWWidgetMap {
   State<DesignerPages> createState() => _DesignerPagesState();
 
   @override
-  initSlot(String path) {}
+  void initSlot(String path) {}
 }
 
 class _DesignerPagesState extends State<DesignerPages> {
@@ -32,7 +32,7 @@ class _DesignerPagesState extends State<DesignerPages> {
   Widget build(BuildContext context) {
     var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
-    getContent(int ok) {
+    Widget getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
       nodesRemovedIndexedTree = getTreeData();
@@ -50,7 +50,7 @@ class _DesignerPagesState extends State<DesignerPages> {
     }
   }
 
-  getTree() {
+ Widget getTree() {
     return TreeView.indexTyped<CoreDataEntity, IndexedTreeNode<CoreDataEntity>>(
         builder: (context, node) {
           return getCell(node);
@@ -102,7 +102,7 @@ class _DesignerPagesState extends State<DesignerPages> {
   Container getCell(IndexedTreeNode<CoreDataEntity> node) {
     Widget cell;
     if (node.level == 0) {
-      cell = const Text("Pages");
+      cell = const Text('Pages');
     } else {
       cell = getDrag(node, Text("${node.data?.value["name"]}"));
     }
@@ -118,7 +118,7 @@ class _DesignerPagesState extends State<DesignerPages> {
 
     for (CoreDataEntity aNode in provider.content) {
       nodesRemovedIndexedTree
-          .add(IndexedTreeNode(key: aNode.value["_id_"], data: aNode));
+          .add(IndexedTreeNode(key: aNode.value['_id_'], data: aNode));
     }
 
     return nodesRemovedIndexedTree;

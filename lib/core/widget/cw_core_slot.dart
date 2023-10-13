@@ -16,7 +16,7 @@ class CWSlot extends CWWidget {
   State<CWSlot> createState() => _CWSlotState();
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     throw UnimplementedError();
   }
 }

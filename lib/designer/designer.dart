@@ -36,9 +36,9 @@ class CoreDesigner extends StatefulWidget {
     designView = DesignerView(key: designerKey);
     _coreDesigner = this;
     CoreDesigner.on(CDDesignEvent.save, (arg) async {
-      print("save action");
-      StoreDriver? storage = await StoreDriver.getDefautDriver("main");
-      storage?.setData("#pages", CoreDesigner.ofLoader().cwFactory.value);
+      debugPrint('save action');
+      StoreDriver? storage = await StoreDriver.getDefautDriver('main');
+      storage?.setData('#pages', CoreDesigner.ofLoader().cwFactory.value);
     });
   }
 
@@ -47,11 +47,11 @@ class CoreDesigner extends StatefulWidget {
     return fct;
   }
 
-  static emit(CDDesignEvent event, dynamic payload) {
+  static void emit(CDDesignEvent event, dynamic payload) {
     of()._eventListener.emit(event.toString(), payload);
   }
 
-  static removeListener(CDDesignEvent event, Function(dynamic) fct) {
+  static void removeListener(CDDesignEvent event, Function(dynamic) fct) {
     of()._eventListener.removeEventListener(event.toString(), fct);
   }
 
@@ -75,15 +75,15 @@ class CoreDesigner extends StatefulWidget {
   static late CoreDesigner _coreDesigner;
   late DesignerView designView;
 
-  final GlobalKey imageKey = GlobalKey(debugLabel: "CoreDesigner.imageKey");
-  final GlobalKey rootKey = GlobalKey(debugLabel: "rootKey");
-  final GlobalKey designerKey = GlobalKey(debugLabel: "CoreDesignerdesignerKey");
-  final GlobalKey propKey = GlobalKey(debugLabel: "CoreDesigner.propKey");
+  final GlobalKey imageKey = GlobalKey(debugLabel: 'CoreDesigner.imageKey');
+  final GlobalKey rootKey = GlobalKey(debugLabel: 'rootKey');
+  final GlobalKey designerKey = GlobalKey(debugLabel: 'CoreDesignerdesignerKey');
+  final GlobalKey propKey = GlobalKey(debugLabel: 'CoreDesigner.propKey');
   
 
-  final GlobalKey dataKey = GlobalKey(debugLabel: "CoreDesigner.dataKey");
+  final GlobalKey dataKey = GlobalKey(debugLabel: 'CoreDesigner.dataKey');
   final GlobalKey dataFilterKey =
-      GlobalKey(debugLabel: "CoreDesigner.dataFilterKey");
+      GlobalKey(debugLabel: 'CoreDesigner.dataFilterKey');
 
   final _eventListener = EventListener();
   late TabController controllerTabRight;
@@ -128,9 +128,9 @@ class _CoreDesignerState extends State<CoreDesigner>
 
     List<Route> currentRouteStack = [];
     currentRouteStack
-        .add(RouteTest(settings: const RouteSettings(name: "Root")));
+        .add(RouteTest(settings: const RouteSettings(name: 'Root')));
     currentRouteStack
-        .add(RouteTest(settings: const RouteSettings(name: "Text")));
+        .add(RouteTest(settings: const RouteSettings(name: 'Text')));
 
     return MaterialApp(
         localizationsDelegates: const [
@@ -231,7 +231,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                         )),
                   ]),
                   const Spacer(),
-                  const Text("Desomer G.  10/10/23"),
+                  const Text('Desomer G.  10/10/23'),
                   IconButton(
                     icon: const Icon(Icons.help),
                     onPressed: () {},
@@ -267,11 +267,11 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getQueryPan() {
-    CWWidgetCtx ctx = CWWidgetCtx("", CWApplication.of().loaderModel, "");
+    CWWidgetCtx ctx = CWWidgetCtx('', CWApplication.of().loaderModel, '');
     ctx.designEntity = CWApplication.of()
         .loaderModel
         .collectionWidget
-        .createEntityByJson("CWArray", {"providerName": "DataModelProvider"});
+        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
 
     return Row(
       children: [SizedBox(width: 300, child: DesignerQuery(ctx: ctx))],
@@ -335,9 +335,9 @@ class _CoreDesignerState extends State<CoreDesigner>
     );
 
     WidgetTab tabAttributDesc = WidgetTab(heightTab: 30, listTab: const [
-      Tab(text: "Properties"),
-      Tab(text: "Validator"),
-      Tab(text: "Style")
+      Tab(text: 'Properties'),
+      Tab(text: 'Validator'),
+      Tab(text: 'Style')
     ], listTabCont: [
       Row(
         children: [const Expanded(child: DesignerAttribut()), rainboxBox],
@@ -349,8 +349,8 @@ class _CoreDesignerState extends State<CoreDesigner>
     WidgetTab tabModelDesc = WidgetTab(
       heightTab: 60,
       listTab: const [
-        Tab(text: "Model", icon: Icon(Icons.data_object)),
-        Tab(text: "Data", icon: Icon(Icons.table_chart))
+        Tab(text: 'Model', icon: Icon(Icons.data_object)),
+        Tab(text: 'Data', icon: Icon(Icons.table_chart))
       ],
       listTabCont: [
         Column(children: [
@@ -415,17 +415,17 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDesignPan() {
-    CWWidgetCtx ctxQuery = CWWidgetCtx("", CWApplication.of().loaderModel, "");
+    CWWidgetCtx ctxQuery = CWWidgetCtx('', CWApplication.of().loaderModel, '');
     ctxQuery.designEntity = CWApplication.of()
         .loaderModel
         .collectionWidget
-        .createEntityByJson("CWArray", {"providerName": "DataModelProvider"});
+        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
 
-    CWWidgetCtx ctxPages = CWWidgetCtx("", CWApplication.of().loaderModel, "");
+    CWWidgetCtx ctxPages = CWWidgetCtx('', CWApplication.of().loaderModel, '');
     ctxPages.designEntity = CWApplication.of()
         .loaderModel
         .collectionWidget
-        .createEntityByJson("CWArray", {"providerName": "PagesProvider"});
+        .createEntityByJson('CWArray', {'providerName': 'PagesProvider'});
 
     return Row(children: [
       SizedBox(

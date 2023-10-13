@@ -7,15 +7,15 @@ import 'dart:math' as math;
 class ComponentDesc {
   static List<Widget> get getListComponent {
     return [
-      CardComponents("Layout", [
-        ComponentDesc('Label', Icons.format_quote, "CWText"),
-        ComponentDesc('Column', Icons.table_rows_rounded, "CWColumn"),
-        ComponentDesc('Row', Icons.view_week, "CWRow"),
-        ComponentDesc('Tab', Icons.tab, "CWTab")
+      CardComponents('Layout', [
+        ComponentDesc('Label', Icons.format_quote, 'CWText'),
+        ComponentDesc('Column', Icons.table_rows_rounded, 'CWColumn'),
+        ComponentDesc('Row', Icons.view_week, 'CWRow'),
+        ComponentDesc('Tab', Icons.tab, 'CWTab')
       ]),
-      CardComponents("Array & Form", [
-        ComponentDesc('Array', Icons.table_chart, "CWArray"),
-        ComponentDesc('Form', Icons.feed, "CWForm"),
+      CardComponents('Array & Form', [
+        ComponentDesc('Array', Icons.table_chart, 'CWArray'),
+        ComponentDesc('Form', Icons.feed, 'CWForm'),
       ]),
       
       // "Column", "Row", "Tab"
@@ -26,9 +26,9 @@ class ComponentDesc {
       // CardComponents(
       //     "Data", const ["Form", "List", "Tree" "List/Form", "Tree/Form"]),
       // CardComponents("Aggregat", const ["Sum", "Moy", "Count", "Chart"]),
-      CardComponents("Input", [
-        ComponentDesc('Text', Icons.text_fields, "CWTextfield"),
-        ComponentDesc('Switch', Icons.toggle_on, "CWSwitch"),
+      CardComponents('Input', [
+        ComponentDesc('Text', Icons.text_fields, 'CWTextfield'),
+        ComponentDesc('Switch', Icons.toggle_on, 'CWSwitch'),
       ]),
     ];
   }
@@ -57,7 +57,7 @@ class CardComponents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    buildComp(ComponentDesc cmp) {
+    Widget buildComp(ComponentDesc cmp) {
       return Padding(
           padding: const EdgeInsets.all(5.0),
           child: Draggable<DragCtx>(
@@ -81,7 +81,7 @@ class CardComponents extends StatelessWidget {
           ));
     }
 
-    buildList() {
+    Widget buildList() {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -153,7 +153,7 @@ class GlobalSnackBar {
     required this.message,
   });
 
-  static show(
+  static void show(
     BuildContext context,
     String message,
   ) {

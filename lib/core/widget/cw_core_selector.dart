@@ -88,7 +88,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
   @override
   Widget build(BuildContext context) {
     // ne creer pas de key sinon perte de focus
-    captureKey ??= GlobalKey(debugLabel: "captureKey ${widget.ctx.xid}");
+    captureKey ??= GlobalKey(debugLabel: 'captureKey ${widget.ctx.xid}');
 
     return Draggable<DragCtx>(
       dragAnchorStrategy: dragAnchorStrategy,
@@ -97,7 +97,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
         // height: 200.0,
         // width: 200.0,
         color: Colors.white,
-        child: Material(elevation: 10, child:CwImage()),
+        child: const Material(elevation: 10, child:CwImage()),
       ),
       child: MouseRegion(
           onHover: onHover,
@@ -123,7 +123,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
         CoreDesigner.emit(CDDesignEvent.select, widget.ctx);
 
         setState(() {
-          debugPrint("selection ${widget.ctx.pathWidget}");
+          debugPrint('selection ${widget.ctx.pathWidget}');
         });
       }
 
@@ -148,7 +148,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
     _showPopupMenu(Offset(position.dx + d.localPosition.dx + 10,
         position.dy + d.localPosition.dy + 10));
 
-    print(position);
+    debugPrint('$position');
 
    // _showPopupMenu(Offset(position.dx + 10, position.dy + 10));
   }
@@ -241,7 +241,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
     });
   }
 
-  _capturePng() async {
+  Future _capturePng() async {
     RenderRepaintBoundary? boundary = captureKey?.currentContext
         ?.findRenderObject() as RenderRepaintBoundary?;
 

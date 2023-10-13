@@ -30,7 +30,7 @@ class CWWidgetCollectionBuilder {
     CWTab.initFactory(this);
     CWTextfield.initFactory(this);
 
-    addWidget("CWSwitch",
+    addWidget('CWSwitch',
             (CWWidgetCtx ctx) => CWSwitch(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.text)
         .addAttr('bind', CDAttributType.text)
@@ -102,12 +102,12 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
 
   Map<String, CWProvider> mapProvider = <String, CWProvider>{};
 
-  initSlot() {
+  void initSlot() {
     final rootWidget = mapWidgetByXid['root']!;
     rootWidget.initSlot('root');
   }
 
-  disposePath(String path) {
+  void disposePath(String path) {
     List<String> xidToDelete = [];
     List<String> xidSlotToDelete = [];
     List<String> pathToDelete = [];
@@ -132,10 +132,10 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
       mapXidByPath.remove(element);
     }
     List designToRemove = [];
-    List designs = loader.entityCWFactory.value["designs"] ?? [];
+    List designs = loader.entityCWFactory.value['designs'] ?? [];
     for (var d in designs) {
-      if (xidToDelete.contains(d["xid"]) ||
-          xidSlotToDelete.contains(d["xid"])) {
+      if (xidToDelete.contains(d['xid']) ||
+          xidSlotToDelete.contains(d['xid'])) {
         designToRemove.add(d);
       }
     }
@@ -211,7 +211,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
         final CoreDataEntity? constraint = ctx.event!.entity
             .getOneEntity(loader.collectionWidget, 'constraint');
         if (constraint != null) {
-          CWWidgetCtx ctxConstraint = CWWidgetCtx(xid, loader, "?");
+          CWWidgetCtx ctxConstraint = CWWidgetCtx(xid, loader, '?');
           ctxConstraint.designEntity = constraint;
           ctxConstraint.pathDataDesign = ctx.getPathData();
           mapConstraintByXid[xid] = ctxConstraint;

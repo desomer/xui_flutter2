@@ -20,37 +20,37 @@ class CoreDataFilter {
   late CoreDataCollection c;
   late CWAppLoaderCtx loader;
 
-  init(String idModel, String name) {
-    dataFilter = c.createEntityByJson("DataFilter", {"listGroup": []});
-    dataFilter.setAttr(loader, "model", idModel);
-    dataFilter.setAttr(loader, "name", name);
+  void init(String idModel, String name) {
+    dataFilter = c.createEntityByJson('DataFilter', {'listGroup': []});
+    dataFilter.setAttr(loader, 'model', idModel);
+    dataFilter.setAttr(loader, 'name', name);
   }
 
   CoreDataEntity addGroup(CoreDataEntity parent) {
-    CoreDataEntity group = c.createEntityByJson("DataFilterGroup",
-        {"operator": "and", "listClause": [], "listGroup": []});
-    parent.addMany(loader, "listGroup", group);
+    CoreDataEntity group = c.createEntityByJson('DataFilterGroup',
+        {'operator': 'and', 'listClause': [], 'listGroup': []});
+    parent.addMany(loader, 'listGroup', group);
     return group;
   }
 
   CoreDataEntity addClause(CoreDataEntity group) {
-    CoreDataEntity clause = c.createEntityByJson("DataFilterClause",
-        {"operator": "=", "model": dataFilter.getString("model")});
-    group.addMany(loader, "listClause", clause);
+    CoreDataEntity clause = c.createEntityByJson('DataFilterClause',
+        {'operator': '=', 'model': dataFilter.getString('model')});
+    group.addMany(loader, 'listClause', clause);
     return clause;
   }
 
   List getListGroup() {
-    CoreDataPath? listGroup = dataFilter.getPath(c, "listGroup");
+    CoreDataPath? listGroup = dataFilter.getPath(c, 'listGroup');
     return listGroup.value;
   }
 
   List getListClause(Map<String, dynamic> v) {
-    return v["listClause"];
+    return v['listClause'];
   }
 
   String getGroupOp(Map<String, dynamic> v) {
-    return v["operator"];
+    return v['operator'];
   }
 }
 
@@ -66,7 +66,7 @@ class WidgetFilterbuilder extends StatefulWidget {
 
 class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
   @override
-  initState() {
+  void initState() {
     super.initState();
   }
 
@@ -75,18 +75,18 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
     String? idModel = CWApplication.of()
         .dataModelProvider
         .getSelectedEntity()
-        ?.getString("_id_");
+        ?.getString('_id_');
 
     initFilter(idModel);
 
     CoreDataCollection c = CWApplication.of().collection;
-    CoreDataPath? listGroup = widget.filter.dataFilter.getPath(c, "listGroup");
+    CoreDataPath? listGroup = widget.filter.dataFilter.getPath(c, 'listGroup');
 
     List<Widget> listGroupWidget = [];
     int i = 0;
     // ignore: unused_local_variable
     for (Map<String, dynamic> r in listGroup.value) {
-      listGroupWidget.add(WidgetQueryGroup(widget.filter, "listGroup[$i]", 0));
+      listGroupWidget.add(WidgetQueryGroup(widget.filter, 'listGroup[$i]', 0));
       i++;
     }
 
@@ -114,7 +114,7 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
       CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
       dataLoader.setMapID(idModel); // choix de la map a afficher
       if (providerData.loader!.getFilter() == null) {
-        widget.filter.init(idModel, "test");
+        widget.filter.init(idModel, 'test');
         var group = widget.filter.addGroup(widget.filter.dataFilter);
         widget.filter.addClause(group);
         providerData.setFilter(widget.filter.dataFilter);
@@ -122,7 +122,7 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
       widget.filter.dataFilter =
           providerData.loader!.getFilter() ?? widget.filter.dataFilter;
     } else {
-      widget.filter.init("?", "?");
+      widget.filter.init('?', '?');
     }
   }
 
@@ -133,7 +133,7 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
     CoreGlobalCacheResultQuery.cacheNbData.remove(idCache);
     provider.loader!.reload();
 
-    CWApplication.of().loaderData.findWidgetByXid("rootData")!.repaint();
+    CWApplication.of().loaderData.findWidgetByXid('rootData')!.repaint();
   }
 }
 
@@ -165,14 +165,14 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
   Widget getAndOr(List<Widget> listClause) {
     bool isEnable = listClause.length > 2;
 
-    onPressed(int index) {
+    void onPressed(int index) {
       setState(() {
         isSelected[0] = !isSelected[0];
         isSelected[1] = !isSelected[1];
         CoreDataCollection c = CWApplication.of().collection;
         CoreDataPath pathGroup =
             widget.filter.dataFilter.getPath(c, widget.pathGroup);
-        pathGroup.getLastEntity().value["operator"] =
+        pathGroup.getLastEntity().value['operator'] =
             isSelected[0] ? 'and' : 'or';
       });
     }
@@ -185,7 +185,7 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
             visible: listClause.length > 1,
             replacement: const Padding(
                 padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-                child: Text("Group filter")),
+                child: Text('Group filter')),
             child: Row(children: [
               ToggleButtons(
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -194,7 +194,7 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
                 fillColor: Colors.deepOrange.shade400,
                 isSelected: isSelected,
                 onPressed: isEnable ? onPressed : null,
-                children: const <Widget>[Text("AND"), Text("OR")],
+                children: const <Widget>[Text('AND'), Text('OR')],
               ),
               getAddGroupBtn()
             ])));
@@ -202,14 +202,14 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
 
   Widget getAddGroupBtn() {
     return Tooltip(
-        message: "add group",
+        message: 'add group',
         child: InkWell(
           onTap: addGroup,
           child: const Icon(Icons.add_box_outlined),
         ));
   }
 
-  addGroup() {
+  void addGroup() {
     setState(() {
       var c = CWApplication.of().collection;
       var path = widget.filter.dataFilter.getPath(c, widget.pathGroup);
@@ -224,10 +224,10 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
     CoreDataCollection c = CWApplication.of().collection;
     CoreDataPath? group = widget.filter.dataFilter.getPath(c, widget.pathGroup);
     List<Widget> listGroupWidget = [];
-    List listClause = group.value["listClause"];
+    List listClause = group.value['listClause'];
     Map<String, dynamic> lastClause = listClause.last;
 
-    if (lastClause["colId"] != null) {
+    if (lastClause['colId'] != null) {
       widget.filter.addClause(widget.filter.dataFilter
           .getPath(c, widget.pathGroup)
           .getLastEntity());
@@ -241,7 +241,7 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
       listGroupWidget.add(WidgetQueryClause(
           key: ObjectKey(clause),
           widget.filter,
-          "${widget.pathGroup}.listClause[$j]",
+          '${widget.pathGroup}.listClause[$j]',
           this,
           widget.level,
           j == 0));
@@ -249,12 +249,12 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
     }
 
     j = 0;
-    List listGroup = group.value["listGroup"];
+    List listGroup = group.value['listGroup'];
     for (var clause in listGroup) {
       listGroupWidget.add(WidgetQueryGroup(
           key: ObjectKey(clause),
           widget.filter,
-          "${widget.pathGroup}.listGroup[$j]",
+          '${widget.pathGroup}.listGroup[$j]',
           widget.level + 1));
       j++;
     }
@@ -271,9 +271,9 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
 
   void initGroupOperator(CoreDataCollection c) {
     CoreDataPath pathGroup =
-        widget.filter.dataFilter.getPath(c, "${widget.pathGroup}.operator");
+        widget.filter.dataFilter.getPath(c, '${widget.pathGroup}.operator');
 
-    if (pathGroup.value == "or") {
+    if (pathGroup.value == 'or') {
       isSelected[0] = false;
       isSelected[1] = true;
     } else {
@@ -309,7 +309,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
   void initState() {
     super.initState();
     _controller.addListener(() {
-      path.getLastEntity().value["value1"] = _controller.text;
+      path.getLastEntity().value['value1'] = _controller.text;
       //print("filter ${widget.filter.filter.value}");
     });
   }
@@ -325,8 +325,8 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
   Widget build(BuildContext context) {
     var c = CWApplication.of().collection;
     path = widget.filter.dataFilter.getPath(c, widget.pathFilter);
-    _controller.text = path.getLastEntity().value["value1"] ?? "";
-    bool isEmpty = path.getLastEntity().value["colId"] == null;
+    _controller.text = path.getLastEntity().value['value1'] ?? '';
+    bool isEmpty = path.getLastEntity().value['colId'] == null;
 
     return Row(
       children: [
@@ -347,7 +347,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
     return WidgetQuerybuilderColumn(
         key: ObjectKey(path.getLastEntity().value),
         widget.filter,
-        "${widget.pathFilter}.colId",
+        '${widget.pathFilter}.colId',
         widget.groupState);
   }
 
@@ -357,7 +357,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
           setState(() {
             if (widget.level > 0 &&
                 widget.isFirst &&
-                path.value["colId"] == null) {
+                path.value['colId'] == null) {
               var c = CWApplication.of().collection;
               var pathGroup =
                   widget.filter.dataFilter.getPath(c, widget.pathFilter);
@@ -370,8 +370,8 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
               // print('f ${pathGroup.getLastEntity().value}');
               CoreDesigner.of().dataFilterKey.currentState?.setState(() {});
             } else {
-              (path.value as Map).remove("colId");
-              (path.value as Map).remove("value1");
+              (path.value as Map).remove('colId');
+              (path.value as Map).remove('value1');
               widget.groupState.setState(() {});
             }
           });
@@ -392,7 +392,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
     'is check'
   ];
 
-  getDropdown() {
+  Widget getDropdown() {
     return DecoratedBox(
         decoration: BoxDecoration(
             color: Colors
@@ -430,13 +430,13 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
               onChanged: (String? newValue) {
                 setState(() {
                   dropdownvalue = newValue!;
-                  path.getLastEntity().value["operator"] = dropdownvalue;
+                  path.getLastEntity().value['operator'] = dropdownvalue;
                 });
               },
             )));
   }
 
-  getValueSimple() {
+  Widget getValueSimple() {
     MaskConfig mask =
         MaskConfig(controller: _controller, focus: aFocus, label: null);
 
@@ -490,13 +490,13 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
         var listAttr = CWApplication.of()
             .dataModelProvider
             .getSelectedEntity()!
-            .value["listAttr"];
+            .value['listAttr'];
         attribut =
-            c.createEntityByJson("ModelAttributs", listAttr[item.idxCol]);
+            c.createEntityByJson('ModelAttributs', listAttr[item.idxCol]);
 
         var vd = widget.filter.dataFilter.getPath(c, widget.pathFilter);
-        vd.getLastEntity().value["colId"] = attribut!.value['_id_'];
-        vd.getLastEntity().value["type"] = attribut!.value['type'];
+        vd.getLastEntity().value['colId'] = attribut!.value['_id_'];
+        vd.getLastEntity().value['type'] = attribut!.value['type'];
       });
       widget.groupState.setState(() {});
     });
@@ -519,14 +519,14 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
   Widget build(BuildContext context) {
     var c = CWApplication.of().collection;
     var vd = widget.filter.dataFilter.getPath(c, widget.pathFilter);
-    String? colId = vd.getLastEntity().value["colId"];
+    String? colId = vd.getLastEntity().value['colId'];
     if (colId != null) {
       attribut = CWApplication.of().getCurrentAttributById(colId);
     } else {
       attribut = null;
     }
 
-    String name = attribut?.value["name"] ?? "Drag column name";
+    String name = attribut?.value['name'] ?? 'Drag column name';
 
     return Container(
         padding:
@@ -537,7 +537,7 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
             attribut == null,
             Text(
                 style: TextStyle(
-                    color: (attribut?.value["name"] == null
+                    color: (attribut?.value['name'] == null
                         ? Colors.white30
                         : Colors.white)),
                 name))));

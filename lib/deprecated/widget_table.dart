@@ -15,10 +15,10 @@ class _WidgetTableState extends State<WidgetTable> {
   // Generate a list of fiction prodcts
   final List<Map> _products = List.generate(30, (i) {
     return {
-      "selected": false,
-      "id": i,
-      "name": "Product $i",
-      "price": Random().nextInt(200) + 1
+      'selected': false,
+      'id': i,
+      'name': 'Product $i',
+      'price': Random().nextInt(200) + 1
     };
   });
 

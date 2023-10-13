@@ -7,16 +7,16 @@ class CoreGlobalCacheResultQuery {
   static final Map<String, int> cacheNbData = {};
   static final Map<String, List<CoreDataEntity>> cacheDataValue = {};
 
-  static setCache(CWProvider provider, int nbrow) {
+  static void setCache(CWProvider provider, int nbrow) {
     String idCache = provider.name + provider.type;
     cacheNbData[idCache] = nbrow;
-    debugPrint("set cache $idCache as $nbrow");
+    debugPrint('set cache $idCache as $nbrow');
     if (nbrow == -1) {
       saveCache(provider);
     }
   }
 
-  static saveCache(CWProvider provider) {
+  static void saveCache(CWProvider provider) {
     String idCache = provider.name + provider.type;
     List<CoreDataEntity> contentDeleted = [];
     List<dynamic> contentToSave = [];
@@ -38,7 +38,7 @@ class CoreGlobalCacheResultQuery {
       contentToDelete.add(rowDeleted.value);
     }
 
-    debugPrint("save cache $idCache");
+    debugPrint('save cache $idCache');
     if (contentToDelete.isNotEmpty) {
       provider.loader?.deleteData(contentToDelete);
     }
@@ -47,13 +47,13 @@ class CoreGlobalCacheResultQuery {
     }
   }
 
-  static setCacheValue(CWProvider provider, List<CoreDataEntity> rows) {
+  static void setCacheValue(CWProvider provider, List<CoreDataEntity> rows) {
     String idCache = provider.name + provider.type;
     cacheDataValue[idCache] = rows;
-    debugPrint("set cache value $idCache as ${rows.length}");
+    debugPrint('set cache value $idCache as ${rows.length}');
   }
 
-  static notifNewRow(CWProvider provider) {
+  static void notifNewRow(CWProvider provider) {
     String idCache = provider.name + provider.type;
     int v = cacheNbData[idCache]!;
     cacheNbData[idCache] = v + 1;

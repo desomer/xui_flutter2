@@ -12,7 +12,7 @@ class CoreDataCollection {
       <String, CoreDataObjectBuilder>{};
 
   CoreDataObjectBuilder addObject(String name) {
-    print("add model $name");
+    debugPrint('add model $name');
     final CoreDataObjectBuilder ret = CoreDataObjectBuilder(name);
     objects[name] = ret;
     return ret;
@@ -52,7 +52,7 @@ class CoreDataObjectBuilder {
     return this;
   }
 
-  getAllAttribut() {
+  List<CoreDataAttribut> getAllAttribut() {
     List<CoreDataAttribut> ret = <CoreDataAttribut>[];
     ret.addAll(_attributs);
     for (var element in groupAttributs) {
@@ -156,7 +156,7 @@ class CoreDataEntity {
   Map<String, dynamic> custom = <String, dynamic>{};
 
   CDAction get operation {
-    int? v = value["_operation_"];
+    int? v = value['_operation_'];
     if (v != null) {
       _operation = CDAction.values[v];
     }
@@ -165,7 +165,7 @@ class CoreDataEntity {
 
   set operation(CDAction v) {
     _operation = v;
-    value["_operation_"] = v.index;
+    value['_operation_'] = v.index;
   }
 
   @override
@@ -536,7 +536,7 @@ class CoreDataEntity {
           break;
         }
         v = v[idx];
-        CoreDataAttributItemIdx attIdx = CoreDataAttributItemIdx("$attr[$idx]");
+        CoreDataAttributItemIdx attIdx = CoreDataAttributItemIdx('$attr[$idx]');
         attIdx.initWith(attribut);
         attIdx.idxInArray = idx;
         attribut = attIdx;

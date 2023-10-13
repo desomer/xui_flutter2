@@ -5,15 +5,15 @@ import 'dart:math' as math;
 class AttributDesc {
   static List<Widget> get getListAttr {
     return [
-      CardAttribut("Simple", [
-        AttributDesc('Text', Icons.format_quote, "Text"),
-        AttributDesc('Integer', Icons.pin, "Integer"),
-        AttributDesc('Double', Icons.percent, "Double"),
-        AttributDesc('Date', Icons.event, "Date")
+      CardAttribut('Simple', [
+        AttributDesc('Text', Icons.format_quote, 'Text'),
+        AttributDesc('Integer', Icons.pin, 'Integer'),
+        AttributDesc('Double', Icons.percent, 'Double'),
+        AttributDesc('Date', Icons.event, 'Date')
       ]),
-      CardAttribut("Link", [
-        AttributDesc('One', Icons.looks_one, "One"),
-        AttributDesc('Many', Icons.data_array_rounded, "Many"),
+      CardAttribut('Link', [
+        AttributDesc('One', Icons.looks_one, 'One'),
+        AttributDesc('Many', Icons.data_array_rounded, 'Many'),
       ])
     ];
   }
@@ -40,7 +40,7 @@ class CardAttribut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    buildComp(AttributDesc cmp) {
+    Widget buildComp(AttributDesc cmp) {
       return Padding(
           padding: const EdgeInsets.all(5.0),
           child: Draggable<String>(
@@ -66,7 +66,7 @@ class CardAttribut extends StatelessWidget {
           ));
     }
 
-    buildList() {
+    Widget buildList() {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[

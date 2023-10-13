@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/data/core_data_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
@@ -34,17 +35,17 @@ class CWProviderDataSelector {
   CWAppLoaderCtx? appLoader;
   ModeRendering modeRendering = ModeRendering.view;
 
-  static noLoader() {
+  static CWProviderDataSelector noLoader() {
     CWProviderData data = CWProviderData(null);
     return CWProviderDataSelector(data, data, null);
   }
 
-  static loader(CoreDataLoader loader) {
+  static CWProviderDataSelector loader(CoreDataLoader loader) {
     CWProviderData data = CWProviderData(loader);
     return CWProviderDataSelector(data, data, null);
   }
 
-  setModeRendering(ModeRendering mode) {
+  void setModeRendering(ModeRendering mode) {
     modeRendering = mode;
   }
 
@@ -64,16 +65,16 @@ class CWProviderCtx extends CWWidgetVirtual {
   CWProviderCtx(super.ctx);
 
   @override
-  init() {
+  void init() {
     CWProvider provider = createFromTable(ctx.designEntity!.value['type'], ctx);
     ctx.loader.factory.mapProvider[provider.name] = provider;
   }
 
-  static createFromTable(String id, CWWidgetCtx ctx) {
+  static CWProvider createFromTable(String id, CWWidgetCtx ctx) {
     var app = CWApplication.of();
     List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
     var tableEntity = listTableEntity
-        .firstWhere((CoreDataEntity element) => element.value["_id_"] == id);
+        .firstWhere((CoreDataEntity element) => element.value['_id_'] == id);
     app.initDataModelWithAttr(ctx.loader, tableEntity);
 
     CWProvider provider = ctx.factory.loader.mode == ModeRendering.design
@@ -109,16 +110,16 @@ class CWProvider {
     return dataSelector.getData().loader;
   }
 
-  setFilter(CoreDataEntity? aFilter) {
+  void setFilter(CoreDataEntity? aFilter) {
     getData().loader?.setFilter(aFilter);
   }
 
-  addContent(CoreDataEntity add) {
+  void addContent(CoreDataEntity add) {
     getData().content.add(add);
     if (getData().idxDisplayed == -1) getData().idxDisplayed = 0;
   }
 
-  addNew(CoreDataEntity newRow) {
+  void addNew(CoreDataEntity newRow) {
     if (getData().loader != null) {
       getData().loader?.addData(newRow);
     }
@@ -134,7 +135,7 @@ class CWProvider {
   CoreDataEntity? getDisplayedEntity() {
     if (getData().idxDisplayed == -1) {
       getData().idxDisplayed = 0;
-      print("getData().idxDisplayed == -1");
+      debugPrint('getData().idxDisplayed == -1');
     }
     if (getData().idxDisplayed >= getData().content.length) {
       getData().idxDisplayed = -1;
@@ -196,7 +197,7 @@ class CWProvider {
 
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
     var val = getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
-    return val?.toString() ?? "";
+    return val?.toString() ?? '';
   }
 
   bool getBoolValueOf(CWWidgetCtx ctx, String propName) {
@@ -269,7 +270,7 @@ class CoreDataActionFunction extends CoreDataAction {
   CoreDataActionFunction(this.fct);
   Function fct;
   @override
-  execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+  void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     fct(event);
   }
 }

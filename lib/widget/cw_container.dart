@@ -14,35 +14,35 @@ abstract class CWContainer extends CWWidget {
   const CWContainer({Key? key, required super.ctx}) : super(key: key);
 
   int getNbChild(int def) {
-    return ctx.designEntity?.getInt("count", def) ?? def;
+    return ctx.designEntity?.getInt('count', def) ?? def;
   }
 
   bool isFill(bool def) {
-    return ctx.designEntity?.getBool("fill", def) ?? def;
+    return ctx.designEntity?.getBool('fill', def) ?? def;
   }
 
   Widget getCell(int i, bool defFill,
       {required bool canFill, bool? canHeight, bool? canWidth}) {
     var slot = CWSlot(
-        type: "body",
+        type: 'body',
         key: GlobalKey(debugLabel: 'slot ${ctx.xid}$i'),
-        ctx: createChildCtx("Cont", i));
+        ctx: createChildCtx('Cont', i));
 
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
     //print("getCell -------- ${slot.ctx.xid} $constraint");
 
-    int flex = constraint?.designEntity?.value["flex"] ?? 1;
-    bool loose = constraint?.designEntity?.value["tight/loose"] ?? false;
-    int? height = constraint?.designEntity?.value["height"];
-    int? width = constraint?.designEntity?.value["width"];
+    int flex = constraint?.designEntity?.value['flex'] ?? 1;
+    bool loose = constraint?.designEntity?.value['tight/loose'] ?? false;
+    int? height = constraint?.designEntity?.value['height'];
+    int? width = constraint?.designEntity?.value['width'];
 
     // var slot2 = IntrinsicHeight(child: slot);
 
     if (canHeight != true && height != null) {
-      constraint?.designEntity?.value.remove("height");
+      constraint?.designEntity?.value.remove('height');
     }
     if (canWidth != true && width != null) {
-      constraint?.designEntity?.value.remove("width");
+      constraint?.designEntity?.value.remove('width');
     }
 
     if (canHeight == true && height != null && height > 5) {
@@ -67,17 +67,17 @@ class CWColumn extends CWContainer {
   State<CWColumn> createState() => CWColumnState();
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     final nb = getNbChild(isForm ? 1 : 3);
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
-          SlotConfig('${ctx.xid}Cont$i', constraintEntity: "CWColConstraint"));
+          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWColConstraint'));
     }
   }
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget("CWColumn",
+        .addWidget('CWColumn',
             (CWWidgetCtx ctx) => CWColumn(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.int)
         .withAction(AttrActionDefault(3))
@@ -107,7 +107,7 @@ class CWColumnState extends StateCW<CWColumn>
     }
   }
 
-  getWidget() {
+  LayoutBuilder getWidget() {
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       final List<Widget> listStack = [];
@@ -138,14 +138,14 @@ class CWColumnState extends StateCW<CWColumn>
   double wm = 0;
 
   @override
-  onDragQuery(DragQueryCtx query) {
+  void onDragQuery(DragQueryCtx query) {
     FormBuilder().createForm(widget, query.query);
   }
 
   Widget buildProvider(BuildContext context) {
     var futureData = initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
 
-    getContent(int ok) {
+    dynamic getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);
       setProviderDataOK(provider, ok);
       return getWidget();
@@ -167,7 +167,7 @@ class CWColumnState extends StateCW<CWColumn>
 class CWRow extends CWContainer {
   const CWRow({Key? key, required super.ctx}) : super(key: key);
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c.collection
             .addObject('CWRowConstraint')
             .addAttr('flex', CDAttributType.int)
@@ -181,7 +181,7 @@ class CWRow extends CWContainer {
 
     c
         .addWidget(
-            "CWRow", (CWWidgetCtx ctx) => CWRow(key: ctx.getKey(), ctx: ctx))
+            'CWRow', (CWWidgetCtx ctx) => CWRow(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.int)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.bool)
@@ -192,11 +192,11 @@ class CWRow extends CWContainer {
   State<CWRow> createState() => CWRowState();
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     final nb = getNbChild(2);
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
-          SlotConfig('${ctx.xid}Cont$i', constraintEntity: "CWRowConstraint"));
+          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWRowConstraint'));
     }
   }
 }
@@ -237,7 +237,7 @@ mixin CWDroppable {
     });
   }
 
-  onDragQuery(DragQueryCtx query);
+  void onDragQuery(DragQueryCtx query);
 
   static const double borderDrag = 10;
 
@@ -253,7 +253,7 @@ mixin CWDroppable {
             child: const Center(
                 child: IntrinsicWidth(
                     child: Row(children: [
-              Text("Drag query here"),
+              Text('Drag query here'),
               Icon(Icons.filter_alt)
             ]))))));
   }

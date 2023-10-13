@@ -38,7 +38,7 @@ class CWFutureWidget extends StatelessWidget {
                       fit: FlexFit.tight,
                       flex: 1,
                       child: Text(
-                          List.filled(Random().nextInt(20), "*").toString(),
+                          List.filled(Random().nextInt(20), '*').toString(),
                           overflow: TextOverflow.ellipsis));
                 }).toList());
               },

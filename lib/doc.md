@@ -14,3 +14,7 @@ SizedBox.expand()
 
 
 https://pub.dev/packages/tutorial_coach_mark
+
+password docker sonarFlutter  sqp_b32e60424bcc7591bd2d99056a389bde99e74f2b
+
+sonar-scanner.bat -D"sonar.projectKey=xui" -D"sonar.sources=.\lib" -D"sonar.host.url=http://localhost:9000" -D"sonar.token=sqp_b32e60424bcc7591bd2d99056a389bde99e74f2b"

@@ -11,14 +11,14 @@ import '../designer/designer.dart';
 class CWFrameDesktop extends CWWidget {
   CWFrameDesktop({super.key, required super.ctx});
 
-  final keySlotMain = GlobalKey(debugLabel: "slot main");
+  final keySlotMain = GlobalKey(debugLabel: 'slot main');
 
   @override
   State<CWFrameDesktop> createState() => _CWFrameDesktop();
 
-  static initFactory(CWWidgetCollectionBuilder c) {
+  static void initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget("CWFrameDesktop",
+        .addWidget('CWFrameDesktop',
             (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
         .addAttr('title', CDAttributType.text)
         .addAttr('fill', CDAttributType.bool)
@@ -27,7 +27,7 @@ class CWFrameDesktop extends CWWidget {
   }
 
   @override
-  initSlot(String path) {
+  void initSlot(String path) {
     addSlotPath('root', SlotConfig('root'));
     addSlotPath('$path.Body', SlotConfig('${ctx.xid}Body'));
   }
@@ -61,7 +61,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
 
   @override
   void didChangeMetrics() {
-    debugPrint("physical Size ${View.of(context).physicalSize}");
+    debugPrint('physical Size ${View.of(context).physicalSize}');
     if (widget.ctx.loader.mode == ModeRendering.design) {
       // double refresh car animation de resize par le composant Preview
       Future.delayed(const Duration(milliseconds: 50), () {
@@ -96,7 +96,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
       }
 
       var slot = CWSlot(
-          type: "root",
+          type: 'root',
           key: widget.keySlotMain,
           ctx: widget.ctx,
           childForced: MaterialApp(
@@ -152,7 +152,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     List<BottomNavigationBarItem> listBtn = [];
     for (var i = 0; i < widget.nbBtnBottomNavBar(); i++) {
       listBtn.add(const BottomNavigationBarItem(
-        label: "Home",
+        label: 'Home',
         icon: Icon(Icons.home),
       ));
     }
@@ -170,8 +170,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
       return Column(children: [
         Expanded(
             child: CWSlot(
-                type: "body",
-                key: GlobalKey(debugLabel: "slot body"),
+                type: 'body',
+                key: GlobalKey(debugLabel: 'slot body'),
                 ctx: widget.createChildCtx('Body', null)))
       ]);
     } else {
@@ -184,8 +184,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
           child: SingleChildScrollView(
             child: Column(children: [
               CWSlot(
-                  type: "body",
-                  key: GlobalKey(debugLabel: "slot body"),
+                  type: 'body',
+                  key: GlobalKey(debugLabel: 'slot body'),
                   ctx: widget.createChildCtx('Body', null))
             ]),
           ));

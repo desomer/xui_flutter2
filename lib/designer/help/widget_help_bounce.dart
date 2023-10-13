@@ -17,7 +17,7 @@ class _WidgetHelpBounceState extends State<WidgetHelpBounce>
   late Animation<double> _animation;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     _controller = AnimationController(
       duration: const Duration(
@@ -37,7 +37,7 @@ class _WidgetHelpBounceState extends State<WidgetHelpBounce>
   }
 
   @override
-  dispose() {
+  void dispose() {
     _controller.dispose();
     super.dispose();
   }

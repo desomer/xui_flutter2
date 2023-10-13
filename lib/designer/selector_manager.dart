@@ -19,7 +19,7 @@ class CoreDesignerSelector {
 
 
   CoreDesignerSelector() {
-    debugPrint("init event listener");
+    debugPrint('init event listener');
 
     CoreDesigner.on(CDDesignEvent.select, (arg) {
       CWWidgetCtx ctx = arg as CWWidgetCtx;
@@ -81,11 +81,11 @@ class CoreDesignerSelector {
 
   void unselect() {
     String old = _lastSelectedPath;
-    _lastSelectedPath = "";
+    _lastSelectedPath = '';
 
     SlotConfig? config = CoreDesigner.ofFactory().mapSlotConstraintByPath[old];
     if (config != null) {
-      debugPrint("deselection ${config.xid}");
+      debugPrint('deselection ${config.xid}');
       // Future.delayed(const Duration(milliseconds: 1000), () {
       config.slot?.repaint();
       // });

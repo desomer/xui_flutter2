@@ -22,15 +22,15 @@ class ArrayBuilder {
   }
 
   /// creation d'un array au drop de query
-  createArray(CWArray widget, CoreDataEntity query) async {
+  void createArray(CWArray widget, CoreDataEntity query) async {
     var app = CWApplication.of();
     // init les data models
     await app.dataModelProvider.getItemsCount();
 
     CWProvider provider =
-        CWProviderCtx.createFromTable(query.value["_id_"], widget.ctx);
+        CWProviderCtx.createFromTable(query.value['_id_'], widget.ctx);
 
-    _createDesign(widget.ctx.loader, provider, "Array", widget.ctx.xid,
+    _createDesign(widget.ctx.loader, provider, 'Array', widget.ctx.xid,
         widget.ctx.pathWidget, false);
 
     CoreDesigner.ofView().rebuild();
@@ -46,13 +46,13 @@ class ArrayBuilder {
 
     late ColRowLoader loader;
     switch (typeArray) {
-      case "Array":
+      case 'Array':
         loader = AttrArrayLoader(xid, loaderCtx, provider, isRoot);
         break;
-      case "List":
+      case 'List':
         loader = AttrListLoader(xid, loaderCtx, provider);
         break;
-      case "ReorderList":
+      case 'ReorderList':
         loader = AttrListLoader(xid, loaderCtx, provider);
         (loader as AttrListLoader).reorder = true;
         break;
@@ -60,7 +60,7 @@ class ArrayBuilder {
 
     loader.ctxLoader.factory.mapProvider[provider.name] = provider;
     loader.addWidget(
-        'root', 'provider_${provider.name}', "CWProvider", <String, dynamic>{
+        'root', 'provider_${provider.name}', 'CWProvider', <String, dynamic>{
       'type': provider.type,
       'providerName': provider.name
     });
@@ -73,10 +73,10 @@ class ArrayBuilder {
         CWApplication.of().dataModelProvider.content;
     CoreDataEntity? aModelToDisplay;
 
-    if (typeArray == "Array") {
+    if (typeArray == 'Array') {
       // recherche du model pour afficher les bon label
       for (var element in listMdel) {
-        if (element.value["_id_"] == builder.name) {
+        if (element.value['_id_'] == builder.name) {
           aModelToDisplay = element;
           break;
         }
@@ -92,7 +92,7 @@ class ArrayBuilder {
       } else if (attr.type == CDAttributType.many) {
       } else {
         //String nameAttr = attr.name;
-        Map<String, dynamic> attrDesc = {"name": attr.name}; // par defaut
+        Map<String, dynamic> attrDesc = {'name': attr.name}; // par defaut
 
         if (aModelToDisplay != null) {
           // recherche le label de l'attribut
@@ -127,7 +127,7 @@ class AttrArrayLoader extends ColRowLoader {
   AttrArrayLoader(xid, CWAppLoaderCtx ctxDesign, this.provider, this.isRoot)
       : super(xid, ctxDesign) {
     if (isRoot) {
-      setRoot(xid, "CWExpandPanel");
+      setRoot(xid, 'CWExpandPanel');
     }
   }
 
@@ -137,21 +137,21 @@ class AttrArrayLoader extends ColRowLoader {
 
   @override
   void addAttr(CoreDataAttribut attribut, Map<String, dynamic> infoAttr) {
-    if (!isRoot && infoAttr["name"].toString().startsWith("_")) {
+    if (!isRoot && infoAttr['name'].toString().startsWith('_')) {
       return;
     }
 
-    String tag = isRoot ? "Col0" : "";
+    String tag = isRoot ? 'Col0' : '';
 
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onMapWidget.toString();
     ctxWE.provider = provider;
-    ctxWE.payload = {'attr': attribut, "infoAttr": infoAttr};
+    ctxWE.payload = {'attr': attribut, 'infoAttr': infoAttr};
     ctxWE.loader = ctxLoader;
 
     provider.doAction(null, ctxWE, CWProviderAction.onMapWidget);
 
-    if (ctxWE.retAction != "None") {
+    if (ctxWE.retAction != 'None') {
       if (ctxWE.ret != null) {
         CoreDataEntity widget = ctxWE.ret;
         widget.value.addAll(<String, dynamic>{
@@ -163,15 +163,15 @@ class AttrArrayLoader extends ColRowLoader {
       } else {
         // type text par defaut
         addWidget('$xid${tag}RowCont$nbAttr', '${xid}Cell$nbAttr',
-            "CWText", <String, dynamic>{
+            'CWText', <String, dynamic>{
           'bind': attribut.name,
           'providerName': provider.name
         });
       }
 
       addWidget('$xid${tag}Header$nbAttr', '${xid}Head$nbAttr',
-          "CWText", <String, dynamic>{
-        'label': infoAttr["name"],
+          'CWText', <String, dynamic>{
+        'label': infoAttr['name'],
       });
 
       nbAttr++;
@@ -185,9 +185,9 @@ class AttrArrayLoader extends ColRowLoader {
       setProp(
           xid,
           ctxLoader.collectionWidget.createEntityByJson(
-              "CWArray", <String, dynamic>{
+              'CWArray', <String, dynamic>{
             'providerName': provider.name,
-            "count": nbAttr
+            'count': nbAttr
           }));
     } else {
       // array avec header expandable
@@ -197,13 +197,13 @@ class AttrArrayLoader extends ColRowLoader {
               'CWExpandPanel', <String, dynamic>{'count': 1}));
 
       // le titre
-      addWidget('${xid}Title0', '${xid}Title0', "CWText", <String, dynamic>{
-        'label': provider.header?.value["label"] ?? provider.type
+      addWidget('${xid}Title0', '${xid}Title0', 'CWText', <String, dynamic>{
+        'label': provider.header?.value['label'] ?? provider.type
       });
 
       // la colonne d'attribut
-      addWidget('${xid}Body0', '${xid}Col0', "CWArray",
-          <String, dynamic>{'providerName': provider.name, "count": nbAttr});
+      addWidget('${xid}Body0', '${xid}Col0', 'CWArray',
+          <String, dynamic>{'providerName': provider.name, 'count': nbAttr});
     }
     return cwFactory;
   }
@@ -213,7 +213,7 @@ class AttrArrayLoader extends ColRowLoader {
 class AttrListLoader extends ColRowLoader {
   AttrListLoader(xid, CWAppLoaderCtx ctxDesign, this.provider)
       : super(xid, ctxDesign) {
-    setRoot(xid, "CWLoader");
+    setRoot(xid, 'CWLoader');
   }
 
   int nbAttr = 0;
@@ -225,11 +225,11 @@ class AttrListLoader extends ColRowLoader {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onMapWidget.toString();
     ctxWE.provider = provider;
-    ctxWE.payload = {"attr": attribut, "infoAttr": infoAttr};
+    ctxWE.payload = {'attr': attribut, 'infoAttr': infoAttr};
     ctxWE.loader = ctxLoader;
 
     provider.doAction(null, ctxWE, CWProviderAction.onMapWidget);
-    if (ctxWE.retAction != "None") {
+    if (ctxWE.retAction != 'None') {
       if (ctxWE.ret != null) {
         CoreDataEntity widget = ctxWE.ret;
         widget.value.addAll(<String, dynamic>{
@@ -241,7 +241,7 @@ class AttrListLoader extends ColRowLoader {
       } else {
         // type text par defaut
         addWidget('${xid}RowCont$nbAttr', '${xid}Info$nbAttr',
-            "CWText", <String, dynamic>{
+            'CWText', <String, dynamic>{
           'bind': attribut.name,
           'providerName': provider.name
         });
@@ -253,24 +253,24 @@ class AttrListLoader extends ColRowLoader {
   @override
   void addRow() {
     // la colonne d'attribut
-    addWidget('${xid}Col0Cont', '${xid}Row', "CWRow",
-        <String, dynamic>{"count": nbAttr});
+    addWidget('${xid}Col0Cont', '${xid}Row', 'CWRow',
+        <String, dynamic>{'count': nbAttr});
   }
 
   @override
   CoreDataEntity getCWFactory() {
     // le expandPanel
-    addWidget('${xid}Cont', '${xid}Exp', "CWExpandPanel",
+    addWidget('${xid}Cont', '${xid}Exp', 'CWExpandPanel',
         <String, dynamic>{'count': 1});
 
     // le titre
-    addWidget('${xid}ExpTitle0', '${xid}Title0', "CWText", <String, dynamic>{
-      'label': provider.header?.value["label"] ?? provider.type
+    addWidget('${xid}ExpTitle0', '${xid}Title0', 'CWText', <String, dynamic>{
+      'label': provider.header?.value['label'] ?? provider.type
     });
 
     // la colonne d'attribut
-    addWidget('${xid}ExpBody0', '${xid}Col0', "CWList",
-        <String, dynamic>{'providerName': provider.name, "reorder": reorder});
+    addWidget('${xid}ExpBody0', '${xid}Col0', 'CWList',
+        <String, dynamic>{'providerName': provider.name, 'reorder': reorder});
 
     return cwFactory;
   }

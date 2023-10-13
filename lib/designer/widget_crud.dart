@@ -45,7 +45,7 @@ class _WidgetDragState extends State<WidgetDrag> {
           strokeWidth: 2,
           child: const Center(
               child: Text(
-            "Drag new attribut",
+            'Drag new attribut',
             style: TextStyle(color: Colors.grey),
           )))),
     );
@@ -81,7 +81,7 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
               strokeWidth: 2,
               child: const Center(
                   child: Text(
-                "+",
+                '+',
                 style: TextStyle(color: Colors.grey),
               ))),
         ));

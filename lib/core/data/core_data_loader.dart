@@ -7,17 +7,17 @@ import '../store/driver.dart';
 import 'core_provider.dart';
 
 abstract class CoreDataLoader {
-  addData(CoreDataEntity data);
+  void addData(CoreDataEntity data);
   Future<List<CoreDataEntity>> getDataAsync();
   List<CoreDataEntity> getDataSync();
   bool isSync();
-  saveData(dynamic content);
-  deleteData(dynamic content);
-  deleteAll();
-  changed(CWProvider provider, CoreDataEntity entity);
-  reorder(int oldIndex, int newIndex);
-  reload();
-  setFilter(CoreDataEntity? aFilter);
+  void saveData(dynamic content);
+  void deleteData(dynamic content);
+  void deleteAll();
+  void changed(CWProvider provider, CoreDataEntity entity);
+  void reorder(int oldIndex, int newIndex);
+  void reload();
+  void setFilter(CoreDataEntity? aFilter);
   CoreDataEntity? getFilter();
 }
 
@@ -35,7 +35,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
       this._loader, this._dicoDataContainerEntity, this._dataContainerAttribut);
 
   @override
-  addData(CoreDataEntity data) {
+  void addData(CoreDataEntity data) {
     CoreDataEntity resultQuery = _dicoDataContainerEntity[_mapQueryId]!;
     List<dynamic>? result = resultQuery.value[_dataContainerAttribut];
     result?.add(data.value);
@@ -49,7 +49,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  reorder(int oldIndex, int newIndex) {
+  void reorder(int oldIndex, int newIndex) {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
@@ -81,7 +81,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
       String idDataInMap, CoreDataEntity? filters) async {
     if (_dicoDataContainerEntity[idDataInMap] == null) {
       dynamic items;
-      StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+      StoreDriver? storage = await StoreDriver.getDefautDriver('main');
 
       if (storage != null) {
         items = await storage.getJsonData(idDataInMap, filters);
@@ -89,18 +89,18 @@ class CoreDataLoaderMap extends CoreDataLoader {
       if (items == null) {
         _dicoDataContainerEntity[idDataInMap] = _loader.collectionDataModel
             .createEntityByJson(
-                "DataContainer", {"idData": idDataInMap, "listData": []});
+                'DataContainer', {'idData': idDataInMap, 'listData': []});
         if (storage != null) {
           await storage.setData(
               'data', _dicoDataContainerEntity[idDataInMap]!.value);
         }
       } else {
         _dicoDataContainerEntity[idDataInMap] = _loader.collectionDataModel
-            .createEntityByJson("DataContainer", items);
+            .createEntityByJson('DataContainer', items);
       }
     }
     debugPrint(
-        "getDataFromQuery $idDataInMap = ${_dicoDataContainerEntity[idDataInMap]!}");
+        'getDataFromQuery $idDataInMap = ${_dicoDataContainerEntity[idDataInMap]!}');
     var ret = _dicoDataContainerEntity[idDataInMap]!;
     return ret;
   }
@@ -116,47 +116,47 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  saveData(dynamic content) async {
-    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+  void saveData(dynamic content) async {
+    StoreDriver? storage = await StoreDriver.getDefautDriver('main');
     if (_dicoDataContainerEntity[_mapQueryId] != null && storage != null) {
-      _dicoDataContainerEntity[_mapQueryId]!.value["listData"] = content;
+      _dicoDataContainerEntity[_mapQueryId]!.value['listData'] = content;
       storage.setData(
           _mapQueryId!, _dicoDataContainerEntity[_mapQueryId]!.value);
     }
   }
 
-  setMapID(String name) {
+  void setMapID(String name) {
     _mapQueryId = name;
   }
 
   @override
-  deleteAll() async {
-    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+  void deleteAll() async {
+    StoreDriver? storage = await StoreDriver.getDefautDriver('main');
     storage!.deleteTable(_mapQueryId!);
   }
 
   @override
-  deleteData(content) async {
-    StoreDriver? storage = await StoreDriver.getDefautDriver("main");
+  void deleteData(content) async {
+    StoreDriver? storage = await StoreDriver.getDefautDriver('main');
     if (_dicoDataContainerEntity[_mapQueryId] != null && storage != null) {
       await storage.deleteData(_mapQueryId!, content);
     }
   }
 
   @override
-  changed(CWProvider provider, CoreDataEntity entity) {
+  void changed(CWProvider provider, CoreDataEntity entity) {
     //entity.prepareChange(loader.collectionDataModel);
     entity.doChanged();
   }
 
   @override
-  reload() {
+  void reload() {
     _dicoDataContainerEntity.remove(_mapQueryId);
     _currentLoading.remove(_mapQueryId);
   }
 
   @override
-  setFilter(CoreDataEntity? aFilter) {
+  void setFilter(CoreDataEntity? aFilter) {
     if (aFilter == null) {
       _dicoFilter.remove(_mapQueryId);
     } else if (_mapQueryId != null) {
@@ -181,7 +181,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
   CoreDataLoaderNested(this.loader, this.providerParent, this.attribut);
 
   @override
-  addData(CoreDataEntity data) {
+  void addData(CoreDataEntity data) {
     CoreDataEntity? selected = providerParent.getSelectedEntity();
     if (selected != null) {
       List<dynamic>? result = selected.value[attribut];
@@ -217,15 +217,15 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  saveData(dynamic content) {
+  void saveData(dynamic content) {
     providerParent.getSelectedEntity()!.doChanged();
   }
 
   @override
-  deleteAll() {}
+  void deleteAll() {}
 
   @override
-  deleteData(content) {
+  void deleteData(content) {
     CoreDataEntity selected = providerParent.getSelectedEntity()!;
     List<dynamic> result = selected.value[attribut];
     for (var element in content as List) {
@@ -234,7 +234,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  changed(CWProvider provider, CoreDataEntity entity) {
+  void changed(CWProvider provider, CoreDataEntity entity) {
     //entity.prepareChange(loader.collectionDataModel);
     entity.doChanged();
 
@@ -242,7 +242,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  reorder(int oldIndex, int newIndex) {
+  void reorder(int oldIndex, int newIndex) {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
@@ -254,10 +254,10 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  reload() {}
+  void reload() {}
 
   @override
-  setFilter(CoreDataEntity? aFilter) {}
+  void setFilter(CoreDataEntity? aFilter) {}
 
   @override
   CoreDataEntity? getFilter() {

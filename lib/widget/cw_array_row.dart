@@ -49,7 +49,7 @@ class CWArrayRowState extends State<CWArrayRow> {
   @override
   void dispose() {
     super.dispose();
-    print("remove row ${widget.rowIdx}");
+    debugPrint('remove row ${widget.rowIdx}');
     //widget.stateArray.widget.listState.remove(widget.rowIdx);
     for (var element in mapFocus.entries) {
       element.value.dispose();

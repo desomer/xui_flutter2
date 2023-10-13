@@ -64,7 +64,7 @@ class DesignerView extends StatefulWidget {
     }
 
     if (rootWidget != null) return rootWidget!;
-    rootWidget = loader!.getWidget("root", "root");
+    rootWidget = loader!.getWidget('root', 'root');
 
     var app = CWApplication.of();
     // init les data models
@@ -84,15 +84,15 @@ class DesignerView extends StatefulWidget {
     return rootWidget!;
   }
 
-  getPageRootSync() {
+  Widget getPageRootSync() {
     if (rootWidget != null) return rootWidget!;
 
-    rootWidget = loader!.getWidget("root", "root");
+    rootWidget = loader!.getWidget('root', 'root');
     return rootWidget!;
   }
 
   CWWidget? getWidgetByPath(String path) {
-    return factory.mapWidgetByXid[factory.mapXidByPath[path] ?? ""];
+    return factory.mapWidgetByXid[factory.mapXidByPath[path] ?? ''];
   }
 }
 

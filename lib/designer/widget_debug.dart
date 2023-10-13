@@ -28,9 +28,9 @@ class _WidgetDebugState extends State<WidgetDebug> {
     }
 
     return WidgetTab(heightTab: 40, listTab: const [
-      Tab(text: "Design"),
-      Tab(text: "Model"),
-      Tab(text: "Data")
+      Tab(text: 'Design'),
+      Tab(text: 'Model'),
+      Tab(text: 'Data')
     ], listTabCont: [
       Container(
           color: Colors.white,
