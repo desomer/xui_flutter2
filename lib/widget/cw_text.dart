@@ -27,7 +27,7 @@ class CWText extends CWWidgetMap {
   @override
   String getLabel() {
     if (ctx.designEntity?.getString('bind') != null) {
-      return getMapValue();
+      return getMapString();
     } else {
       return super.getLabel();
     }

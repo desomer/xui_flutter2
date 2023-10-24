@@ -60,6 +60,7 @@ dependencies:
   cross_file: ^0.3.3+4
   excel: ^2.1.0
   go_router: ^12.0.0
+  flutter_iconpicker: ^3.2.4
 
 window_size:
     git:

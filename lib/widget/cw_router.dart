@@ -469,7 +469,7 @@ class AnimatedBranchContainer extends StatelessWidget {
         children: children.mapIndexed(
       (int index, Widget navigator) {
         return AnimatedScale(
-          scale: index == currentIndex ? 1 : 1.5,
+          scale: index == currentIndex ? 1 : 0.7,
           duration: const Duration(milliseconds: 300),
           child: AnimatedOpacity(
             opacity: index == currentIndex ? 1 : 0,

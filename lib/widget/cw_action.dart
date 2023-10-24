@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
 import '../core/data/core_data.dart';
@@ -18,11 +19,15 @@ class CWAction extends CWWidget {
         .addWidget('CWAction',
             (CWWidgetCtx ctx) => CWAction(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.text)
-        .addAttr('textColor', CDAttributType.text);
+        .addAttr('icon', CDAttributType.one, tname: 'icon');
   }
 
   String getLabel() {
     return ctx.designEntity?.getString('label') ?? '[empty]';
+  }
+
+  Map<String, dynamic>? getIcon() {
+    return ctx.designEntity?.value['icon'];
   }
 }
 
@@ -44,13 +49,21 @@ class _CWActionState extends StateCW<CWAction> {
   }
 
   Widget getNavBtn() {
+    Map<String, dynamic>? v = widget.getIcon();
+    Widget icon = Container();
+    if (v != null) {
+      IconData? ic = deserializeIcon(v);
+      icon = Icon(ic);
+    }
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        const Icon(Icons.shopping_cart), // <-- Icon
-        Text(widget.getLabel(), style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          color: IconTheme.of(context).color,
-        )), // <-- Text
+        icon, // <-- Icon
+        Text(widget.getLabel(),
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: IconTheme.of(context).color,
+                )), // <-- Text
       ],
     );
   }

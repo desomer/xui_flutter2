@@ -18,7 +18,7 @@ class FormBuilder {
 
     builder ??= ctxLoader.collectionDataModel.getClass(entity.type);
 
-    Map<String, dynamic> src = entity.value;
+    //Map<String, dynamic> src = entity.value;
 
     ctxLoader.factory.disposePath('root');
 
@@ -27,9 +27,12 @@ class FormBuilder {
     var allAttribut = builder!.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.one) {
-        if (src[attr.name] != null) {
-          // lien one2one
-        }
+        //if (src[attr.name] != null) {
+        Map<String, dynamic> attrDesc = {
+          'name': attr.name,
+        }; // par defaut
+        loader.addAttr(attr, attrDesc);
+        //}
       } else if (attr.type == CDAttributType.many) {
       } else {
         Map<String, dynamic> attrDesc = {'name': attr.name}; // par defaut
@@ -150,9 +153,18 @@ class AttrFormLoader extends CWWidgetLoader {
       addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
           'CWSwitch', <String, dynamic>{
         'label': attrDesc['name'],
-        // 'bind': attribut.name,
-        // 'providerName': provider.name
+        'bind': attribut.name,
+        'providerName': provider.name
       });
+    } else if (attribut.type == CDAttributType.one) {
+      if (attribut.typeName == 'icon') {
+        addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
+            'CWSelector', <String, dynamic>{
+          'label': attrDesc['name'],
+          'bind': attribut.name,
+          'providerName': provider.name
+        });
+      }
     } else {
       addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
           'CWTextfield', <String, dynamic>{
@@ -188,7 +200,11 @@ class AttrFormLoader extends CWWidgetLoader {
       setProp(
           xid,
           ctxLoader.collectionWidget.createEntityByJson(
-              'CWForm', <String, dynamic>{'count': nbAttr, 'fill': false, 'providerName':provider.name}));
+              'CWForm', <String, dynamic>{
+            'count': nbAttr,
+            'fill': false,
+            'providerName': provider.name
+          }));
     }
 
     return cwFactory;

@@ -94,7 +94,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     if (row != null) widget.setDisplayRow(row);
 
     // map la valeur
-    mapValue = widget.getMapValue();
+    mapValue = widget.getMapString();
     _controller.text = mapValue!;
 
     _controller.addListener(_onTextChange);

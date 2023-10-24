@@ -1,6 +1,7 @@
 import 'package:xui_flutter/widget/cw_action.dart';
 import 'package:xui_flutter/widget/cw_array.dart';
 import 'package:xui_flutter/widget/cw_loader.dart';
+import 'package:xui_flutter/widget/cw_selector.dart';
 import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
@@ -46,6 +47,7 @@ class CWWidgetCollectionBuilder {
     CWList.initFactory(this);
     CWArray.initFactory(this);
     CWAction.initFactory(this);
+    CWSelector.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////

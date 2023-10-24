@@ -200,6 +200,8 @@ class DesignerViewState extends State<DesignerView> {
           ));
         } else if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
+            print(snapshot.error);
+            print(snapshot.stackTrace);
             return const Text('     Error');
           } else if (snapshot.hasData) {
             Future.delayed(const Duration(milliseconds: 100), () {

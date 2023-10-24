@@ -352,10 +352,12 @@ class CoreDataEntity {
           // un one
           final Map<String, dynamic> o = src[attr.name] as Map<String, dynamic>;
           // ignore: avoid_dynamic_calls
-          final String tOne = getType(attr, o);
-          final CoreDataObjectBuilder builderOne = collection.getClass(tOne)!;
-          final CoreDataEntity child = builderOne.getEntityModel();
-          child._browse(ctx, collection, attr, o, '');
+          if (o[cstTypeAttr] != null) { // si c'est typé
+            final String tOne = getType(attr, o);
+            final CoreDataObjectBuilder builderOne = collection.getClass(tOne)!;
+            final CoreDataEntity child = builderOne.getEntityModel();
+            child._browse(ctx, collection, attr, o, '');
+          }
           ctx.pathData.removeLast();
         }
       } else if (attr.type == CDAttributType.many) {

@@ -150,7 +150,7 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
     return row;
   }
 
-  String getMapValue() {
+  String getMapString() {
     CWProvider? provider = CWProvider.of(ctx);
     return provider?.getStringValueOf(ctx, 'bind') ?? 'no map';
   }
@@ -158,6 +158,11 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
   bool getMapBool() {
     CWProvider? provider = CWProvider.of(ctx);
     return provider?.getBoolValueOf(ctx, 'bind') ?? false;
+  }
+
+  Map<String, dynamic>? getMapOne() {
+    CWProvider? provider = CWProvider.of(ctx);
+    return provider?.getMapValueOf(ctx, 'bind');
   }
 
   void setValue(dynamic val) {

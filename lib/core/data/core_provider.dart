@@ -205,6 +205,11 @@ class CWProvider {
     return val ?? false;
   }
 
+  Map<String, dynamic>? getMapValueOf(CWWidgetCtx ctx, String propName) {
+    var val = getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    return val;
+  }  
+
   void setValueOf(
       CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
     dynamic v = val;
