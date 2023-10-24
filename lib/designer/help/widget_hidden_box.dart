@@ -4,7 +4,7 @@ import 'package:xui_flutter/designer/application_manager.dart';
 import '../../core/data/core_provider.dart';
 
 class WidgetHiddenBox extends StatefulWidget {
-  WidgetHiddenBox({Key? key, required this.child}) : super(key: key);
+  WidgetHiddenBox({super.key, required this.child});
   final Widget child;
   final ValueNotifier<bool> show = ValueNotifier<bool>(false);
   @override

@@ -42,7 +42,7 @@ void main() async {
 
   CoreDesigner();
   Widget view = CoreDesigner.of();
-  bool m = false;
+  bool m = const bool.fromEnvironment('mode', defaultValue: false);
   if (m) {
     view = await CoreDesigner.of()
         .designView

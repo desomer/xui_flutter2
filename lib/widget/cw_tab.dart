@@ -81,7 +81,7 @@ class _CWTabState extends StateCW<CWTab> {
               child: CWSlot(
                   type: 'selector',
                   key: GlobalKey(debugLabel: 'tab btn slot ${widget.ctx.xid}'),
-                  ctx: widget.createChildCtx('Tab', i))));
+                  ctx: widget.createChildCtx(widget.ctx, 'Tab', i))));
     }
 
     return SizedBox(
@@ -109,14 +109,14 @@ class _CWTabState extends StateCW<CWTab> {
                       type: 'body',
                       key: GlobalKey(
                           debugLabel: 'tab cont slot ${widget.ctx.xid}'),
-                      ctx: widget.createChildCtx('Cont', i)))
+                      ctx: widget.createChildCtx(widget.ctx, 'Cont', i)))
             ]));
       } else {
         slot = SingleChildScrollView(
             child: CWSlot(
                 type: 'body',
                 key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
-                ctx: widget.createChildCtx('Cont', i)));
+                ctx: widget.createChildCtx(widget.ctx, 'Cont', i)));
       }
       listTab.add(slot);
     }

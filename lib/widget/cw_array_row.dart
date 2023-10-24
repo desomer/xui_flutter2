@@ -12,8 +12,7 @@ class CWArrayRow extends StatefulWidget {
       //required this.children,
       required this.stateArray,
       required this.getRowBuilder,
-      required Key? key})
-      : super(key: key);
+      required super.key});
   final int rowIdx;
   //final List<Widget> children;
   final StateCW<CWArray> stateArray;

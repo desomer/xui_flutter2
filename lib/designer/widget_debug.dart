@@ -6,7 +6,7 @@ import 'application_manager.dart';
 import 'designer.dart';
 
 class WidgetDebug extends StatefulWidget {
-  const WidgetDebug({Key? key}) : super(key: key);
+  const WidgetDebug({super.key});
 
   @override
   State<WidgetDebug> createState() => _WidgetDebugState();

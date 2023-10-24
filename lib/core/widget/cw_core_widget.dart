@@ -25,35 +25,40 @@ abstract class CWWidgetVirtual {
   void init();
 }
 
-abstract class CWWidget extends StatefulWidget {
+mixin CWSlotManager {
+  CWWidgetCtx createChildCtx(CWWidgetCtx ctx, String id, int? idx) {
+    return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.loader,
+        '${ctx.pathWidget}.$id${idx?.toString() ?? ''}');
+  }
+
+  CWWidgetCtx createInArrayCtx(CWWidgetCtx ctx, String id, int? idx) {
+    return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.loader,
+        '${ctx.pathWidget}[].$id${idx?.toString() ?? ''}');
+  }
+}
+
+abstract class CWWidget extends StatefulWidget with CWSlotManager {
   const CWWidget({super.key, required this.ctx});
+
   final CWWidgetCtx ctx;
 
+  /// affecte les Path des widget de facon recurcive
+  /// affecte également les XID by path
   void initSlot(String path);
 
   void addSlotPath(String pathWid, SlotConfig config) {
     final String childXid = ctx.factory.mapChildXidByXid[config.xid] ?? '';
     //debugPrint('add slot >>>> $pathWid  ${config.xid} childXid=$childXid');
-    Widget? w = ctx.factory.mapWidgetByXid[childXid];
+    Widget? widgetChild = ctx.factory.mapWidgetByXid[childXid];
 
     SlotConfig? old = ctx.factory.mapSlotConstraintByPath[pathWid];
     ctx.factory.mapSlotConstraintByPath[pathWid] = old ?? config;
 
-    if (w is CWWidget) {
+    if (widgetChild is CWWidget) {
       ctx.factory.mapXidByPath[pathWid] = childXid;
-      w.ctx.pathWidget = pathWid;
-      w.initSlot(pathWid); // appel les enfant
+      widgetChild.ctx.pathWidget = pathWid;
+      widgetChild.initSlot(pathWid); // appel les enfant
     }
-  }
-
-  CWWidgetCtx createChildCtx(String id, int? idx) {
-    return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.loader,
-        '${ctx.pathWidget}.$id${idx?.toString() ?? ''}');
-  }
-
-  CWWidgetCtx createInArrayCtx(String id, int? idx) {
-    return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.loader,
-        '${ctx.pathWidget}[].$id${idx?.toString() ?? ''}');
   }
 
   void repaint() {
@@ -80,8 +85,7 @@ abstract class StateCW<T extends CWWidget> extends State<T> {
 }
 
 mixin class CWWidgetProvider {
-  
-  Future<int> getItemsCountAsync( CWWidgetCtx ctx) async {
+  Future<int> getItemsCountAsync(CWWidgetCtx ctx) async {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
       return await provider.getItemsCount();
@@ -89,7 +93,7 @@ mixin class CWWidgetProvider {
     return -1;
   }
 
-  int getItemsCountSync( CWWidgetCtx ctx ) {
+  int getItemsCountSync(CWWidgetCtx ctx) {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
       return provider.getItemsCountSync();

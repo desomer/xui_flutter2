@@ -112,8 +112,8 @@ class _CwListState extends StateCW<CWList> {
       return true;
     }, onAccept: (item) async {
       debugPrint('accept list');
-      
-     // FormBuilder().createForm(widget, item.query);
+
+      // FormBuilder().createForm(widget, item.query);
 
       /// ArrayBuilder().createArray(widget, item.query);
     });
@@ -156,7 +156,7 @@ class _CwListState extends StateCW<CWList> {
           child: CWSlot(
               type: 'dataCell',
               key: widget.ctx.getSlotKey('Cont$index', ''),
-              ctx: widget.createInArrayCtx('Cont', null)));
+              ctx: widget.createInArrayCtx(widget.ctx, 'Cont', null)));
 
       if (provider!.getData().idxSelected == index) {
         keyObserve = rowState.key as GlobalKey<State<StatefulWidget>>?;
@@ -195,7 +195,8 @@ class _CwListState extends StateCW<CWList> {
 
   @override
   Widget build(BuildContext context) {
-    var futureData = widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
+    var futureData =
+        widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
 
     Widget getContent(int ok) {
       var provider = CWProvider.of(widget.ctx);
@@ -219,7 +220,7 @@ class _CwListState extends StateCW<CWList> {
 }
 
 class CWListSelector extends StatefulWidget {
-  const CWListSelector({required this.list, Key? key}) : super(key: key);
+  const CWListSelector({required this.list, super.key});
   final CWList list;
 
   @override
@@ -256,12 +257,11 @@ class InheritedStateContainer extends InheritedWidget {
 
   // You must pass through a child and your state.
   InheritedStateContainer(
-      {Key? key,
+      {super.key,
       this.index,
       required this.arrayState,
-      required Widget child,
-      this.rowState})
-      : super(key: key, child: child);
+      required super.child,
+      this.rowState});
 
   @override
   bool updateShouldNotify(covariant InheritedWidget oldWidget) {

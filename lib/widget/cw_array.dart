@@ -228,7 +228,7 @@ class _CwArrayState extends StateCW<CWArray> {
     for (var i = 0; i < nbCol; i++) {
       dynamic content = '';
       // recupére le slot du design
-      var createInArrayCtx = widget.createInArrayCtx('RowCont$i', null);
+      var createInArrayCtx = widget.createInArrayCtx(widget.ctx, 'RowCont$i', null);
       var w = createInArrayCtx.getWidgetInSlot();
       if (w is CWWidgetMap) {
         if (provider != null) {
@@ -281,7 +281,7 @@ class _CwArrayState extends StateCW<CWArray> {
             CWSlot(
                 type: 'dataHeader',
                 key: widget.ctx.getSlotKey('Header$i', ''),
-                ctx: widget.createInArrayCtx('Header$i', null)),
+                ctx: widget.createInArrayCtx(widget.ctx,'Header$i', null)),
             i,
             maxWidth,
             h));

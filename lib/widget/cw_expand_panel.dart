@@ -12,7 +12,7 @@ import '../designer/cw_factory.dart';
 enum CWExpandAction { actions }
 
 class CWExpandPanel extends CWWidget {
-  const CWExpandPanel({Key? key, required super.ctx}) : super(key: key);
+  const CWExpandPanel({super.key, required super.ctx});
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     c.collection
@@ -60,8 +60,14 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
     final nb = widget.getNb();
     for (var i = 0; i < nb; i++) {
       listInfo.add(ExpandInfo(
-          CWSlot(type: 'title', key: GlobalKey(), ctx: widget.createChildCtx('Title', i)),
-          CWSlot(type: 'body',key: GlobalKey(), ctx: widget.createChildCtx('Body', i))));
+          CWSlot(
+              type: 'title',
+              key: GlobalKey(),
+              ctx: widget.createChildCtx(widget.ctx, 'Title', i)),
+          CWSlot(
+              type: 'body',
+              key: GlobalKey(),
+              ctx: widget.createChildCtx(widget.ctx, 'Body', i))));
     }
 
     return LayoutBuilder(builder: (context, constraints) {

@@ -6,8 +6,7 @@ class WidgetTab extends StatefulWidget {
       required this.listTabCont,
       required this.heightTab,
       this.onController,
-      Key? key})
-      : super(key: key);
+      super.key});
 
   final List<Widget> listTab;
   final List<Widget> listTabCont;

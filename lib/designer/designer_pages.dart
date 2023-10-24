@@ -7,8 +7,7 @@ import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 
 class DesignerPages extends CWWidgetMap {
-  const DesignerPages({Key? key, required CWWidgetCtx ctx})
-      : super(key: key, ctx: ctx);
+  const DesignerPages({super.key, required super.ctx});
 
   @override
   State<DesignerPages> createState() => _DesignerPagesState();

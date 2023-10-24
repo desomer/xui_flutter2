@@ -56,7 +56,7 @@ class CoreDataFilter {
 
 ////////////////////////////////////////////////////////////////////////////////
 class WidgetFilterbuilder extends StatefulWidget {
-  const WidgetFilterbuilder({required this.filter, Key? key}) : super(key: key);
+  const WidgetFilterbuilder({required this.filter, super.key});
 
   final CoreDataFilter filter;
 
@@ -139,8 +139,7 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
 
 ////////////////////////////////////////////////////////////////////////////////
 class WidgetQueryGroup extends StatefulWidget {
-  const WidgetQueryGroup(this.filter, this.pathGroup, this.level, {Key? key})
-      : super(key: key);
+  const WidgetQueryGroup(this.filter, this.pathGroup, this.level, {super.key});
 
   final CoreDataFilter filter;
   final String pathGroup;
@@ -287,8 +286,7 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
 class WidgetQueryClause extends StatefulWidget {
   const WidgetQueryClause(
       this.filter, this.pathFilter, this.groupState, this.level, this.isFirst,
-      {Key? key})
-      : super(key: key);
+      {super.key});
 
   final String pathFilter;
   final CoreDataFilter filter;
@@ -455,8 +453,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
 ////////////////////////////////////////////////////////////////////////////////
 class WidgetQuerybuilderColumn extends StatefulWidget {
   const WidgetQuerybuilderColumn(this.filter, this.pathFilter, this.groupState,
-      {Key? key})
-      : super(key: key);
+      {super.key});
 
   final String pathFilter;
   final CoreDataFilter filter;

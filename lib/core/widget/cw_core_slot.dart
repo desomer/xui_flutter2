@@ -7,7 +7,11 @@ import 'cw_core_selector.dart';
 import 'cw_core_widget.dart';
 
 class CWSlot extends CWWidget {
-  const CWSlot({required super.key, this.childForced, required super.ctx, required this.type});
+  const CWSlot(
+      {required super.key,
+      this.childForced,
+      required super.ctx,
+      required this.type});
 
   final Widget? childForced;
   final String type;

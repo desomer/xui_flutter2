@@ -7,8 +7,7 @@ import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 
 class DesignerQuery extends CWWidgetMap {
-  const DesignerQuery({Key? key, required CWWidgetCtx ctx})
-      : super(key: key, ctx: ctx);
+  const DesignerQuery({super.key, required super.ctx});
 
   @override
   State<DesignerQuery> createState() => _DesignerQueryState();

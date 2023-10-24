@@ -16,8 +16,6 @@ class CoreDesignerSelector {
     return _current;
   }
 
-
-
   CoreDesignerSelector() {
     debugPrint('init event listener');
 

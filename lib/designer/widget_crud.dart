@@ -8,7 +8,7 @@ import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_list.dart';
 
 class WidgetDrag extends StatefulWidget {
-  const WidgetDrag({required this.provider, Key? key}) : super(key: key);
+  const WidgetDrag({required this.provider, super.key});
 
   final CWProvider provider;
 
@@ -54,8 +54,7 @@ class _WidgetDragState extends State<WidgetDrag> {
 
 class WidgetAddBtn extends StatefulWidget {
   const WidgetAddBtn(
-      {required this.provider, required this.loader, this.repaintXid, Key? key})
-      : super(key: key);
+      {required this.provider, required this.loader, this.repaintXid, super.key});
 
   final CWProvider provider;
   final CWAppLoaderCtx loader;
@@ -89,7 +88,7 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
 }
 
 class WidgetDeleteBtn extends StatefulWidget {
-  const WidgetDeleteBtn({Key? key}) : super(key: key);
+  const WidgetDeleteBtn({super.key});
 
   @override
   State<WidgetDeleteBtn> createState() => _WidgetDeleteBtnState();

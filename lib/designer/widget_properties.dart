@@ -11,7 +11,7 @@ import 'builder/prop_builder.dart';
 
 // ignore: must_be_immutable
 class DesignerProp extends StatefulWidget {
-  DesignerProp({Key? key}) : super(key: key);
+  DesignerProp({super.key});
   List<Widget> listProp = [];
   @override
   State<DesignerProp> createState() => DesignerPropState();

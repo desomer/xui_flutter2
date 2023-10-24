@@ -33,7 +33,7 @@ class _CwLoaderState extends StateCW<CWLoader> {
       widget.setProviderDataOK(provider, ok);
       return CWSlot( type: 'body',
           key: widget.ctx.getSlotKey('Cont', ''),
-          ctx: widget.createChildCtx('Cont', null));
+          ctx: widget.createChildCtx(widget.ctx,'Cont', null));
     }
 
     if (futureData is Future) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/designer.dart';
 
 class WidgetPreview extends StatefulWidget {
-  const WidgetPreview({Key? key}) : super(key: key);
+  const WidgetPreview({super.key});
 
   @override
   State<WidgetPreview> createState() => _WidgetPreviewState();

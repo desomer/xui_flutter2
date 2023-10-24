@@ -431,8 +431,8 @@ class _CoreDesignerState extends State<CoreDesigner>
       SizedBox(
         width: 300,
         child: WidgetTab(heightTab: 40, listTab: const [
-          Tab(icon: Icon(Icons.near_me)),
-          Tab(icon: Icon(Icons.filter_alt))
+          Tab(icon: Tooltip(message: 'Navigation', child: Icon(Icons.near_me))),
+          Tab(icon: Tooltip(message: 'Data', child: Icon(Icons.filter_alt)))
         ], listTabCont: [
           DesignerPages(ctx: ctxPages),
           DesignerQuery(ctx: ctxQuery)

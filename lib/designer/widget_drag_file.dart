@@ -4,7 +4,7 @@ import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 
 class WidgetDragTarget extends StatefulWidget {
-  const WidgetDragTarget({Key? key}) : super(key: key);
+  const WidgetDragTarget({super.key});
 
   @override
   State<WidgetDragTarget> createState() => _WidgetDragTargetState();

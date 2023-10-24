@@ -10,7 +10,7 @@ import '../widget/cw_expand_panel.dart';
 import 'builder/form_builder.dart';
 
 class DesignerAttribut extends StatefulWidget {
-  const DesignerAttribut({Key? key}) : super(key: key);
+  const DesignerAttribut({super.key});
 
   @override
   State<DesignerAttribut> createState() => _DesignerAttributState();

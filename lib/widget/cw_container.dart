@@ -11,7 +11,7 @@ import '../designer/builder/form_builder.dart';
 import '../designer/designer_query.dart';
 
 abstract class CWContainer extends CWWidget {
-  const CWContainer({Key? key, required super.ctx}) : super(key: key);
+  const CWContainer({super.key, required super.ctx});
 
   int getNbChild(int def) {
     return ctx.designEntity?.getInt('count', def) ?? def;
@@ -26,7 +26,7 @@ abstract class CWContainer extends CWWidget {
     var slot = CWSlot(
         type: 'body',
         key: GlobalKey(debugLabel: 'slot ${ctx.xid}$i'),
-        ctx: createChildCtx('Cont', i));
+        ctx: createChildCtx(ctx,'Cont', i));
 
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
     //print("getCell -------- ${slot.ctx.xid} $constraint");
@@ -60,7 +60,7 @@ abstract class CWContainer extends CWWidget {
 
 // ignore: must_be_immutable
 class CWColumn extends CWContainer {
-  CWColumn({Key? key, required super.ctx}) : super(key: key);
+  CWColumn({super.key, required super.ctx});
   bool isForm = false;
 
   @override
@@ -165,7 +165,7 @@ class CWColumnState extends StateCW<CWColumn>
 
 ////////////////////////////////////////////////////////////////////////
 class CWRow extends CWContainer {
-  const CWRow({Key? key, required super.ctx}) : super(key: key);
+  const CWRow({super.key, required super.ctx});
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     c.collection

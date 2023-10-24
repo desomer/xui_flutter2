@@ -1,3 +1,4 @@
+import 'package:xui_flutter/widget/cw_action.dart';
 import 'package:xui_flutter/widget/cw_array.dart';
 import 'package:xui_flutter/widget/cw_loader.dart';
 import 'package:xui_flutter/widget/cw_switch.dart';
@@ -44,6 +45,7 @@ class CWWidgetCollectionBuilder {
     CWRow.initFactory(this);
     CWList.initFactory(this);
     CWArray.initFactory(this);
+    CWAction.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -91,7 +93,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   Map<String, CWWidget> mapWidgetByXid = <String, CWWidget>{};
   Map<String, CWWidgetVirtual> mapWidgetVirtualByXid =
       <String, CWWidgetVirtual>{};
-  //sauvegarde temporaire avec build     
+  //sauvegarde temporaire avec build
   Map<String, WidgetDesign> mapDesignByXid = <String, WidgetDesign>{};
 
   Map<String, CWWidgetCtx> mapConstraintByXid = <String, CWWidgetCtx>{};

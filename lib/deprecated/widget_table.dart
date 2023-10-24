@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class WidgetTable extends StatefulWidget {
-  const WidgetTable({Key? key}) : super(key: key);
+  const WidgetTable({super.key});
 
   @override
   State<WidgetTable> createState() => _WidgetTableState();

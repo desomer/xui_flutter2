@@ -9,7 +9,7 @@ class ExpandInfo {
 
 class ExpandPanel extends StatefulWidget {
   final List<ExpandInfo> steps;
-  const ExpandPanel({Key? key, required this.steps}) : super(key: key);
+  const ExpandPanel({super.key, required this.steps});
   @override
   State<ExpandPanel> createState() => ExpandPanelState();
 }
@@ -63,7 +63,7 @@ Future<List<Step>> getSteps() async {
 }
 
 class Steps extends StatelessWidget {
-  const Steps({Key? key}) : super(key: key);
+  const Steps({super.key});
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -88,7 +88,7 @@ class Steps extends StatelessWidget {
 
 class StepList extends StatefulWidget {
   final List<Step> steps;
-  const StepList({Key? key, required this.steps}) : super(key: key);
+  const StepList({super.key, required this.steps});
   @override
   // ignore: no_logic_in_create_state
   State<StepList> createState() => _StepListState(steps: steps);

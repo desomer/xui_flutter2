@@ -9,7 +9,7 @@ import 'builder/array_builder.dart';
 import 'widget_crud.dart';
 
 class DesignerData extends StatefulWidget {
-  const DesignerData({Key? key}) : super(key: key);
+  const DesignerData({super.key});
 
   @override
   State<DesignerData> createState() => _DesignerDataState();

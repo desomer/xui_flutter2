@@ -12,7 +12,7 @@ import '../core/data/core_provider.dart';
 import 'help/widget_help_bounce.dart';
 
 class DesignerListModel extends StatefulWidget {
-  const DesignerListModel({Key? key}) : super(key: key);
+  const DesignerListModel({super.key});
 
   @override
   State<DesignerListModel> createState() {
@@ -95,7 +95,7 @@ class OnSelectModel extends CoreDataAction {
 
 //////////////////////////////////////////////////////////////////////////////////
 class DesignerModel extends StatefulWidget {
-  const DesignerModel({Key? key}) : super(key: key);
+  const DesignerModel({super.key});
 
   @override
   State<DesignerModel> createState() => _DesignerModelState();

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
+
+// Affiche un erreur sur la cellule (ex:date)
+
+
 // ignore: must_be_immutable
 class CWCellIndicator extends StatefulWidget {
-  CWCellIndicator({Key? key}) : super(key: key);
+  CWCellIndicator({super.key});
   String? message;
   Color? color;
   @override
