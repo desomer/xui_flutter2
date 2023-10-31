@@ -4,6 +4,7 @@ import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 
 import '../../designer/cw_factory.dart';
+import '../../designer/designer.dart';
 import '../../designer/selector_manager.dart';
 import '../../widget/cw_list.dart';
 import '../data/core_data.dart';
@@ -65,6 +66,10 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
     //var state = ((key as GlobalKey).currentState as StateCW?);
     ctx.state.repaint();
     //state?.repaint();
+  }
+
+  void select() {
+    CoreDesigner.emit(CDDesignEvent.select, ctx.getSlot()!.ctx);
   }
 }
 

@@ -6,9 +6,12 @@ import 'package:xui_flutter/designer/cw_factory.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
+import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
+import '../designer/builder/prop_builder.dart';
+import '../designer/designer.dart';
 import '../designer/designer_query.dart';
 
 abstract class CWContainer extends CWWidget {
@@ -286,21 +289,23 @@ class SlotContainerAction extends SlotAction {
     int idxChild = int.parse(ctx.pathWidget.substring(i + 5));
     CWContainer parent = ctx.getParentCWWidget() as CWContainer;
     int nbChild = parent.getNbChild(parent.getDefChild());
-    if (idxChild<nbChild-1)
-    {
-      for (var i = idxChild+1; i < nbChild; i++) {
-         debugPrint('move $i');
-         String path = '${parent.ctx.pathWidget}.Cont$i';
-         String pathTo = '${parent.ctx.pathWidget}.Cont${i-1}';
-         var v = ctx.findWidgetByPath(path);
-         var v2 = ctx.findSlotByPath(pathTo);
-         if (v!=null)
-         {
+
+    CoreDataEntity prop = PropBuilder.preparePropChange(ctx.loader, DesignCtx().forDesign(parent.ctx));
+    prop.value['count'] = nbChild - 1;
+
+    if (idxChild < nbChild - 1) {
+      for (var i = idxChild + 1; i < nbChild; i++) {
+        debugPrint('move $i');
+        String path = '${parent.ctx.pathWidget}.Cont$i';
+        String pathTo = '${parent.ctx.pathWidget}.Cont${i - 1}';
+        var v = ctx.findWidgetByPath(path);
+        var v2 = ctx.findSlotByPath(pathTo);
+        if (v != null) {
           DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2!.ctx);
-         }
+        }
       }
     }
-
+    parent..repaint()..select();
     return true;
   }
 }

@@ -207,7 +207,7 @@ class DesignCtx {
     var isNotSlot = ctx.designEntity != null &&
         ctx.designEntity != ctx.inSlot?.ctx.designEntity;
 
-    if (isNotSlot) {
+    if (isNotSlot || ctx.inSlot==null) {
       xid = ctx.factory.mapXidByPath[pathWidget];
       widget = ctx.factory.mapWidgetByXid[xid];
       pathDesign = widget?.ctx.pathDataDesign;
