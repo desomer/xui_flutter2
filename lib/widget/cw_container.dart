@@ -11,7 +11,6 @@ import '../core/widget/cw_core_widget.dart';
 import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
 import '../designer/builder/prop_builder.dart';
-import '../designer/designer.dart';
 import '../designer/designer_query.dart';
 
 abstract class CWContainer extends CWWidget {
@@ -290,7 +289,8 @@ class SlotContainerAction extends SlotAction {
     CWContainer parent = ctx.getParentCWWidget() as CWContainer;
     int nbChild = parent.getNbChild(parent.getDefChild());
 
-    CoreDataEntity prop = PropBuilder.preparePropChange(ctx.loader, DesignCtx().forDesign(parent.ctx));
+    CoreDataEntity prop = PropBuilder.preparePropChange(
+        ctx.loader, DesignCtx().forDesign(parent.ctx));
     prop.value['count'] = nbChild - 1;
 
     if (idxChild < nbChild - 1) {
@@ -305,7 +305,9 @@ class SlotContainerAction extends SlotAction {
         }
       }
     }
-    parent..repaint()..select();
+    parent
+      ..repaint()
+      ..select();
     return true;
   }
 }
