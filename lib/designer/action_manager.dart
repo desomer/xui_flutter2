@@ -17,7 +17,9 @@ class DesignActionManager {
     CWWidget? child = ctx.getCWWidget();
     if (child != null) {
       CWSlot? slot = ctx.getSlot();
-      _delete(child, ctx);
+      _delete(child, ctx, true);
+
+      ctx.factory.disposePath(ctx.pathWidget);
 
       // repaint le parent
       CWWidget? w = CoreDesigner.ofView()
@@ -30,10 +32,11 @@ class DesignActionManager {
     }
   }
 
-  void doMove(CWWidgetCtx ctxSlot, CWWidgetCtx toCtxSlot) {
+  void doMove(CWWidgetCtx ctxSlot, CWWidgetCtx toCtxSlot,
+      {bool repaint = true}) {
     CWWidget? child = ctxSlot.getWidgetInSlot();
     if (child != null) {
-      CoreDataEntity cwchild = _delete(child, ctxSlot);
+      CoreDataEntity cwchild = _delete(child, ctxSlot, false);
 
       _move(toCtxSlot, child, cwchild, ctxSlot);
 
@@ -71,11 +74,10 @@ class DesignActionManager {
 
   ///////////////////////////////////////////////////////////////////////////////////////
   void _doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
-
     String newXid = desc.impl + customAlphabet('1234567890abcdef', 10);
 
-    String pathCreate = CoreDesigner.ofLoader()
-        .addChild(toCtxSlot.xid, newXid, desc.impl);
+    String pathCreate =
+        CoreDesigner.ofLoader().addChild(toCtxSlot.xid, newXid, desc.impl);
 
     final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, toCtxSlot.loader,
         '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
@@ -116,14 +118,47 @@ class DesignActionManager {
     ctxSlot.factory.mapChildXidByXid[toCtxSlot.xid] = child.ctx.xid;
     newWidget.ctx.xid = child.ctx.xid;
 
+
+    // suppression des path 
+    List<String> pathToDelete = [];
+    for (var p in ctxSlot.factory.mapXidByPath.entries) {
+      if (p.key.startsWith(child.ctx.pathWidget)) {
+        pathToDelete.add(p.key);
+        ctxSlot.factory.mapSlotConstraintByPath.remove(p.key);
+      }
+    }
+
+    for (var element in pathToDelete) {
+      ctxSlot.factory.mapXidByPath.remove(element);
+    }
+    // réaffecte les pathWidget
     final rootWidget = ctxSlot.factory.mapWidgetByXid['root']!;
     rootWidget.initSlot('root');
   }
 
-  CoreDataEntity _delete(CWWidget child, CWWidgetCtx ctxSlot) {
-    CoreDataPath path = CoreDesigner.ofLoader().ctxLoader.entityCWFactory.getPath(
-        CoreDesigner.ofLoader().ctxLoader.collectionWidget, child.ctx.pathDataCreate!);
-    CoreDataEntity cwchild = path.remove();
+  CoreDataEntity _delete(CWWidget child, CWWidgetCtx ctxSlot, bool withDesign) {
+    var aLoader = CoreDesigner.ofLoader().ctxLoader;
+
+    String pathStr = child.ctx.pathDataCreate!.substring(0, child.ctx.pathDataCreate!.length-'.child'.length);
+    CoreDataPath path = aLoader.entityCWFactory
+        .getPath(aLoader.collectionWidget, child.ctx.pathDataCreate!);
+    CoreDataEntity cwchild = path.remove(false);
+    CoreDataPath pathDesign = aLoader.entityCWFactory
+        .getPath(aLoader.collectionWidget, pathStr);
+    pathDesign.remove(true);
+
+    if (withDesign) {
+      List designToRemove = [];
+      List designs = aLoader.entityCWFactory.value['designs'] ?? [];
+      for (var d in designs) {
+        if (child.ctx.xid.contains(d['xid'])) {
+          designToRemove.add(d);
+        }
+      }
+      for (var element in designToRemove) {
+        designs.remove(element);
+      }
+    }
 
     ctxSlot.factory.mapWidgetByXid.remove(child.ctx.xid);
     ctxSlot.factory.mapChildXidByXid.remove(ctxSlot.xid);

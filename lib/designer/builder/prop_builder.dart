@@ -29,31 +29,17 @@ class PropBuilder {
       if (aCtx.widget == null) {
         debugPrint('>>> $pathWidget as empty slot');
       } else {
-        CoreDataEntity? designEntity = aCtx.designEntity;
-        if (designEntity?.operation == CDAction.inherit) {
-          designEntity?.operation = CDAction.read;
-        }
-
-        designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
-
-        var provider = CWProvider(
-            'properties', designEntity.type, CWProviderDataSelector.noLoader())
-          ..addContent(designEntity);
-        provider.addAction(
-            CWProviderAction.onValueChanged, RefreshDesign(aCtx));
-        provider.addAction(
-            CWProviderAction.onStateNone2Create, MapDesign(aCtx, designEntity));
-        provider.addAction(
-            CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
-
-        CWAppLoaderCtx loader = CWAppLoaderCtx().from(ctx.loader);
-        listProp.addAll(FormBuilder().getFormWidget(provider, loader));
+        _addWidgetProp(aCtx, ctx, pathWidget);
       }
 
       _addSlotConstraint(aCtx, ctx, pathWidget);
 
       int i = pathWidget.lastIndexOf('.');
       if (i < 0) break;
+      pathWidget = pathWidget.substring(0, i);
+      if (pathWidget.endsWith('[]')) {
+        i = i - 2;
+      }
       pathWidget = pathWidget.substring(0, i);
     }
 
@@ -62,6 +48,30 @@ class PropBuilder {
 
     // ignore: invalid_use_of_protected_member
     state?.setState(() {});
+  }
+
+  void _addWidgetProp(DesignCtx aCtx, CWWidgetCtx ctx, String pathWidget) {
+    CoreDataEntity? designEntity = aCtx.designEntity;
+    if (designEntity?.operation == CDAction.inherit) {
+      designEntity?.operation = CDAction.read;
+    }
+
+    designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
+
+    var provider = CWProvider(
+        'properties', designEntity.type, CWProviderDataSelector.noLoader())
+      ..addContent(designEntity);
+    provider.addAction(CWProviderAction.onValueChanged, RefreshDesign(aCtx));
+    provider.addAction(
+        CWProviderAction.onStateNone2Create, MapDesign(aCtx, designEntity));
+    provider.addAction(
+        CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
+    provider.addUserAction('onTapHeader', OnWidgetSelect(aCtx, pathWidget));
+
+    CWAppLoaderCtx loader = CWAppLoaderCtx().from(ctx.loader);
+    provider.header = loader.collectionDataModel.createEntityByJson(
+        'DataHeader', {'label': designEntity.type.substring(2)});
+    listProp.addAll(FormBuilder().getFormWidget(provider, loader));
   }
 
   void _addSlotConstraint(
@@ -138,7 +148,7 @@ class PropBuilder {
       var old = CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!];
       aCtx.widget?.ctx.pathDataDesign = old?.pathDataDesign;
       CoreDesigner.ofFactory().mapConstraintByXid[aCtx.xid!] = aCtx.widget!.ctx;
-      
+
       aCtx.widget?.ctx.designEntity = prop;
       aCtx.widget?.ctx.pathDataDesign = CoreDesigner.ofLoader().setConstraint(
           aCtx.xid!, prop,

@@ -18,7 +18,7 @@ class ComponentDesc {
         ComponentDesc('Form', Icons.feed, 'CWForm'),
       ]),
       CardComponents('Actions', [
-        ComponentDesc('Button', Icons.smart_button_sharp, 'CWAction'),
+        ComponentDesc('Button', Icons.smart_button_sharp, 'CWActionLink'),
       ]),
       // "Column", "Row", "Tab"
       // CardComponents("Filter", const [

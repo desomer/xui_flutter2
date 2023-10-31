@@ -40,6 +40,17 @@ class OnMount extends CoreDataAction {
   }
 }
 
+class OnWidgetSelect extends CoreDataAction {
+  OnWidgetSelect(this.aCtx, this.path);
+  DesignCtx aCtx;
+  String path;
+
+  @override
+  void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    CoreDesigner.emit(CDDesignEvent.select, aCtx.widget!.ctx.getSlot()!.ctx);
+  }
+}
+
 class RefreshDesign extends CoreDataAction {
   RefreshDesign(this.aCtx);
   DesignCtx aCtx;

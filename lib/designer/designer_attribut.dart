@@ -52,7 +52,7 @@ class _DesignerAttributState extends State<DesignerAttribut> {
     loader.addConstraint('rootTitle0', 'CWExpandConstraint').addMany(
         loader,
         CWExpandAction.actions.toString(),
-        c.createEntityByJson('CWAction', {
+        c.createEntityByJson('CWExpandAction', {
           '_idAction_': 'deleteAttr@AttrProvider',
           'label': 'Delete attribut',
           'icon': Icons.delete_forever

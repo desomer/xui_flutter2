@@ -7,11 +7,14 @@ import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
 import '../designer/designer_query.dart';
 
 abstract class CWContainer extends CWWidget {
   const CWContainer({super.key, required super.ctx});
+
+  int getDefChild();
 
   int getNbChild(int def) {
     return ctx.designEntity?.getInt('count', def) ?? def;
@@ -24,9 +27,11 @@ abstract class CWContainer extends CWWidget {
   Widget getCell(int i, bool defFill,
       {required bool canFill, bool? canHeight, bool? canWidth}) {
     var slot = CWSlot(
-        type: 'body',
-        key: GlobalKey(debugLabel: 'slot ${ctx.xid}$i'),
-        ctx: createChildCtx(ctx,'Cont', i));
+      type: 'body',
+      key: GlobalKey(debugLabel: 'slot ${ctx.xid}_$i'),
+      ctx: createChildCtx(ctx, 'Cont', i),
+      slotAction: SlotContainerAction(),
+    );
 
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
     //print("getCell -------- ${slot.ctx.xid} $constraint");
@@ -68,7 +73,7 @@ class CWColumn extends CWContainer {
 
   @override
   void initSlot(String path) {
-    final nb = getNbChild(isForm ? 1 : 3);
+    final nb = getNbChild(getDefChild());
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
           SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWColConstraint'));
@@ -94,6 +99,11 @@ class CWColumn extends CWContainer {
     //    .addAttr('% ()', CDAttributType.CDint);
     //.addAttr('Fitted child (FittedBox)', CDAttributType.CDbool);
   }
+
+  @override
+  int getDefChild() {
+    return isForm ? 0 : 3;
+  }
 }
 
 class CWColumnState extends StateCW<CWColumn>
@@ -113,7 +123,7 @@ class CWColumnState extends StateCW<CWColumn>
       final List<Widget> listStack = [];
       final List<Widget> listSlot = [];
 
-      final nb = widget.getNbChild(widget.isForm ? 0 : 3);
+      final nb = widget.getNbChild(widget.getDefChild());
       for (var i = 0; i < nb; i++) {
         listSlot.add(widget.getCell(i, true,
             canHeight: true, canFill: viewportConstraints.hasBoundedHeight));
@@ -193,11 +203,16 @@ class CWRow extends CWContainer {
 
   @override
   void initSlot(String path) {
-    final nb = getNbChild(2);
+    final nb = getNbChild(getDefChild());
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
           SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWRowConstraint'));
     }
+  }
+
+  @override
+  int getDefChild() {
+    return 2;
   }
 }
 
@@ -205,7 +220,7 @@ class CWRowState extends StateCW<CWRow> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> listSlot = [];
-    final nb = widget.getNbChild(2);
+    final nb = widget.getNbChild(widget.getDefChild());
     for (var i = 0; i < nb; i++) {
       listSlot.add(widget.getCell(i, true, canFill: true, canWidth: true));
     }
@@ -256,5 +271,36 @@ mixin CWDroppable {
               Text('Drag query here'),
               Icon(Icons.filter_alt)
             ]))))));
+  }
+}
+
+class SlotContainerAction extends SlotAction {
+  @override
+  bool canDelete() {
+    return true;
+  }
+
+  @override
+  bool doDelete(CWWidgetCtx ctx) {
+    int i = ctx.pathWidget.lastIndexOf('.Cont');
+    int idxChild = int.parse(ctx.pathWidget.substring(i + 5));
+    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
+    int nbChild = parent.getNbChild(parent.getDefChild());
+    if (idxChild<nbChild-1)
+    {
+      for (var i = idxChild+1; i < nbChild; i++) {
+         debugPrint('move $i');
+         String path = '${parent.ctx.pathWidget}.Cont$i';
+         String pathTo = '${parent.ctx.pathWidget}.Cont${i-1}';
+         var v = ctx.findWidgetByPath(path);
+         var v2 = ctx.findSlotByPath(pathTo);
+         if (v!=null)
+         {
+          DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2!.ctx);
+         }
+      }
+    }
+
+    return true;
   }
 }

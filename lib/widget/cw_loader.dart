@@ -6,6 +6,7 @@ import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 
+/// gestion d'un loader (utiliser dans les AttrListLooader)
 class CWLoader extends CWWidgetMap {
   const CWLoader({super.key, required super.ctx});
 

@@ -32,7 +32,9 @@ class CWFrameDesktop extends CWWidget {
   @override
   void initSlot(String path) {
     addSlotPath('root', SlotConfig('root'));
-    for (var i = 0; i < nbBtnBottomNavBar(); i++) {
+    var nb = nbBtnBottomNavBar();
+    if (nb == 0) nb = 1;
+    for (var i = 0; i < nb; i++) {
       addSlotPath('$path.Body$i', SlotConfig('${ctx.xid}Body$i'));
       addSlotPath('$path.Btn$i', SlotConfig('${ctx.xid}Btn$i'));
     }

@@ -11,10 +11,12 @@ class CWSlot extends CWWidget {
       {required super.key,
       this.childForced,
       required super.ctx,
-      required this.type});
+      required this.type,
+      this.slotAction});
 
   final Widget? childForced;
   final String type;
+  final SlotAction? slotAction;
 
   @override
   State<CWSlot> createState() => _CWSlotState();
@@ -120,4 +122,9 @@ class _CWSlotState extends StateCW<CWSlot> {
           child: slotEmpty));
     }
   }
+}
+
+abstract class SlotAction {
+  bool canDelete();
+  bool doDelete(CWWidgetCtx ctx);
 }

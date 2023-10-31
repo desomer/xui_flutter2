@@ -46,7 +46,7 @@ class CWWidgetCollectionBuilder {
     CWRow.initFactory(this);
     CWList.initFactory(this);
     CWArray.initFactory(this);
-    CWAction.initFactory(this);
+    CWActionLink.initFactory(this);
     CWSelector.initFactory(this);
   }
 

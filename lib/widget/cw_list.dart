@@ -154,9 +154,11 @@ class _CwListState extends StateCW<CWList> {
           index: index,
           arrayState: this,
           child: CWSlot(
-              type: 'dataCell',
-              key: widget.ctx.getSlotKey('Cont$index', ''),
-              ctx: widget.createInArrayCtx(widget.ctx, 'Cont', null)));
+            type: 'dataCell',
+            key: widget.ctx.getSlotKey('Cont$index', ''),
+            ctx: widget.createInArrayCtx(widget.ctx, 'Cont', null),
+            slotAction: SlotListAction(),
+          ));
 
       if (provider!.getData().idxSelected == index) {
         keyObserve = rowState.key as GlobalKey<State<StatefulWidget>>?;
@@ -293,5 +295,17 @@ class InheritedStateContainer extends InheritedWidget {
       //ignore: invalid_use_of_protected_member
       rowState?.setState(() {});
     }
+  }
+}
+
+class SlotListAction extends SlotAction {
+  @override
+  bool canDelete() {
+    return true;
+  }
+
+  @override
+  bool doDelete(CWWidgetCtx ctx) {
+    return true;
   }
 }

@@ -3,9 +3,9 @@ import 'dart:math' as math;
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
+import 'package:xui_flutter/widget/cw_action.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 
@@ -20,7 +20,7 @@ class CWExpandPanel extends CWWidget {
         .addAttr(CWExpandAction.actions.toString(), CDAttributType.many);
 
     c.collection
-        .addObject('CWAction')
+        .addObject('CWExpandAction')
         .addAttr('_idAction_', CDAttributType.text)
         .addAttr('label', CDAttributType.text)
         .addAttr('icon', CDAttributType.text);
@@ -51,7 +51,7 @@ class CWExpandPanel extends CWWidget {
   }
 }
 
-class CWExpandPanelState extends StateCW<CWExpandPanel> {
+class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
   final ctrl = ExpandableController(initialExpanded: true);
 
   @override
@@ -153,16 +153,7 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
             backgroundColor: Colors.black54, foregroundColor: Colors.white),
         onPressed: () {
           Navigator.pop(context);
-          CWWidgetEvent ctxWE = CWWidgetEvent();
-          String actionId = action['_idAction_'];
-          var p = actionId.split('@');
-          ctxWE.action = p[0];
-          CWProvider? provider = widget.ctx.loader.factory.mapProvider[p[1]];
-          if (provider != null) {
-            ctxWE.provider = provider;
-            ctxWE.loader = widget.ctx.loader;
-            provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
-          }
+          doAction(widget, action);
         },
         icon: Icon(action['icon'] as IconData),
         label: Text(action['label'] as String),
@@ -190,6 +181,19 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> {
                           )))
             ]));
   }
+
+  // void doAction(Map<String, dynamic> properties) {
+  //   CWWidgetEvent ctxWE = CWWidgetEvent();
+  //   String actionId = properties['_idAction_'];
+  //   var p = actionId.split('@');
+  //   ctxWE.action = p[0];
+  //   CWProvider? provider = widget.ctx.loader.factory.mapProvider[p[1]];
+  //   if (provider != null) {
+  //     ctxWE.provider = provider;
+  //     ctxWE.loader = widget.ctx.loader;
+  //     provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
+  //   }
+  // }
 }
 
 class ExpandInfo {

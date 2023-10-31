@@ -68,7 +68,7 @@ class CWApplication {
         .addMany(
             loaderModel,
             CWExpandAction.actions.toString(),
-            c.createEntityByJson('CWAction', {
+            c.createEntityByJson('CWExpandAction', {
               '_idAction_': 'delete@DataModelProvider',
               'label': 'Delete table',
               'icon': Icons.delete_forever

@@ -79,9 +79,11 @@ class _CWTabState extends StateCW<CWTab> {
           Tab(
               height: heightHeader,
               child: CWSlot(
-                  type: 'selector',
-                  key: GlobalKey(debugLabel: 'tab btn slot ${widget.ctx.xid}'),
-                  ctx: widget.createChildCtx(widget.ctx, 'Tab', i))));
+                type: 'selector',
+                key: GlobalKey(debugLabel: 'tab btn slot ${widget.ctx.xid}'),
+                ctx: widget.createChildCtx(widget.ctx, 'Tab', i),
+                slotAction: SlotTabAction(),
+              )));
     }
 
     return SizedBox(
@@ -106,17 +108,20 @@ class _CWTabState extends StateCW<CWTab> {
             child: Column(children: [
               Expanded(
                   child: CWSlot(
-                      type: 'body',
-                      key: GlobalKey(
-                          debugLabel: 'tab cont slot ${widget.ctx.xid}'),
-                      ctx: widget.createChildCtx(widget.ctx, 'Cont', i)))
+                type: 'body',
+                key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
+                ctx: widget.createChildCtx(widget.ctx, 'Cont', i),
+                slotAction: SlotTabAction(),
+              ))
             ]));
       } else {
         slot = SingleChildScrollView(
             child: CWSlot(
-                type: 'body',
-                key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
-                ctx: widget.createChildCtx(widget.ctx, 'Cont', i)));
+          type: 'body',
+          key: GlobalKey(debugLabel: 'tab cont slot ${widget.ctx.xid}'),
+          ctx: widget.createChildCtx(widget.ctx, 'Cont', i),
+          slotAction: SlotTabAction(),
+        ));
       }
       listTab.add(slot);
     }
@@ -132,5 +137,17 @@ class _CWTabState extends StateCW<CWTab> {
       return SizedBox(
           height: fixedHeight, child: TabBarView(children: listTab));
     }
+  }
+}
+
+class SlotTabAction extends SlotAction {
+  @override
+  bool canDelete() {
+    return true;
+  }
+
+  @override
+  bool doDelete(CWWidgetCtx ctx) {
+    return true;
   }
 }

@@ -352,7 +352,8 @@ class CoreDataEntity {
           // un one
           final Map<String, dynamic> o = src[attr.name] as Map<String, dynamic>;
           // ignore: avoid_dynamic_calls
-          if (o[cstTypeAttr] != null) { // si c'est typé
+          if (o[cstTypeAttr] != null) {
+            // si c'est typé
             final String tOne = getType(attr, o);
             final CoreDataObjectBuilder builderOne = collection.getClass(tOne)!;
             final CoreDataEntity child = builderOne.getEntityModel();
@@ -583,10 +584,18 @@ class CoreDataPath {
     return entities.last;
   }
 
-  CoreDataEntity remove() {
+  CoreDataEntity remove(bool onlyLast) {
     CoreDataEntity entity = entities[entities.length - 2];
     CoreDataAttribut attr = attributs[attributs.length - 1];
-    entity.value.remove(attr.name);
+    if (attr is CoreDataAttributItemIdx) {
+      String nameArray = attr.name.substring(0, attr.name.lastIndexOf('['));
+      var arr = entity.value[nameArray] as List;
+      if (!onlyLast || arr.length-1==attr.idxInArray) {
+        arr.removeAt(attr.idxInArray);
+      }
+    } else {
+      entity.value.remove(attr.name);
+    }
     return getLastEntity();
   }
 }

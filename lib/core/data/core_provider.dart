@@ -14,7 +14,8 @@ enum CWProviderAction {
   onStateNone2Create,
   onStateDelete,
   onValueChanged,
-  onRowSelected
+  onRowSelected,
+  onTapHeader
 }
 
 class CWProviderData {
@@ -196,7 +197,7 @@ class CWProvider {
   }
 
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
-    var val = getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    var val = getDisplayedEntity()?.value[ctx.designEntity?.getString(propName)];
     return val?.toString() ?? '';
   }
 

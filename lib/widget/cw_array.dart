@@ -26,7 +26,9 @@ class CWArray extends CWWidgetMap {
           '$path[].Header$i',
           SlotConfig('${ctx.xid}Header$i',
               constraintEntity: 'CWColArrayConstraint'));
-      addSlotPath('$path[].RowCont$i', SlotConfig('${ctx.xid}RowCont$i'));
+      addSlotPath(
+          '$path[].RowCont$i',
+          SlotConfig('${ctx.xid}RowCont$i'));
     }
   }
 
@@ -240,11 +242,13 @@ class _CwArrayState extends StateCW<CWArray> {
       // duplique les slot par ligne de tableau
       listConts.add(getCell(
           CWSlot(
-              type: 'datacell',
-              key: widget.ctx.getSlotKey(
-                  idxRow == 0 ? 'RowCont{$i}' : 'RowCont{$i}_$idxRow',
-                  content.toString()),
-              ctx: createInArrayCtx),
+            type: 'datacell',
+            key: widget.ctx.getSlotKey(
+                idxRow == 0 ? 'RowCont{$i}' : 'RowCont{$i}_$idxRow',
+                content.toString()),
+            ctx: createInArrayCtx,
+            slotAction: ColumnAction(),
+          ),
           i,
           maxWidth,
           null));
@@ -280,9 +284,11 @@ class _CwArrayState extends StateCW<CWArray> {
         i,
         getCell(
             CWSlot(
-                type: 'dataHeader',
-                key: widget.ctx.getSlotKey('Header$i', ''),
-                ctx: widget.createInArrayCtx(widget.ctx, 'Header$i', null)),
+              type: 'dataHeader',
+              key: widget.ctx.getSlotKey('Header$i', ''),
+              ctx: widget.createInArrayCtx(widget.ctx, 'Header$i', null),
+              slotAction: ColumnAction(),
+            ),
             i,
             maxWidth,
             h));
@@ -306,4 +312,16 @@ class DragColCtx {
   DragColCtx(this.provider, this.idxCol);
   CWProvider? provider;
   int idxCol;
+}
+
+class ColumnAction extends SlotAction {
+  @override
+  bool canDelete() {
+    return true;
+  }
+
+  @override
+  bool doDelete(CWWidgetCtx ctx) {
+    return true;
+  }
 }

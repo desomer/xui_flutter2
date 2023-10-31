@@ -7,6 +7,7 @@ import '../../designer/builder/prop_builder.dart';
 import '../../widget/cw_toolkit.dart';
 import '../data/core_data.dart';
 import 'cw_core_loader.dart';
+import 'cw_core_slot.dart';
 import 'cw_core_widget.dart';
 
 class SelectorActionWidget extends StatefulWidget {
@@ -404,6 +405,11 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       } else {
         CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
         debugPrint('delete slot ${ctx?.xid}');
+        SlotAction? slotAction = ctx?.inSlot?.slotAction;
+        if (slotAction!=null)
+        {
+          slotAction.doDelete(ctx!);
+        }
       }
     }
   }

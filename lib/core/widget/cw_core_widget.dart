@@ -284,6 +284,16 @@ class CWWidgetCtx {
     return factory.mapWidgetByXid[xid];
   }
 
+  CWWidget? findWidgetByPath(String path) {
+    String? xid = factory.mapXidByPath[path];
+    CWWidget? widget = factory.mapWidgetByXid[xid ?? ''];
+    return widget;
+  } 
+
+  CWWidget? findSlotByPath(String path) {
+    return factory.mapSlotConstraintByPath[path]?.slot;
+  } 
+
   void changeProp(String name, dynamic val) {
     designEntity?.value[name] = val;
   }

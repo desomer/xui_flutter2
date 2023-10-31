@@ -189,8 +189,9 @@ class AttrFormLoader extends CWWidgetLoader {
               'CWExpandPanel', <String, dynamic>{'count': 1}));
 
       // le titre
-      addWidget('rootTitle0', 'title0', 'CWText', <String, dynamic>{
-        'label': provider.header?.value['label'] ?? entity.type
+      addWidget('rootTitle0', 'title0', 'CWActionLink', <String, dynamic>{
+        'label': provider.header?.value['label'] ?? entity.type,
+        '_idAction_':'onTapHeader@properties'
       });
 
       // la colonne d'attribut

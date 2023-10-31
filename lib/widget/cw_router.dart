@@ -282,8 +282,7 @@ class ScaffoldWithNestedNavigation extends StatelessWidget {
       {super.key,
       required this.navigationShell,
       required this.children,
-      required this.listAction})
-      ; // ?? const ValueKey<String>('ScaffoldWithNestedNavigation')
+      required this.listAction}); // ?? const ValueKey<String>('ScaffoldWithNestedNavigation')
 
   final StatefulNavigationShell navigationShell;
   final List<Widget> children;
@@ -353,9 +352,11 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
     int i = 0;
     for (var element in listAction) {
       var slot = CWSlot(
-          type: 'navigation',
-          key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Btn$i'),
-          ctx: createChildCtx(element.ctx, 'Btn', i));
+        type: 'navigation',
+        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Btn$i'),
+        ctx: createChildCtx(element.ctx, 'Btn', i),
+        slotAction: SlotNavAction(),
+      );
 
       listBtn.add(BottomNavigationBarItem(
           label: '', //element.name,
@@ -421,14 +422,16 @@ class ScaffoldWithNavigationRail extends StatelessWidget with CWSlotManager {
     int i = 0;
     for (var element in listAction) {
       var slot = CWSlot(
-          type: 'navigation',
-          key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Btn$i'),
-          ctx: createChildCtx(element.ctx, 'Btn', i));
+        type: 'navigation',
+        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Btn$i'),
+        ctx: createChildCtx(element.ctx, 'Btn', i),
+        slotAction: SlotNavAction(),
+      );
 
       actions.add(NavigationRailDestination(
           //label: Text(element.name), icon: Icon(element.icon)
-          label: Container(), icon: slot
-          ));
+          label: Container(),
+          icon: slot));
       i++;
     }
 
@@ -488,4 +491,16 @@ class AnimatedBranchContainer extends StatelessWidget {
           child: navigator,
         ),
       );
+}
+
+class SlotNavAction extends SlotAction {
+  @override
+  bool canDelete() {
+    return true;
+  }
+
+  @override
+  bool doDelete(CWWidgetCtx ctx) {
+    return true;
+  }
 }

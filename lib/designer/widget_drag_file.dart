@@ -37,7 +37,7 @@ class _WidgetDragTargetState extends State<WidgetDragTarget> {
 
           for (var table in excel.tables.keys) {
             debugPrint(table); //sheet Name
-            debugPrint(excel.tables[table]!.maxCols.toString());
+            debugPrint(excel.tables[table]!.maxColumns.toString());
             debugPrint(excel.tables[table]!.maxRows.toString());
             for (var row in excel.tables[table]!.rows) {
               debugPrint('${row[0]!.value}');
