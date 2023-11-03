@@ -64,8 +64,8 @@ class PropBuilder {
     provider.addAction(CWProviderAction.onValueChanged, RefreshDesign(aCtx));
     provider.addAction(
         CWProviderAction.onStateNone2Create, MapDesign(aCtx, designEntity));
-    provider.addAction(
-        CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
+    // provider.addAction(
+    //     CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
     provider.addUserAction('onTapHeader', OnWidgetSelect(aCtx, pathWidget));
 
     CWAppLoaderCtx loader = CWAppLoaderCtx().from(ctx.loader);

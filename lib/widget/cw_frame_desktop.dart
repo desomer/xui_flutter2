@@ -71,7 +71,7 @@ class CWFrameDesktop extends CWWidget {
 class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     with WidgetsBindingObserver {
   //////////////////////////////////////////////////////////////////////////
-  Widget? router;
+  Widget? routerWidgetCache;
 
   StatefulShellBranch getSubRoute(String path, Function(GoRouterState) fct) {
     return StatefulShellBranch(routes: <RouteBase>[
@@ -119,7 +119,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     //FocusScope.of(context).requestFocus(FocusNode());
     //*******************************************************************/
 
-    if (CWFrameDesktop.router == null || widget.listAction.length != nb) {
+    if (routerWidgetCache ==null || CWFrameDesktop.router == null || widget.listAction.length != nb) {
       String r = '/';
       if (CWFrameDesktop.router != null) {
         var l = CWFrameDesktop.router!.routerDelegate.currentConfiguration.uri;
@@ -147,7 +147,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
                 branches: widget.listRoute)
           ]);
 
-      router = MaterialApp.router(
+      routerWidgetCache = MaterialApp.router(
         key: widget.rootMainKey,
         title: 'Flutter Demo',
         routerConfig: CWFrameDesktop.router,
@@ -157,7 +157,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
         locale: DevicePreview.locale(context),
       );
     }
-    return router!;
+
+    return routerWidgetCache!;
   }
 
   @override
