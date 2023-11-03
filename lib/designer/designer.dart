@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:event_listener/event_listener.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
@@ -71,15 +74,14 @@ class CoreDesigner extends StatefulWidget {
     return ofLoader().ctxLoader.factory;
   }
 
-
   static late CoreDesigner _coreDesigner;
   late DesignerView designView;
 
   final GlobalKey imageKey = GlobalKey(debugLabel: 'CoreDesigner.imageKey');
   final GlobalKey rootKey = GlobalKey(debugLabel: 'rootKey');
-  final GlobalKey designerKey = GlobalKey(debugLabel: 'CoreDesignerdesignerKey');
+  final GlobalKey designerKey =
+      GlobalKey(debugLabel: 'CoreDesignerdesignerKey');
   final GlobalKey propKey = GlobalKey(debugLabel: 'CoreDesigner.propKey');
-  
 
   final GlobalKey dataKey = GlobalKey(debugLabel: 'CoreDesigner.dataKey');
   final GlobalKey dataFilterKey =
@@ -110,9 +112,32 @@ class _CoreDesignerState extends State<CoreDesigner>
     with SingleTickerProviderStateMixin {
   final PageStorageBucket _bucket = PageStorageBucket();
 
+  final clipboardcontentstream = StreamController<String>.broadcast();
+  Timer? clipboardtriggertime;
+  Stream get clipboardtext => clipboardcontentstream.stream;
+
   @override
   void initState() {
     super.initState();
+
+    // clipboardtriggertime = Timer.periodic(
+    //   const Duration(seconds: 5),
+    //   (timer) {
+    //     Clipboard.getData('text/plain').then((clipboarcontent) {
+    //       if (clipboarcontent != null) {
+    //         print('clipboard content ${clipboarcontent.text}');
+    //         clipboardcontentstream.add(clipboarcontent.text!);
+    //       }
+    //     });
+    //   },
+    // );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    clipboardcontentstream.close();
+    clipboardtriggertime?.cancel();
   }
 
   @override
@@ -186,7 +211,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                     },
                   ),
                   const SizedBox(width: 20),
-                  const Text('ElisView v0.4.0'),
+                  const Text('ElisView v0.4.1'),
                   const SizedBox(width: 5),
                   IconButton(
                     iconSize: 30,
@@ -231,7 +256,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                         )),
                   ]),
                   const Spacer(),
-                  const Text('Desomer G.  10/10/23'),
+                  const Text('Desomer G.  02/11/23'),
                   IconButton(
                     icon: const Icon(Icons.help),
                     onPressed: () {},
@@ -398,8 +423,10 @@ class _CoreDesignerState extends State<CoreDesigner>
     return const WidgetDebug();
   }
 
-  Column getTestPan() {
-    return Column(children: [
+  Widget getTestPan() {
+    return SingleChildScrollView(
+        child: Column(children: [
+      Image.network('https://googleflutter.com/sample_image.jpg', width: 200),
       const WidgetDragTarget(),
       const DialogExample(key: PageStorageKey<String>('pageMain')),
       CwImage(key: CoreDesigner.of().imageKey),
@@ -411,7 +438,7 @@ class _CoreDesignerState extends State<CoreDesigner>
             debugPrint(color!.value.toString());
           },
           selectedColor: Colors.red)
-    ]);
+    ]));
   }
 
   Widget getDesignPan() {

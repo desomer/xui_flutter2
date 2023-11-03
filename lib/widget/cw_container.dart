@@ -283,6 +283,16 @@ class SlotContainerAction extends SlotAction {
   }
 
   @override
+  bool canAddBottom() {
+    return true;
+  }
+
+  @override
+  bool canAddTop() {
+    return true;
+  }
+
+  @override
   bool doDelete(CWWidgetCtx ctx) {
     int i = ctx.pathWidget.lastIndexOf('.Cont');
     int idxChild = int.parse(ctx.pathWidget.substring(i + 5));
@@ -308,6 +318,98 @@ class SlotContainerAction extends SlotAction {
     parent
       ..repaint()
       ..select();
+    return true;
+  }
+
+  bool _addBottomOrTop(CWWidgetCtx ctx, bool top) {
+    int ic = ctx.pathWidget.lastIndexOf('.Cont');
+    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
+    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
+    int nbChild = parent.getNbChild(parent.getDefChild());
+
+    CoreDataEntity prop = PropBuilder.preparePropChange(
+        ctx.loader, DesignCtx().forDesign(parent.ctx));
+    prop.value['count'] = nbChild + 1;
+    parent
+      ..repaint()
+      ..select();
+
+    // delay pour avoir les nouveaux slot dans les findSlotByPath
+    Future.delayed(const Duration(milliseconds: 1), () {
+      if (idxChild < nbChild - 1 + (top ? 1 : 0)) {
+        for (var i = nbChild - 1; i > (idxChild - (top ? 1 : 0)); i--) {
+          debugPrint('move $i');
+          String path = '${parent.ctx.pathWidget}.Cont$i';
+          String pathTo = '${parent.ctx.pathWidget}.Cont${i + 1}';
+          var v = ctx.findWidgetByPath(path);
+          var v2 = ctx.findSlotByPath(pathTo);
+          if (v != null) {
+            DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2!.ctx);
+          }
+        }
+      }
+    });
+
+    return true;
+  }
+
+  @override
+  bool addBottom(CWWidgetCtx ctx) {
+    return _addBottomOrTop(ctx, false);
+  }
+
+  @override
+  bool addTop(CWWidgetCtx ctx) {
+    return _addBottomOrTop(ctx, true);
+  }
+
+  @override
+  bool canMoveBottom() {
+    return true;
+  }
+
+  @override
+  bool moveBottom(CWWidgetCtx ctx) {
+    int ic = ctx.pathWidget.lastIndexOf('.Cont');
+    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
+    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
+    int nbChild = parent.getNbChild(parent.getDefChild());
+
+    if (idxChild < nbChild - 1) {
+      debugPrint('move $idxChild');
+      String path = '${parent.ctx.pathWidget}.Cont$idxChild';
+      String pathTo = '${parent.ctx.pathWidget}.Cont${idxChild + 1}';
+      var v = ctx.findWidgetByPath(path);
+      var v2 = ctx.findSlotByPath(pathTo);
+      if (v != null) {
+        DesignActionManager().doSwap(v.ctx.getSlot()!.ctx, v2!.ctx);
+      }
+    }
+    return true;
+  }
+
+  @override
+  bool canMoveTop() {
+    return true;
+  }
+
+  @override
+  bool moveTop(CWWidgetCtx ctx) {
+    int ic = ctx.pathWidget.lastIndexOf('.Cont');
+    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
+    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
+    //int nbChild = parent.getNbChild(parent.getDefChild());
+
+    if (idxChild > 0) {
+      debugPrint('move $idxChild');
+      String path = '${parent.ctx.pathWidget}.Cont$idxChild';
+      String pathTo = '${parent.ctx.pathWidget}.Cont${idxChild - 1}';
+      var v = ctx.findWidgetByPath(path);
+      var v2 = ctx.findSlotByPath(pathTo);
+      if (v != null) {
+        DesignActionManager().doSwap(v.ctx.getSlot()!.ctx, v2!.ctx);
+      }
+    }
     return true;
   }
 }

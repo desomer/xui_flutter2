@@ -127,4 +127,12 @@ class _CWSlotState extends StateCW<CWSlot> {
 abstract class SlotAction {
   bool canDelete();
   bool doDelete(CWWidgetCtx ctx);
+  bool canAddBottom();
+  bool addBottom(CWWidgetCtx ctx);
+  bool canAddTop();
+  bool addTop(CWWidgetCtx ctx);  
+  bool canMoveBottom();
+  bool moveBottom(CWWidgetCtx ctx);    
+  bool canMoveTop();
+  bool moveTop(CWWidgetCtx ctx);   
 }

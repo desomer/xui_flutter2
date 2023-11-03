@@ -116,6 +116,6 @@ class MapConstraint extends CoreDataAction {
 
     PropBuilder.setDesignOn(aCtx, prop);
 
-    debugPrint('object  ${CoreDesigner.ofLoader().cwFactory}');
+    debugPrint('MapConstraint  ${CoreDesigner.ofLoader().cwFactory}');
   }
 }

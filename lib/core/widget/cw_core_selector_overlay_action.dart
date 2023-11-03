@@ -7,8 +7,6 @@ import '../../designer/builder/prop_builder.dart';
 import '../../widget/cw_toolkit.dart';
 import '../data/core_data.dart';
 import 'cw_core_loader.dart';
-import 'cw_core_slot.dart';
-import 'cw_core_widget.dart';
 
 class SelectorActionWidget extends StatefulWidget {
   const SelectorActionWidget({super.key});
@@ -91,7 +89,7 @@ class ZoneDesc {
   List<Widget> actions = [];
 }
 
-enum DesignAction { delete, size, none }
+enum DesignAction { delete, size, addTop, addBottom, moveBottom, moveTop, none }
 
 class SelectorActionWidgetState extends State<SelectorActionWidget> {
   double gBottom = 10;
@@ -145,8 +143,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
       bottomZone.actions = [
         getAddAction(
-            topBtn, leftBtn - 25, Icons.expand_more, DesignAction.none),
-        getAddAction(topBtn, leftBtn + 5, Icons.add, DesignAction.none),
+            topBtn, leftBtn - 25, Icons.expand_more, DesignAction.moveBottom),
+        getAddAction(topBtn, leftBtn + 5, Icons.add, DesignAction.addBottom),
       ];
     };
 
@@ -159,8 +157,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       double leftBtn = (gRight - gLeft) / 2;
       topZone.actions = [
         getAddAction(
-            topBtn, leftBtn - 25, Icons.expand_less, DesignAction.none),
-        getAddAction(topBtn, leftBtn + 5, Icons.add, DesignAction.none),
+            topBtn, leftBtn - 25, Icons.expand_less, DesignAction.moveTop),
+        getAddAction(topBtn, leftBtn + 5, Icons.add, DesignAction.addTop),
       ];
     };
 
@@ -354,7 +352,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
               prop.value['height'] = h.toInt();
 
               double w = box.widget.getSize().width / previewPixelRatio;
-              prop.value['width'] = w.toInt();              
+              prop.value['width'] = w.toInt();
 
               if (bottomZone.visibility) {
                 final SelectorActionWidgetState st = SelectorActionWidget
@@ -399,19 +397,20 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
   void doAction(DesignAction action) {
     if (action == DesignAction.delete) {
-      CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedWidgetContext();
-      if (ctx != null) {
-        DesignActionManager().doDelete(ctx);
-      } else {
-        CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
-        debugPrint('delete slot ${ctx?.xid}');
-        SlotAction? slotAction = ctx?.inSlot?.slotAction;
-        if (slotAction!=null)
-        {
-          slotAction.doDelete(ctx!);
-        }
-      }
+      DesignActionManager().doDelete();
     }
+    else if (action == DesignAction.addBottom) {
+      DesignActionManager().addBottom();
+    }
+    else if (action == DesignAction.addTop) {
+      DesignActionManager().addTop();
+    }
+    else if (action == DesignAction.moveBottom) {
+      DesignActionManager().moveBottom();
+    }   
+    else if (action == DesignAction.moveTop) {
+      DesignActionManager().moveTop();
+    }    
   }
 }
 

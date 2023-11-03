@@ -26,9 +26,7 @@ class CWArray extends CWWidgetMap {
           '$path[].Header$i',
           SlotConfig('${ctx.xid}Header$i',
               constraintEntity: 'CWColArrayConstraint'));
-      addSlotPath(
-          '$path[].RowCont$i',
-          SlotConfig('${ctx.xid}RowCont$i'));
+      addSlotPath('$path[].RowCont$i', SlotConfig('${ctx.xid}RowCont$i'));
     }
   }
 
@@ -322,6 +320,47 @@ class ColumnAction extends SlotAction {
 
   @override
   bool doDelete(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool addBottom(CWWidgetCtx ctx) {
+    // TODO: implement addBottom
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddBottom() {
+    return true;
+  }
+
+  @override
+  bool addTop(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool canAddTop() {
+    return true;
+  }
+
+  @override
+  bool canMoveBottom() {
+    return true;
+  }
+
+  @override
+  bool moveBottom(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool canMoveTop() {
+    return true;
+  }
+
+  @override
+  bool moveTop(CWWidgetCtx ctx) {
     return true;
   }
 }

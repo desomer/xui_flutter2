@@ -15,6 +15,7 @@ class CWFrameDesktop extends CWWidget {
   CWFrameDesktop({super.key, required super.ctx});
 
   final keySlotMain = GlobalKey(debugLabel: 'slot main');
+  final rootMainKey = GlobalKey(debugLabel: 'rootMain');
 
   @override
   State<CWFrameDesktop> createState() => _CWFrameDesktop();
@@ -23,10 +24,13 @@ class CWFrameDesktop extends CWWidget {
     c
         .addWidget('CWFrameDesktop',
             (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
-        .addAttr('title', CDAttributType.text)
         .addAttr('fill', CDAttributType.bool)
         .addAttr('nbBtnBottomNavBar', CDAttributType.int)
         .withAction(AttrActionDefault(0));
+
+    // c.collection
+    //     .addObject('CWRouteConstraint')
+    //     .addAttr('title', CDAttributType.text);
   }
 
   @override
@@ -35,14 +39,20 @@ class CWFrameDesktop extends CWWidget {
     var nb = nbBtnBottomNavBar();
     if (nb == 0) nb = 1;
     for (var i = 0; i < nb; i++) {
-      addSlotPath('$path.Body$i', SlotConfig('${ctx.xid}Body$i'));
+      addSlotPath(
+          '$path.Body$i',
+          SlotConfig(
+            '${ctx.xid}Body$i',
+            //constraintEntity: 'CWRouteConstraint'
+          ));
       addSlotPath('$path.Btn$i', SlotConfig('${ctx.xid}Btn$i'));
+      addSlotPath('$path.AppBar$i', SlotConfig('${ctx.xid}AppBar$i')); 
     }
   }
 
-  String getTitle() {
-    return ctx.designEntity!.getString('title', def: '?')!;
-  }
+  // String getTitle() {
+  //   return ctx.designEntity!.getString('title', def: '?')!;
+  // }
 
   bool isFill() {
     return ctx.designEntity!.getBool('fill', false);
@@ -60,6 +70,9 @@ class CWFrameDesktop extends CWWidget {
 
 class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     with WidgetsBindingObserver {
+  //////////////////////////////////////////////////////////////////////////
+  Widget? router;
+
   StatefulShellBranch getSubRoute(String path, Function(GoRouterState) fct) {
     return StatefulShellBranch(routes: <RouteBase>[
       GoRoute(
@@ -72,17 +85,21 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     ]);
   }
 
-  final GlobalKey rootMainKey = GlobalKey(debugLabel: 'rootMain');
-
   Widget getRouter(BuildContext context) {
     var nb = widget.nbBtnBottomNavBar();
     if (nb == 0) nb = 1;
     if (widget.listRoute.isEmpty || widget.listRoute.length != nb) {
+      debugPrint('create route');
       widget.listRoute.clear();
       for (var i = 0; i < nb; i++) {
-        var aRoute = getSubRoute(i == 0 ? '/' : '/r$i', (state) {
+        var aRoute = getSubRoute(i == 0 ? '/' : '/route$i', (state) {
+          // CWWidgetCtx? constraint =
+          //     widget.ctx.factory.mapConstraintByXid['${widget.ctx.xid}Body$i'];
+          // //print("getCell -------- ${slot.ctx.xid} $constraint");
+          // String title = constraint?.designEntity?.value['title'] ?? 'none';
+
           return ScaffoldResponsiveDrawer(
-              appBar: AppBar(elevation: 0, title: Text('AppBar $i')),
+              appBar: AppBar(elevation: 0, title: getTitle(i)),
               body: ClipRRect(
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(20),
@@ -101,8 +118,6 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
 
     //FocusScope.of(context).requestFocus(FocusNode());
     //*******************************************************************/
-    final GlobalKey<NavigatorState> rootNavigatorKey =
-        GlobalKey<NavigatorState>(debugLabel: 'root');
 
     if (CWFrameDesktop.router == null || widget.listAction.length != nb) {
       String r = '/';
@@ -110,7 +125,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
         var l = CWFrameDesktop.router!.routerDelegate.currentConfiguration.uri;
         r = l.path;
       }
-
+      final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+      debugPrint('create go router');
       CWFrameDesktop.router = GoRouter(
           navigatorKey: rootNavigatorKey,
           initialLocation: r,
@@ -130,17 +146,18 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
                 },
                 branches: widget.listRoute)
           ]);
-    }
 
-    return MaterialApp.router(
-      key: rootMainKey,
-      title: 'Flutter Demo',
-      routerConfig: CWFrameDesktop.router,
-      theme: ThemeData().copyWith(scaffoldBackgroundColor: Colors.blue),
-      debugShowCheckedModeBanner: false,
-      builder: DevicePreview.appBuilder,
-      locale: DevicePreview.locale(context),
-    );
+      router = MaterialApp.router(
+        key: widget.rootMainKey,
+        title: 'Flutter Demo',
+        routerConfig: CWFrameDesktop.router,
+        theme: ThemeData().copyWith(scaffoldBackgroundColor: Colors.blue),
+        debugShowCheckedModeBanner: false,
+        builder: DevicePreview.appBuilder,
+        locale: DevicePreview.locale(context),
+      );
+    }
+    return router!;
   }
 
   @override
@@ -265,6 +282,13 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
   //       type: BottomNavigationBarType.fixed,
   //       onTap: (int indexOfItem) {});
   // }
+
+  Widget getTitle(int idx) {
+    return CWSlot(
+        type: 'appbar',
+        key: GlobalKey(debugLabel: 'slot appbar'),
+        ctx: widget.createChildCtx(widget.ctx, 'AppBar$idx', null));
+  }
 
   Widget getBody(int idx) {
     if (widget.isFill()) {

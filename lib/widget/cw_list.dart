@@ -308,4 +308,44 @@ class SlotListAction extends SlotAction {
   bool doDelete(CWWidgetCtx ctx) {
     return true;
   }
+
+  @override
+  bool addBottom(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool canAddBottom() {
+    return true;
+  }
+
+  @override
+  bool addTop(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool canAddTop() {
+    return true;
+  }
+
+  @override
+  bool canMoveBottom() {
+    return true;
+  }
+
+  @override
+  bool moveBottom(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool canMoveTop() {
+    return true;
+  }
+
+  @override
+  bool moveTop(CWWidgetCtx ctx) {
+    return true;
+  }
 }

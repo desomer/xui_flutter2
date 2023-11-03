@@ -92,6 +92,7 @@ class PropBuilder {
       var provider = CWProvider('constraint', constraintEntity.type,
           CWProviderDataSelector.noLoader())
         ..addContent(constraintEntity);
+
       provider.addAction(
           CWProviderAction.onValueChanged, RefreshDesignParent(ctxDesign));
       provider.addAction(CWProviderAction.onStateNone2Create,
