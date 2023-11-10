@@ -1,23 +1,27 @@
-import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
 import 'core_data.dart';
 import 'core_provider.dart';
 
-class CoreGlobalCacheResultQuery {
+final log = Logger('CoreGlobalCache');
+
+class CoreGlobalCache {
   static final Map<String, int> cacheNbData = {};
   static final Map<String, List<CoreDataEntity>> cacheDataValue = {};
 
   static void setCache(CWProvider provider, int nbrow) {
-    String idCache = provider.name + provider.type;
+    String idCache = provider.getProviderCacheID();
     cacheNbData[idCache] = nbrow;
-    debugPrint('set cache $idCache as $nbrow');
     if (nbrow == -1) {
+      log.finer('save cache on bdd <$idCache> with $nbrow rows');
       saveCache(provider);
+    } else {
+      log.finer('init cache <$idCache> with $nbrow rows');
     }
   }
 
-  static void saveCache(CWProvider provider) {
-    String idCache = provider.name + provider.type;
+  static Future<void> saveCache(CWProvider provider) async {
+    String idCache = provider.getProviderCacheID();
     List<CoreDataEntity> contentDeleted = [];
     List<dynamic> contentToSave = [];
     List<dynamic> contentToDelete = [];
@@ -38,23 +42,22 @@ class CoreGlobalCacheResultQuery {
       contentToDelete.add(rowDeleted.value);
     }
 
-    debugPrint('save cache $idCache');
     if (contentToDelete.isNotEmpty) {
       provider.loader?.deleteData(contentToDelete);
     }
     if (contentToSave.isNotEmpty) {
-      provider.loader?.saveData(contentToSave);
+      await provider.loader?.saveData(contentToSave);
     }
   }
 
   static void setCacheValue(CWProvider provider, List<CoreDataEntity> rows) {
-    String idCache = provider.name + provider.type;
+    String idCache = provider.getProviderCacheID();
     cacheDataValue[idCache] = rows;
-    debugPrint('set cache value $idCache as ${rows.length}');
+    log.finer('set value cache <$idCache> with ${rows.length} rows');
   }
 
   static void notifNewRow(CWProvider provider) {
-    String idCache = provider.name + provider.type;
+    String idCache = provider.getProviderCacheID();
     int v = cacheNbData[idCache]!;
     cacheNbData[idCache] = v + 1;
   }

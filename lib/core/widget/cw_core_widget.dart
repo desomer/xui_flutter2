@@ -93,7 +93,7 @@ mixin class CWWidgetProvider {
   Future<int> getItemsCountAsync(CWWidgetCtx ctx) async {
     CWProvider? provider = CWProvider.of(ctx);
     if (provider != null) {
-      return await provider.getItemsCount();
+      return await provider.getItemsCount(ctx);
     }
     return -1;
   }
@@ -110,7 +110,7 @@ mixin class CWWidgetProvider {
     if (provider != null &&
         provider.loader != null &&
         !provider.loader!.isSync()) {
-      CoreGlobalCacheResultQuery.setCache(provider, ok);
+      CoreGlobalCache.setCache(provider, ok);
     }
   }
 
@@ -120,10 +120,10 @@ mixin class CWWidgetProvider {
         provider.loader != null &&
         !provider.loader!.isSync()) {
       isSync = false;
-      String idCache = provider.name + provider.type;
-      var cacheNbRow = CoreGlobalCacheResultQuery.cacheNbData[idCache];
+      String idCache = provider.getProviderCacheID();
+      var cacheNbRow = CoreGlobalCache.cacheNbData[idCache];
       if (cacheNbRow != null && cacheNbRow != -1) {
-        var result = CoreGlobalCacheResultQuery.cacheDataValue[idCache];
+        var result = CoreGlobalCache.cacheDataValue[idCache];
         provider.content = result!;
         return cacheNbRow;
       }
@@ -293,11 +293,11 @@ class CWWidgetCtx {
     String? xid = factory.mapXidByPath[path];
     CWWidget? widget = factory.mapWidgetByXid[xid ?? ''];
     return widget;
-  } 
+  }
 
   CWWidget? findSlotByPath(String path) {
     return factory.mapSlotConstraintByPath[path]?.slot;
-  } 
+  }
 
   void changeProp(String name, dynamic val) {
     designEntity?.value[name] = val;

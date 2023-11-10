@@ -1,9 +1,7 @@
-// Copyright 2014 The Flutter Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'core/store/driver.dart';
@@ -13,9 +11,32 @@ import 'designer/designer.dart';
 class MyErrorsHandler {
   void initialize() {}
 
-  void onErrorDetails(FlutterErrorDetails details) {
-    //FlutterError.presentError(details);
-    debugPrint('onErrorDetails ${details.summary}');
+  void onErrorDetails(
+    FlutterErrorDetails details, {
+    bool forceReport = false,
+  }) {
+
+    bool ifIsOverflowError = false;
+    bool isUnableToLoadAsset = false;
+
+    // Detect overflow error.
+    var exception = details.exception;
+    if (exception is FlutterError) {
+      ifIsOverflowError = !exception.diagnostics.any(
+        (e) => e.value.toString().startsWith('A RenderFlex overflowed by'),
+      );
+      isUnableToLoadAsset = !exception.diagnostics.any(
+        (e) => e.value.toString().startsWith('Unable to load asset'),
+      );
+    }
+
+    // Ignore if is overflow error.
+    if (ifIsOverflowError || isUnableToLoadAsset) {
+      debugPrint('Ignored Error');
+    } else {
+      FlutterError.presentError(details);
+      //FlutterError.dumpErrorToConsole(details, forceReport: forceReport);
+    }
   }
 
   void onError(Object error, StackTrace stack) {
@@ -25,10 +46,39 @@ class MyErrorsHandler {
 
 // mongo    gauthierdesomer   xRyLG1bVzc8IproW
 
-void main() async {
-  var myErrorsHandler = MyErrorsHandler();
+final log = Logger('main.dart');
+final DateFormat formatter = DateFormat('HH:mm:ss');
 
-  myErrorsHandler.initialize();
+var reset = '\x1B[0m';
+var black = '\x1B[30m';
+var white = '\x1B[37m';
+var red = '\x1B[31m';
+var green = '\x1B[32m';
+var yellow = '\x1B[33m';
+var blue = '\x1B[34m';
+var cyan = '\x1B[36m';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Logger.root.level = Level.ALL; // defaults to Level.INFO
+  Logger.root.onRecord.listen((record) {
+    // ignore: avoid_print
+    print(
+        '$white${formatter.format(record.time)}-${record.time.millisecond.toString().padLeft(3, '0')}$reset [$green${record.loggerName.padRight(20)}$reset] ${record.level.name.padRight(6)}: $yellow${record.message}$reset');
+  });
+
+  // var myErrorsHandler = MyErrorsHandler();
+  // myErrorsHandler.initialize();
+
+  // FlutterError.onError = myErrorsHandler.onErrorDetails;
+
+  // PlatformDispatcher.instance.onError = (error, stack) {
+  //   myErrorsHandler.onError(error, stack);
+  //   return true;
+  // };
+
+  //ErrorWidget.builder = (FlutterErrorDetails details) => Container();
 
   CWApplication.of().initDesigner();
   CWApplication.of().initModel();
@@ -37,7 +87,6 @@ void main() async {
 
   //*_r$y-74WSMFKk8
   //await supabase();
-
   //StartMongo().init();
 
   CoreDesigner();
@@ -48,12 +97,12 @@ void main() async {
         .designView
         .getPageRoot(mode: ModeRendering.view);
   }
+  log.info('runApp');
 
   runApp(view);
 
   html.document.onContextMenu
       .listen((html.MouseEvent event) => event.preventDefault());
-  //runApp(const MyApp());
 }
 
 typedef OnWidgetSizeChange = void Function(Size size);
@@ -96,11 +145,11 @@ class WidgetSizeRenderObject extends RenderProxyBox {
           if (overriding == null) {
             if (!unknownFound) {
               unknownFound = true;
-              if (classType.checkOverridingParameters(methodJavaSymbol, classType) &&  !overrideSymbol.isStatic())
-              {
-                if (unknownFound)
-                {
-                   unknownFound = true;
+              if (classType.checkOverridingParameters(
+                      methodJavaSymbol, classType) &&
+                  !overrideSymbol.isStatic()) {
+                if (unknownFound) {
+                  unknownFound = true;
                 }
               }
             }

@@ -23,7 +23,7 @@ class CWFutureWidget extends StatelessWidget {
         BuildContext context,
         AsyncSnapshot snapshot,
       ) {
-        debugPrint(snapshot.connectionState.toString());
+        //debugPrint(snapshot.connectionState.toString());
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Skeletonizer(
             enabled: true,

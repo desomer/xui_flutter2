@@ -27,7 +27,7 @@ class PropBuilder {
       mapEntityByPath[pathWidget] = aCtx;
 
       if (aCtx.widget == null) {
-        debugPrint('>>> $pathWidget as empty slot');
+        //debugPrint('>>> $pathWidget as empty slot');
       } else {
         _addWidgetProp(aCtx, ctx, pathWidget);
       }

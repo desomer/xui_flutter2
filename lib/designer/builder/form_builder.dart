@@ -49,7 +49,7 @@ class FormBuilder {
   void createForm(CWWidget widget, CoreDataEntity query) async {
     var app = CWApplication.of();
     // init les data models
-    await app.dataModelProvider.getItemsCount();
+    await app.dataModelProvider.getItemsCount(widget.ctx);
 
     CWProvider provider =
         CWProviderCtx.createFromTable(query.value['_id_'], widget.ctx);

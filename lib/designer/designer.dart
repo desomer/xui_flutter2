@@ -2,17 +2,18 @@ import 'dart:async';
 
 import 'package:event_listener/event_listener.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
+import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/designer_pages.dart';
+import 'package:xui_flutter/designer/designer_provider.dart';
 import 'package:xui_flutter/designer/widget_component.dart';
-import 'package:xui_flutter/designer/widget_debug.dart';
-import 'package:xui_flutter/designer/widget_drag_file.dart';
-import 'package:xui_flutter/designer/widget_tab.dart';
+import 'package:xui_flutter/designer/widget/widget_debug.dart';
+import 'package:xui_flutter/designer/widget/widget_drag_file.dart';
+import 'package:xui_flutter/designer/widget/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
 import '../core/store/driver.dart';
@@ -33,13 +34,16 @@ import 'widget_filter_builder.dart';
 
 enum CDDesignEvent { select, reselect, preview, save }
 
+final log = Logger('CoreDesigner');
+
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
   CoreDesigner({super.key}) {
     designView = DesignerView(key: designerKey);
     _coreDesigner = this;
+    log.fine('init event listener');
     CoreDesigner.on(CDDesignEvent.save, (arg) async {
-      debugPrint('save action');
+      log.fine('save action');
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
       storage?.setData('#pages', CoreDesigner.ofLoader().cwFactory.value);
     });
@@ -375,7 +379,8 @@ class _CoreDesignerState extends State<CoreDesigner>
       heightTab: 60,
       listTab: const [
         Tab(text: 'Model', icon: Icon(Icons.data_object)),
-        Tab(text: 'Data', icon: Icon(Icons.table_chart))
+        Tab(text: 'Data', icon: Icon(Icons.table_chart)),
+        Tab(text: 'Import', icon: Icon(Icons.import_export))
       ],
       listTabCont: [
         Column(children: [
@@ -401,10 +406,11 @@ class _CoreDesignerState extends State<CoreDesigner>
         Column(
           children: [
             WidgetFilterbuilder(
-                key: widget.dataFilterKey, filter: CoreDataFilter()),
+                key: widget.dataFilterKey),
             Expanded(child: DesignerData(key: widget.dataKey))
           ],
-        )
+        ),
+        Container()
       ],
     );
 
@@ -459,10 +465,16 @@ class _CoreDesignerState extends State<CoreDesigner>
         width: 300,
         child: WidgetTab(heightTab: 40, listTab: const [
           Tab(icon: Tooltip(message: 'Navigation', child: Icon(Icons.near_me))),
-          Tab(icon: Tooltip(message: 'Data', child: Icon(Icons.filter_alt)))
+          Tab(icon: Tooltip(message: 'Data', child: Icon(Icons.manage_search)))
         ], listTabCont: [
           DesignerPages(ctx: ctxPages),
-          DesignerQuery(ctx: ctxQuery)
+          Column(
+            children: [
+              Expanded(child: DesignerQuery(ctx: ctxQuery)),
+              const Divider(thickness: 1, height: 1),
+              Expanded(child: DesignerProvider(ctx: ctxQuery))
+            ],
+          )
         ]),
       ),
       Expanded(child: widget.designView),
@@ -574,7 +586,7 @@ class _NavRailState extends State<NavRail> {
               label: Text('Store'),
             ),
             NavigationRailDestination(
-              icon: Tooltip(message: 'Query', child: Icon(Icons.filter_alt)),
+              icon: Tooltip(message: 'Query', child: Icon(Icons.manage_search)),
               label: Text('Query'),
             ),
             NavigationRailDestination(

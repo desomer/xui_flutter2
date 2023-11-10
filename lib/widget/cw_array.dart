@@ -46,6 +46,7 @@ class CWArray extends CWWidgetMap {
 class _CwArrayState extends StateCW<CWArray> {
   final ScrollController horizontal = ScrollController();
   final ScrollController vertical = ScrollController();
+  //final GlobalKey listKey = GlobalKey();
 
   @override
   void dispose() {
@@ -58,9 +59,12 @@ class _CwArrayState extends StateCW<CWArray> {
   final double heightHeader = 40;
   final double heightScroll = 12;
 
+  //Map cache = {};
+
   @override
   Widget build(BuildContext context) {
     var provider = CWProvider.of(widget.ctx);
+    //debugPrint('display provider ${provider!.name} hash = ${provider.getData().hashCode}');
     var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
     return LayoutBuilder(builder: (context, constraint) {
@@ -189,6 +193,7 @@ class _CwArrayState extends StateCW<CWArray> {
     if (nbRow < 0) nbRow = 0;
 
     var listView = ListView.builder(
+        //key: listKey,
         scrollDirection: Axis.vertical,
         controller: vertical,
         shrinkWrap: true,
@@ -198,6 +203,8 @@ class _CwArrayState extends StateCW<CWArray> {
             return getRowBuilder(rowState, nbCol, index, maxWidth);
           }
 
+          // CwRow? row = cache['$index'];
+          // if (row == null) {
           widget.setIdx(index);
           var aCWRow = CWArrayRow(
             key: ValueKey(index),
@@ -206,16 +213,11 @@ class _CwArrayState extends StateCW<CWArray> {
             getRowBuilder: getARowBuilder,
           );
 
-          return GestureDetector(
-              // la row
-              onTap: () {
-                aCWRow.selected(widget.ctx);
-              },
-              child: Container(
-                  decoration: const BoxDecoration(
-                      border: Border(
-                          bottom: BorderSide(width: 1.0, color: Colors.grey))),
-                  child: aCWRow));
+          var row = CwRow(key: ValueKey(index), aCWRow: aCWRow);
+          //   cache['$index'] = row;
+          // }
+
+          return row;
         });
     return listView;
   }
@@ -325,7 +327,6 @@ class ColumnAction extends SlotAction {
 
   @override
   bool addBottom(CWWidgetCtx ctx) {
-    // TODO: implement addBottom
     throw UnimplementedError();
   }
 
@@ -362,5 +363,25 @@ class ColumnAction extends SlotAction {
   @override
   bool moveTop(CWWidgetCtx ctx) {
     return true;
+  }
+}
+
+class CwRow extends StatelessWidget {
+  const CwRow({super.key, required this.aCWRow});
+
+  final CWArrayRow aCWRow;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+        // la row
+        onTap: () {
+          aCWRow.selected(aCWRow.stateArray.widget.ctx);
+        },
+        child: Container(
+            decoration: const BoxDecoration(
+                border:
+                    Border(bottom: BorderSide(width: 1.0, color: Colors.grey))),
+            child: aCWRow));
   }
 }

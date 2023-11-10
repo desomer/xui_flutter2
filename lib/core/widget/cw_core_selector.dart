@@ -123,7 +123,6 @@ class SelectorWidgetState extends State<SelectorWidget> {
         CoreDesigner.emit(CDDesignEvent.select, widget.ctx);
 
         setState(() {
-          debugPrint('selection ${widget.ctx.pathWidget}');
         });
       }
 
@@ -221,7 +220,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
       items: [
         const PopupMenuItem(
           value: 1,
-          child: Text('capture Image'),
+          child: Text('Wrap widget with ...'),
         ),
         const PopupMenuItem(
           value: 2,
@@ -254,7 +253,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
     CwImageState.wi = wi;
 
-    debugPrint(
-        'Capture PNG ===========> ${image.toString()} ${imageBytes.length}');
+    // debugPrint(
+    //     'Capture PNG ===========> ${image.toString()} ${imageBytes.length}');
   }
 }

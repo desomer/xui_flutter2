@@ -23,13 +23,15 @@ class DesignerListModel extends StatefulWidget {
 class _DesignerListModelState extends State<DesignerListModel> {
   @override
   Widget build(BuildContext context) {
+    var ab = ArrayBuilder();
     return LayoutBuilder(builder: (context, constraints) {
-      List<Widget> listModel = ArrayBuilder().getArrayWidget(
-          'rootModel',
-          CWApplication.of().dataModelProvider,
-          CWApplication.of().loaderModel,
-          'List',
-          constraints);
+      var arr = ab.getCWArray(
+        'rootModel',
+        CWApplication.of().dataModelProvider,
+        CWApplication.of().loaderModel,
+        'List',
+      );
+      List<Widget> listModel = ArrayBuilder().getArrayWidget(arr, constraints);
 
       listModel.add(WidgetHelpBounce(
           child: WidgetAddBtn(
@@ -70,8 +72,8 @@ class OnSelectModel extends CoreDataAction {
 
   @override
   void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    CoreGlobalCacheResultQuery.saveCache(CWApplication.of().dataProvider);
-    CoreGlobalCacheResultQuery.saveCache(CWApplication.of().dataModelProvider);
+    CoreGlobalCache.saveCache(CWApplication.of().dataProvider);
+    CoreGlobalCache.saveCache(CWApplication.of().dataModelProvider);
 
     var name = event!.provider?.getSelectedEntity()!.value['name'];
 
@@ -114,14 +116,16 @@ class _DesignerModelState extends State<DesignerModel> {
           '?';
       providerAttr.header!.value['label'] = name;
     }
+    var ab = ArrayBuilder();
+    var arr = ab.getCWArray(
+      'rootAttr',
+      providerAttr,
+      CWApplication.of().loaderModel,
+      'ReorderList',
+    );
 
     return LayoutBuilder(builder: (context, constraints) {
-      List<Widget> listModel = ArrayBuilder().getArrayWidget(
-          'rootAttr',
-          providerAttr,
-          CWApplication.of().loaderModel,
-          'ReorderList',
-          constraints);
+      List<Widget> listModel = ArrayBuilder().getArrayWidget(arr, constraints);
       listModel.add(WidgetDrag(provider: providerAttr));
       return Column(children: listModel);
     });

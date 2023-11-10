@@ -1,51 +1,57 @@
-import 'package:flutter/foundation.dart';
+import 'package:logging/logging.dart';
 
 import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 
 import '../store/driver.dart';
+import '../widget/cw_core_widget.dart';
+import 'core_data_filter.dart';
 import 'core_provider.dart';
 
 abstract class CoreDataLoader {
   void addData(CoreDataEntity data);
-  Future<List<CoreDataEntity>> getDataAsync();
+  Future<List<CoreDataEntity>> getDataAsync(CWWidgetCtx ctx);
   List<CoreDataEntity> getDataSync();
   bool isSync();
-  void saveData(dynamic content);
+  Future<void> saveData(dynamic content);
   void deleteData(dynamic content);
   void deleteAll();
   void changed(CWProvider provider, CoreDataEntity entity);
   void reorder(int oldIndex, int newIndex);
   void reload();
-  void setFilter(CoreDataEntity? aFilter);
-  CoreDataEntity? getFilter();
+  void setFilter(CWProvider provider, CoreDataFilter? aFilter);
+  CoreDataFilter? getFilter();
 }
+
+final log = Logger('CoreDataLoaderMap');
 
 class CoreDataLoaderMap extends CoreDataLoader {
   final CWAppLoaderCtx _loader;
 
-  String? _mapQueryId;
-  final Map<String, CoreDataEntity> _dicoDataContainerEntity;
+  String? _cacheViewId;
+  String? _table;
   final String _dataContainerAttribut;
-  final Map<String, CoreDataEntity> _dicoFilter = {};
 
+  final Map<String, CoreDataFilter> _dicoFilter = {};
   final Map<String, Future<List<CoreDataEntity>>> _currentLoading = {};
+  final Map<String, CoreDataEntity> _dicoDataContainerEntity;
 
   CoreDataLoaderMap(
       this._loader, this._dicoDataContainerEntity, this._dataContainerAttribut);
 
   @override
   void addData(CoreDataEntity data) {
-    CoreDataEntity resultQuery = _dicoDataContainerEntity[_mapQueryId]!;
+    CoreDataEntity resultQuery = _dicoDataContainerEntity[_cacheViewId]!;
     List<dynamic>? result = resultQuery.value[_dataContainerAttribut];
     result?.add(data.value);
   }
 
   @override
-  Future<List<CoreDataEntity>> getDataAsync() async {
-    _currentLoading[_mapQueryId!] =
-        _currentLoading[_mapQueryId] ?? _getFuturData(_dicoFilter[_mapQueryId]);
-    return _currentLoading[_mapQueryId]!;
+  Future<List<CoreDataEntity>> getDataAsync(CWWidgetCtx ctx) async {
+    log.fine('get async data table <$_table> idView=$_cacheViewId by ${ctx.pathWidget}');
+    _currentLoading[_cacheViewId!] = _currentLoading[_cacheViewId] ??
+        _getFuturData(_dicoFilter[_cacheViewId]?.dataFilter);
+    return _currentLoading[_cacheViewId]!;
   }
 
   @override
@@ -53,17 +59,17 @@ class CoreDataLoaderMap extends CoreDataLoader {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
-    CoreDataEntity? selected = _dicoDataContainerEntity[_mapQueryId];
+    CoreDataEntity? selected = _dicoDataContainerEntity[_cacheViewId];
     List<dynamic> result = selected!.value[_dataContainerAttribut];
     final item = result.removeAt(oldIndex);
     result.insert(newIndex, item);
   }
 
   Future<List<CoreDataEntity>> _getFuturData(CoreDataEntity? filters) async {
-    await _getDataContainerFromStore(_mapQueryId!, filters);
+    await _getDataContainerFromStore(filters);
 
     List<CoreDataEntity> ret = [];
-    CoreDataEntity? selected = _dicoDataContainerEntity[_mapQueryId];
+    CoreDataEntity? selected = _dicoDataContainerEntity[_cacheViewId];
     if (selected != null) {
       List<dynamic>? result = selected.value[_dataContainerAttribut];
       if (result != null) {
@@ -78,30 +84,33 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   Future<CoreDataEntity> _getDataContainerFromStore(
-      String idDataInMap, CoreDataEntity? filters) async {
-    if (_dicoDataContainerEntity[idDataInMap] == null) {
+      CoreDataEntity? filters) async {
+    if (_dicoDataContainerEntity[_cacheViewId] == null) {
       dynamic items;
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
 
       if (storage != null) {
-        items = await storage.getJsonData(idDataInMap, filters);
+        items = await storage.getJsonData(_table!, filters);
       }
       if (items == null) {
-        _dicoDataContainerEntity[idDataInMap] = _loader.collectionDataModel
+        _dicoDataContainerEntity[_cacheViewId!] = _loader.collectionDataModel
             .createEntityByJson(
-                'DataContainer', {'idData': idDataInMap, 'listData': []});
+                'DataContainer', {'idData': _cacheViewId, 'listData': []});
         if (storage != null) {
           await storage.setData(
-              'data', _dicoDataContainerEntity[idDataInMap]!.value);
+              'data', _dicoDataContainerEntity[_cacheViewId]!.value);
         }
       } else {
-        _dicoDataContainerEntity[idDataInMap] = _loader.collectionDataModel
+        _dicoDataContainerEntity[_cacheViewId!] = _loader.collectionDataModel
             .createEntityByJson('DataContainer', items);
       }
+      log.finest(
+          'getDataFromQuery viewId=<$_cacheViewId> = ${_dicoDataContainerEntity[_cacheViewId]!}');
+    } else {
+      log.finest(
+          'getDataFromCache viewId=<$_cacheViewId>');
     }
-    debugPrint(
-        'getDataFromQuery $idDataInMap = ${_dicoDataContainerEntity[idDataInMap]!}');
-    var ret = _dicoDataContainerEntity[idDataInMap]!;
+    var ret = _dicoDataContainerEntity[_cacheViewId]!;
     return ret;
   }
 
@@ -116,30 +125,30 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  void saveData(dynamic content) async {
+  Future<void> saveData(dynamic content) async {
     StoreDriver? storage = await StoreDriver.getDefautDriver('main');
-    if (_dicoDataContainerEntity[_mapQueryId] != null && storage != null) {
-      _dicoDataContainerEntity[_mapQueryId]!.value['listData'] = content;
-      storage.setData(
-          _mapQueryId!, _dicoDataContainerEntity[_mapQueryId]!.value);
+    if (_dicoDataContainerEntity[_cacheViewId] != null && storage != null) {
+      _dicoDataContainerEntity[_cacheViewId]!.value['listData'] = content;
+      storage.setData(_table!, _dicoDataContainerEntity[_cacheViewId]!.value);
     }
   }
 
-  void setMapID(String name) {
-    _mapQueryId = name;
+  void setCacheViewID(String cacheID, {required String onTable}) {
+    _cacheViewId = cacheID;
+    _table = onTable;
   }
 
   @override
   void deleteAll() async {
     StoreDriver? storage = await StoreDriver.getDefautDriver('main');
-    storage!.deleteTable(_mapQueryId!);
+    storage!.deleteTable(_table!);
   }
 
   @override
   void deleteData(content) async {
     StoreDriver? storage = await StoreDriver.getDefautDriver('main');
-    if (_dicoDataContainerEntity[_mapQueryId] != null && storage != null) {
-      await storage.deleteData(_mapQueryId!, content);
+    if (_dicoDataContainerEntity[_cacheViewId] != null && storage != null) {
+      await storage.deleteData(_table!, content);
     }
   }
 
@@ -151,24 +160,23 @@ class CoreDataLoaderMap extends CoreDataLoader {
 
   @override
   void reload() {
-    _dicoDataContainerEntity.remove(_mapQueryId);
-    _currentLoading.remove(_mapQueryId);
+    _dicoDataContainerEntity.remove(_cacheViewId);
+    _currentLoading.remove(_cacheViewId);
   }
 
   @override
-  void setFilter(CoreDataEntity? aFilter) {
+  void setFilter(CWProvider provider, CoreDataFilter? aFilter) {
     if (aFilter == null) {
-      _dicoFilter.remove(_mapQueryId);
-    } else if (_mapQueryId != null) {
-      _dicoFilter[_mapQueryId!] = aFilter;
+      _dicoFilter.remove(_cacheViewId);
+    } else if (_cacheViewId != null) {
+      _dicoFilter[provider.getProviderCacheID(aFilter: aFilter)] = aFilter;
     }
   }
 
   @override
-  CoreDataEntity? getFilter() {
-    if (_mapQueryId == null) return null;
-
-    return _dicoFilter[_mapQueryId!];
+  CoreDataFilter? getFilter() {
+    if (_cacheViewId == null) return null;
+    return _dicoFilter[_cacheViewId!];
   }
 }
 
@@ -190,7 +198,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  Future<List<CoreDataEntity>> getDataAsync() async {
+  Future<List<CoreDataEntity>> getDataAsync(CWWidgetCtx ctx) async {
     throw UnimplementedError();
   }
 
@@ -217,7 +225,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  void saveData(dynamic content) {
+  Future<void> saveData(dynamic content) async {
     providerParent.getSelectedEntity()!.doChanged();
   }
 
@@ -257,10 +265,10 @@ class CoreDataLoaderNested extends CoreDataLoader {
   void reload() {}
 
   @override
-  void setFilter(CoreDataEntity? aFilter) {}
+  void setFilter(CWProvider provider, CoreDataFilter? aFilter) {}
 
   @override
-  CoreDataEntity? getFilter() {
+  CoreDataFilter? getFilter() {
     return null;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 // import 'package:flutter/services.dart';
 // import 'package:rich_clipboard/rich_clipboard.dart';
 
@@ -6,6 +7,8 @@ import '../core/widget/cw_core_selector_overlay_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
 import 'builder/prop_builder.dart';
+
+final log = Logger('CoreDesignerSelector');
 
 class CoreDesignerSelector {
   PropBuilder propBuilder = PropBuilder();
@@ -17,11 +20,12 @@ class CoreDesignerSelector {
   }
 
   CoreDesignerSelector() {
-    debugPrint('init event listener');
+    log.fine('init event listener');
 
     CoreDesigner.on(CDDesignEvent.select, (arg) {
       CWWidgetCtx ctx = arg as CWWidgetCtx;
       ctx.refreshContext();
+      log.finest('selection <${ctx.xid}> path=${ctx.pathWidget}');
       SelectorActionWidget.showActionWidget(ctx.inSlot!.key as GlobalKey);
     });
 
@@ -83,7 +87,7 @@ class CoreDesignerSelector {
 
     SlotConfig? config = CoreDesigner.ofFactory().mapSlotConstraintByPath[old];
     if (config != null) {
-      debugPrint('deselection ${config.xid}');
+      log.finest('deselection <${config.xid}> path=${config.slot?.ctx.pathWidget}');
       // Future.delayed(const Duration(milliseconds: 1000), () {
       config.slot?.repaint();
       // });

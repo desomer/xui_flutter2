@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:xui_flutter/widget/cw_expand_panel.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_data_filter.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../widget/cw_expand_panel.dart';
 import 'cw_factory.dart';
 import 'designer_data.dart';
 import 'designer_model.dart';
@@ -32,6 +33,8 @@ class CWApplication {
       'PagesProvider', 'DataModel', CWProviderDataSelector.noLoader());
 
   Map<String, CoreDataEntity> cacheMapData = {};
+  Map<String, CoreDataEntity> cacheMapModel = {};
+  Map<String, CoreDataFilter> mapFilters = {};
 
   void initDesigner() {
     loaderDesigner.collectionWidget = CWWidgetCollectionBuilder().collection;
@@ -47,13 +50,13 @@ class CWApplication {
     Future deleteModel(CWWidgetEvent e) async {
       var selectedEntity = dataModelProvider.getSelectedEntity();
       selectedEntity!.operation = CDAction.delete;
-      CoreGlobalCacheResultQuery.saveCache(dataModelProvider);
+      await CoreGlobalCache.saveCache(dataModelProvider);
       dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
           repaintXid: 'rootModelCol0');
       // supprime les datas
       CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
-      dataLoader
-          .setMapID(selectedEntity.value['_id_']); // choix de la map a afficher
+      dataLoader.setCacheViewID('AllData_${selectedEntity.value['_id_']}',
+          onTable: selectedEntity.value['_id_']); // choix de la map a afficher
       dataLoader.deleteAll();
     }
 
@@ -82,7 +85,6 @@ class CWApplication {
 
     loaderData.collectionWidget = loaderDesigner.collectionWidget;
     loaderData.createFactory();
-
   }
 
   void initModel() {
@@ -157,8 +159,6 @@ class CWApplication {
     _initProvider();
   }
 
-  Map<String, CoreDataEntity> listModel = {};
-
   void _initProvider() {
     dataModelProvider.header =
         collection.createEntityByJson('DataHeader', {'label': 'Entity'});
@@ -170,9 +170,9 @@ class CWApplication {
     dataModelProvider.addAction(
         CWProviderAction.onRowSelected, OnSelectModel());
 
-    dataModelProvider.getData().loader =
-        CoreDataLoaderMap(loaderModel, listModel, 'listData')
-          ..setMapID('models');
+    dataModelProvider.getData().dataloader =
+        CoreDataLoaderMap(loaderModel, cacheMapModel, 'listData')
+          ..setCacheViewID('models', onTable: 'models');
 
     loaderModel.addProvider(dataModelProvider);
     //----------------------------------------------
@@ -263,7 +263,8 @@ class CWApplication {
 
     dataProvider.type = idData;
     CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
-    dataLoader.setMapID(idData); // choix de la map a afficher
+    dataLoader.setCacheViewID(dataProvider.getProviderCacheID(),
+        onTable: idData); // choix de la map a afficher
     dataProvider.header!.value['label'] = label;
 
     dataProvider.getData().idxSelected = 0;
@@ -275,15 +276,19 @@ class CWApplication {
     //var label = tableEntity.value["name"];
     var idData = tableEntity.value['_id_'];
 
-    CWProviderData dataLoaderFinal = CWProviderData(
-        CoreDataLoaderMap(loader, cacheMapData, 'listData')..setMapID(idData));
-    CWProviderData dataLoaderDesign = CWProviderData(null);
+    var coreDataLoaderMap = CoreDataLoaderMap(loader, cacheMapData, 'listData');
+    CWProviderData dataLoaderFinal = CWProviderData(coreDataLoaderMap);
 
-    CWProvider designData = CWProvider(
-        idData,
-        idData,
-        CWProviderDataSelector(
-            dataLoaderFinal, dataLoaderDesign, loaderDesigner));
+    CWProviderData dataLoaderDesign =
+        CWProviderData(null); //pas de data en design
+
+    CWProvider designData = CWProvider(tableEntity.value['name'], idData,
+        CWProviderDataSelector(dataLoaderFinal, dataLoaderDesign, loader));
+
+    dataLoaderFinal.dataloader?.setFilter(designData, null);
+
+    coreDataLoaderMap.setCacheViewID(designData.getProviderCacheID(),
+        onTable: idData);
 
     designData.type = idData;
     // une ligne par défaut

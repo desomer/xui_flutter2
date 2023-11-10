@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:xui_flutter/core/data/core_data.dart';
-import 'package:xui_flutter/designer/widget_filter_builder.dart';
 
+import '../../data/core_data.dart';
+import '../../data/core_data_filter.dart';
 import '../driver.dart';
 
 // postgre _r$y-74WSMFKk8
@@ -57,6 +58,8 @@ class SupabaseDriver extends StoreDriver {
     // });
     // final data = await supabase.from('ListModel').select('json');
     // debugPrint(data.toString());
+
+    //testBucket();
   }
 
   @override
@@ -192,5 +195,30 @@ class SupabaseDriver extends StoreDriver {
           .eq('idData', element['_id_']);
       debugPrint('delete row $idTable $element');
     }
+  }
+
+  void testBucket() async {
+    var url = Uri.https('upload.wikimedia.org',
+        'wikipedia/commons/thumb/4/41/Sunflower_from_Silesia2.jpg/1200px-Sunflower_from_Silesia2.jpg');
+
+    // Await the http get response, then decode the json-formatted response.
+    var response = await http.get(url);
+    if (response.statusCode == 200) {
+      print('response.bodyBytes ${response.bodyBytes.length}');
+    } else {
+      print('Request failed with status: ${response.statusCode}.');
+    }
+
+    // var listBuck = await client['main']!.storage.listBuckets();
+    // if (listBuck.isEmpty) {
+    //   await client['main']!.storage.createBucket(
+    //       'avatars', const BucketOptions(public: false, fileSizeLimit: '2MB'));
+    //   await client['main']!.storage.from('avatars').uploadBinary('path', data)
+    // }
+
+    //   public: false,
+    //   allowedMimeTypes: ['image/png'],
+    //   fileSizeLimit: 1024
+    // })
   }
 }

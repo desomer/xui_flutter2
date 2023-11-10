@@ -274,7 +274,7 @@ class InheritedStateContainer extends InheritedWidget {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onRowSelected.toString();
     CWProvider? provider = CWProvider.of(arrayState.widget.ctx);
-
+    print('selected row $index');
     if (provider != null) {
       ctxWE.provider = provider;
       ctxWE.payload = index;

@@ -1,5 +1,6 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_selector_overlay_action.dart';
@@ -8,6 +9,8 @@ import '../test_loader.dart';
 import 'application_manager.dart';
 import 'cw_factory.dart';
 import 'designer.dart';
+
+final log = Logger('DesignerView');
 
 // ignore: must_be_immutable
 class DesignerView extends StatefulWidget {
@@ -45,40 +48,39 @@ class DesignerView extends StatefulWidget {
   Future<Widget> getPageRoot({ModeRendering? mode}) async {
     loader ??= CWLoaderTest(CWApplication.of().loaderDesigner);
     if (mode != null) {
+      log.fine('set mode rendering $mode');
       loader?.ctxLoader.setModeRendering(mode);
     }
 
     if (!isLoad) {
       isLoad = true;
+      log.fine('init event listener');
       CoreDesigner.on(CDDesignEvent.preview, (arg) {
         bool isPreviewMode = arg as bool;
         loader?.ctxLoader.setModeRendering(
             isPreviewMode ? ModeRendering.view : ModeRendering.design);
+        log.fine('set mode rendering ${loader?.ctxLoader.mode}');
         rebuild();
         repaintAll();
       });
-
       await (loader as CWLoaderTest).loadCWFactory();
       await Future.delayed(const Duration(
           milliseconds: 500)); // pour faire apparaitre le tournicotton
+      log.fine('get loadCWFactory from BDD OK');
     }
 
     if (rootWidget != null) return rootWidget!;
-    rootWidget = loader!.getWidget('root', 'root');
 
+    log.fine('create root widget by browsing Json');
+    rootWidget = loader!.getWidget('root', 'root');
     var app = CWApplication.of();
     // init les data models
-    await app.dataModelProvider.getItemsCount();
+    log.fine('init dataModel Provider for design');
+    await app.dataModelProvider.getItemsCount((rootWidget as CWWidget).ctx);
 
-    if (mode != null) {
-      loader?.ctxLoader.setModeRendering(ModeRendering.design);
-    }
+    log.fine('init virtual widget');
     for (var widVir in loader!.ctxLoader.factory.mapWidgetVirtualByXid.values) {
-      //print(widVir);
       widVir.init();
-    }
-    if (mode != null) {
-      loader?.ctxLoader.setModeRendering(mode);
     }
 
     return rootWidget!;
@@ -186,7 +188,7 @@ class DesignerViewState extends State<DesignerView> {
         BuildContext context,
         AsyncSnapshot<Widget> snapshot,
       ) {
-        debugPrint(snapshot.connectionState.toString());
+        //debugPrint(snapshot.connectionState.toString());
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
               child: SizedBox(
@@ -200,8 +202,7 @@ class DesignerViewState extends State<DesignerView> {
           ));
         } else if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            debugPrint(snapshot.error.toString());
-            debugPrint(snapshot.stackTrace.toString());
+            log.severe('error getPageRoot from BDD', snapshot.error, snapshot.stackTrace);
             return const Text('     Error');
           } else if (snapshot.hasData) {
             Future.delayed(const Duration(milliseconds: 100), () {

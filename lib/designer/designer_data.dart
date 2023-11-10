@@ -27,10 +27,13 @@ class _DesignerDataState extends State<DesignerData> {
     CWProvider provider =
         CWApplication.of().getDataProvider(loader, tableEntity);
 
-    return LayoutBuilder(builder: (context, constraints) {
-      List<Widget> listData = ArrayBuilder()
-          .getArrayWidget('rootData', provider, loader, 'Array', constraints);
+    var ab = ArrayBuilder();
+    var arr = ab.getCWArray('rootData', provider, loader, 'Array');
 
+    return LayoutBuilder(builder: (context, constraints) {
+      
+      List<Widget> listData = ArrayBuilder().getArrayWidget(arr, constraints);
+      
       listData.add(WidgetAddBtn(
         provider: provider,
         loader: loader,

@@ -35,10 +35,8 @@ class _DesignerAttributState extends State<DesignerAttribut> {
           CWApplication.of().dataAttributProvider.getSelectedEntity()!;
       // print(attrEntity!.value);
       attrEntity.operation = CDAction.delete;
-      CoreGlobalCacheResultQuery.saveCache(
-          CWApplication.of().dataAttributProvider);
-      CoreGlobalCacheResultQuery.saveCache(
-          CWApplication.of().dataModelProvider);
+      CoreGlobalCache.saveCache(CWApplication.of().dataAttributProvider);
+      CoreGlobalCache.saveCache(CWApplication.of().dataModelProvider);
       CWApplication.of().dataAttributProvider.doEvent(
           CWProviderAction.onStateDelete, CWApplication.of().loaderModel,
           repaintXid: 'rootAttrExp');

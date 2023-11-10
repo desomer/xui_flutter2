@@ -2,17 +2,20 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:json_patch/json_patch.dart';
+import 'package:logging/logging.dart';
 import 'package:nanoid/nanoid.dart';
 
 import '../widget/cw_core_loader.dart';
 import 'core_event.dart';
+
+final log = Logger('CoreDataCollection');
 
 class CoreDataCollection {
   final Map<String, CoreDataObjectBuilder> objects =
       <String, CoreDataObjectBuilder>{};
 
   CoreDataObjectBuilder addObject(String name) {
-    debugPrint('add model $name');
+    log.fine('add CoreDataObject [$name]');
     final CoreDataObjectBuilder ret = CoreDataObjectBuilder(name);
     objects[name] = ret;
     return ret;

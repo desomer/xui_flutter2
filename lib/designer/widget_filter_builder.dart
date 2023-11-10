@@ -4,61 +4,21 @@ import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/designer.dart';
 
+import '../core/data/core_data_filter.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
-import '../core/widget/cw_core_loader.dart';
 import '../widget/cw_array.dart';
 import '../widget/cw_textfield.dart';
 
-class CoreDataFilter {
-  CoreDataFilter() {
-    c = CWApplication.of().collection;
-    loader = CWApplication.of().loaderData;
-  }
-  late CoreDataEntity dataFilter;
-  late CoreDataCollection c;
-  late CWAppLoaderCtx loader;
 
-  void init(String idModel, String name) {
-    dataFilter = c.createEntityByJson('DataFilter', {'listGroup': []});
-    dataFilter.setAttr(loader, 'model', idModel);
-    dataFilter.setAttr(loader, 'name', name);
-  }
-
-  CoreDataEntity addGroup(CoreDataEntity parent) {
-    CoreDataEntity group = c.createEntityByJson('DataFilterGroup',
-        {'operator': 'and', 'listClause': [], 'listGroup': []});
-    parent.addMany(loader, 'listGroup', group);
-    return group;
-  }
-
-  CoreDataEntity addClause(CoreDataEntity group) {
-    CoreDataEntity clause = c.createEntityByJson('DataFilterClause',
-        {'operator': '=', 'model': dataFilter.getString('model')});
-    group.addMany(loader, 'listClause', clause);
-    return clause;
-  }
-
-  List getListGroup() {
-    CoreDataPath? listGroup = dataFilter.getPath(c, 'listGroup');
-    return listGroup.value;
-  }
-
-  List getListClause(Map<String, dynamic> v) {
-    return v['listClause'];
-  }
-
-  String getGroupOp(Map<String, dynamic> v) {
-    return v['operator'];
-  }
-}
 
 ////////////////////////////////////////////////////////////////////////////////
+// ignore: must_be_immutable
 class WidgetFilterbuilder extends StatefulWidget {
-  const WidgetFilterbuilder({required this.filter, super.key});
+  WidgetFilterbuilder({super.key});
 
-  final CoreDataFilter filter;
+  CoreDataFilter? filter;
 
   @override
   State<WidgetFilterbuilder> createState() => _WidgetFilterbuilderState();
@@ -80,30 +40,35 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
     initFilter(idModel);
 
     CoreDataCollection c = CWApplication.of().collection;
-    CoreDataPath? listGroup = widget.filter.dataFilter.getPath(c, 'listGroup');
+    CoreDataPath? listGroup = widget.filter!.dataFilter.getPath(c, 'listGroup');
 
     List<Widget> listGroupWidget = [];
     int i = 0;
-    // ignore: unused_local_variable
+
     for (Map<String, dynamic> r in listGroup.value) {
-      listGroupWidget.add(WidgetQueryGroup(widget.filter, 'listGroup[$i]', 0));
+      listGroupWidget.add(WidgetQueryGroup(
+          key: ValueKey(r.hashCode), widget.filter!, 'listGroup[$i]', 0));
       i++;
     }
 
     return Container(
         margin: const EdgeInsets.all(5),
         child: Row(children: [
-          Expanded(child: Column(children: listGroupWidget)),
+          Expanded(child: Column(key: GlobalKey(), children: listGroupWidget)),
           IconButton(
               onPressed: () {
-                refreshData();
+                saveFilter(context);
               },
-              icon: const Icon(Icons.bookmark_add_outlined)),
+              icon: const Icon(Icons.bookmark_add)),
           IconButton(
-              onPressed: () {
+              onPressed: () async {
+                await CoreGlobalCache.saveCache(
+                    CWApplication.of().dataProvider);
+                await CoreGlobalCache.saveCache(
+                    CWApplication.of().dataModelProvider);
                 refreshData();
               },
-              icon: const Icon(Icons.refresh))
+              icon: const Icon(Icons.search_rounded))
         ]));
   }
 
@@ -112,28 +77,84 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
       CWProvider providerData = CWApplication.of().dataProvider;
       providerData.type = idModel;
       CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-      dataLoader.setMapID(idModel); // choix de la map a afficher
+      dataLoader.setCacheViewID(providerData.getProviderCacheID(),
+          onTable: idModel); // choix de la map a afficher
       if (providerData.loader!.getFilter() == null) {
-        widget.filter.init(idModel, 'test');
-        var group = widget.filter.addGroup(widget.filter.dataFilter);
-        widget.filter.addClause(group);
-        providerData.setFilter(widget.filter.dataFilter);
+        var aFilter = CoreDataFilter();
+        aFilter.init(idModel, 'preview');
+        widget.filter = aFilter;
+        var group = widget.filter!.addGroup(aFilter.dataFilter);
+        widget.filter!.addClause(group);
+        providerData.setFilter(widget.filter);
+        dataLoader.setCacheViewID(
+            providerData.getProviderCacheID(aFilter: aFilter),
+            onTable: idModel); // choix de la map a afficher
       }
-      widget.filter.dataFilter =
-          providerData.loader!.getFilter() ?? widget.filter.dataFilter;
+      widget.filter = providerData.loader!.getFilter();
     } else {
-      widget.filter.init('?', '?');
+      widget.filter = CoreDataFilter()..init('?', '?');
     }
   }
 
   void refreshData() {
     CWProvider provider = CWApplication.of().dataProvider;
 
-    String idCache = provider.name + provider.type;
-    CoreGlobalCacheResultQuery.cacheNbData.remove(idCache);
+    String idCache = provider.getProviderCacheID();
+    CoreGlobalCache.cacheNbData.remove(idCache);
     provider.loader!.reload();
 
     CWApplication.of().loaderData.findWidgetByXid('rootData')!.repaint();
+  }
+
+  Future<void> saveFilter(BuildContext context) {
+    final ctrl = TextEditingController();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Save new data filter'),
+          content: TextField(
+              controller: ctrl,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                isDense: true,
+                labelText: 'Filter name',
+                // labelStyle: const TextStyle(color: Colors.white70),
+              )),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Create'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.filter!.dataFilter.value['name'] = ctrl.text;
+                CWApplication.of()
+                        .mapFilters[widget.filter!.dataFilter.value['_id_']] =
+                    widget.filter!;
+                CWProvider providerData = CWApplication.of().dataProvider;
+                providerData.loader!.setFilter(providerData, null);
+                setState(() {
+                  // recharge
+                });
+                refreshData();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

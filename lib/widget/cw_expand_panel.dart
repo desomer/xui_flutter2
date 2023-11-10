@@ -8,6 +8,7 @@ import 'package:xui_flutter/widget/cw_action.dart';
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
+import '../designer/help/widget_no_visible_on_resize.dart';
 
 enum CWExpandAction { actions }
 
@@ -53,7 +54,7 @@ class CWExpandPanel extends CWWidget {
 
 class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
   final ctrl = ExpandableController(initialExpanded: true);
-
+  final debouncer = Debouncer(milliseconds: 200);
   @override
   Widget build(BuildContext context) {
     List<ExpandInfo> listInfo = [];
@@ -72,30 +73,36 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
 
     return LayoutBuilder(builder: (context, constraints) {
       // print('CWExpandPanelState $constraints ${widget.ctx.xid}');
+      bool display = debouncer.mustVisible(this);
+
       return ExpandableNotifier(
         controller: ctrl,
         child: ScrollOnExpand(
+          theme: const ExpandableThemeData(
+              scrollAnimationDuration: Duration(milliseconds: 500)),
           child: Column(
-            children: listInfo.map<ExpandablePanel>((ExpandInfo step) {
+            children: listInfo.map<Widget>((ExpandInfo step) {
               Widget sizedBox = step.body;
               if (constraints.maxHeight != double.infinity) {
                 sizedBox = SizedBox(
                     height: constraints.maxHeight - 28, child: step.body);
               }
 
-              return ExpandablePanel(
-                theme: const ExpandableThemeData(
-                  animationDuration: Duration(milliseconds: 100),
-                  headerAlignment: ExpandablePanelHeaderAlignment.center,
-                  tapHeaderToExpand: false,
-                  tapBodyToExpand: false,
-                  tapBodyToCollapse: false,
-                  hasIcon: false,
-                ),
-                header: getHeader(step),
-                collapsed: Container(),
-                expanded: sizedBox,
-              );
+              return display
+                  ? ExpandablePanel(
+                      theme: const ExpandableThemeData(
+                        animationDuration: Duration(milliseconds: 100),
+                        headerAlignment: ExpandablePanelHeaderAlignment.center,
+                        tapHeaderToExpand: false,
+                        tapBodyToExpand: false,
+                        tapBodyToCollapse: false,
+                        hasIcon: false,
+                      ),
+                      header: getHeader(step),
+                      collapsed: Container(),
+                      expanded: sizedBox,
+                    )
+                  : Container();
             }).toList(),
           ),
         ),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/data/core_data_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../widget/cw_core_widget.dart';
 import 'core_data.dart';
+import 'core_data_filter.dart';
 import 'core_data_query.dart';
 
 enum CWProviderAction {
@@ -19,14 +21,14 @@ enum CWProviderAction {
 }
 
 class CWProviderData {
-  CWProviderData(this.loader);
+  CWProviderData(this.dataloader);
 
   List<CoreDataEntity> content = [];
   int idxDisplayed = -1;
   int idxSelected = -1;
   Map<CWProviderAction, List<CoreDataAction>> actions = {};
   Map<String, List<CoreDataAction>> userActions = {};
-  CoreDataLoader? loader;
+  CoreDataLoader? dataloader;
 }
 
 class CWProviderDataSelector {
@@ -34,7 +36,6 @@ class CWProviderDataSelector {
   CWProviderData designData;
   CWProviderData finalData;
   CWAppLoaderCtx? appLoader;
-  ModeRendering modeRendering = ModeRendering.view;
 
   static CWProviderDataSelector noLoader() {
     CWProviderData data = CWProviderData(null);
@@ -46,12 +47,8 @@ class CWProviderDataSelector {
     return CWProviderDataSelector(data, data, null);
   }
 
-  void setModeRendering(ModeRendering mode) {
-    modeRendering = mode;
-  }
-
   CWProviderData getData() {
-    var mode = appLoader?.mode ?? modeRendering;
+    var mode = appLoader?.mode ?? ModeRendering.view;
 
     switch (mode) {
       case ModeRendering.view:
@@ -62,13 +59,22 @@ class CWProviderDataSelector {
   }
 }
 
+final log = Logger('CWProviderCtx');
+
 class CWProviderCtx extends CWWidgetVirtual {
   CWProviderCtx(super.ctx);
 
   @override
   void init() {
-    CWProvider provider = createFromTable(ctx.designEntity!.value['type'], ctx);
-    ctx.loader.factory.mapProvider[provider.name] = provider;
+    if (ctx.loader.factory
+            .mapProvider[ctx.designEntity!.value['providerName']] ==
+        null) {
+      CWProvider provider =
+          createFromTable(ctx.designEntity!.value['type'], ctx);
+      log.fine(
+          'init appli provider <${provider.name}> [${provider.type}] hash = ${provider.getData().hashCode}');
+      ctx.loader.factory.mapProvider[provider.name] = provider;
+    }
   }
 
   static CWProvider createFromTable(String id, CWWidgetCtx ctx) {
@@ -77,11 +83,7 @@ class CWProviderCtx extends CWWidgetVirtual {
     var tableEntity = listTableEntity
         .firstWhere((CoreDataEntity element) => element.value['_id_'] == id);
     app.initDataModelWithAttr(ctx.loader, tableEntity);
-
-    CWProvider provider = ctx.factory.loader.mode == ModeRendering.design
-        ? app.getDesignDataProvider(ctx.loader, tableEntity)
-        : app.getDataProvider(ctx.loader, tableEntity);
-
+    CWProvider provider = app.getDesignDataProvider(ctx.loader, tableEntity);
     return provider;
   }
 }
@@ -94,6 +96,13 @@ class CWProvider {
   String type;
 
   late CWProviderDataSelector dataSelector;
+
+  String getProviderCacheID({CoreDataFilter? aFilter}) {
+    if (aFilter!=null) {
+      return '$name#id=$type;fl=${aFilter.hashCode}';
+    }
+    return '$name#id=$type;fl=${dataSelector.getData().dataloader?.getFilter()?.hashCode ?? 'null'}';
+  }
 
   CWProviderData getData() {
     return dataSelector.getData();
@@ -108,11 +117,11 @@ class CWProvider {
   }
 
   CoreDataLoader? get loader {
-    return dataSelector.getData().loader;
+    return dataSelector.getData().dataloader;
   }
 
-  void setFilter(CoreDataEntity? aFilter) {
-    getData().loader?.setFilter(aFilter);
+  void setFilter(CoreDataFilter? aFilter) {
+    getData().dataloader?.setFilter(this, aFilter);
   }
 
   void addContent(CoreDataEntity add) {
@@ -121,12 +130,12 @@ class CWProvider {
   }
 
   void addNew(CoreDataEntity newRow) {
-    if (getData().loader != null) {
-      getData().loader?.addData(newRow);
+    if (getData().dataloader != null) {
+      getData().dataloader?.addData(newRow);
     }
     addContent(newRow);
 
-    CoreGlobalCacheResultQuery.notifNewRow(this);
+    CoreGlobalCache.notifNewRow(this);
   }
 
   CoreDataEntity getEntityByIdx(idx) {
@@ -141,7 +150,7 @@ class CWProvider {
     if (getData().idxDisplayed >= getData().content.length) {
       getData().idxDisplayed = -1;
       return null;
-    }    
+    }
     return getData().content[getData().idxDisplayed];
   }
 
@@ -197,19 +206,22 @@ class CWProvider {
   }
 
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
-    var val = getDisplayedEntity()?.value[ctx.designEntity?.getString(propName)];
+    var val =
+        getDisplayedEntity()?.value[ctx.designEntity?.getString(propName)];
     return val?.toString() ?? '';
   }
 
   bool getBoolValueOf(CWWidgetCtx ctx, String propName) {
-    var val = getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    var val =
+        getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
     return val ?? false;
   }
 
   Map<String, dynamic>? getMapValueOf(CWWidgetCtx ctx, String propName) {
-    var val = getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    var val =
+        getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
     return val;
-  }  
+  }
 
   void setValueOf(
       CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
@@ -233,21 +245,23 @@ class CWProvider {
     }
     doAction(ctx, event, CWProviderAction.onValueChanged);
 
-    getData().loader?.changed(this, displayedEntity);
+    getData().dataloader?.changed(this, displayedEntity);
   }
 
-  Future<int> getItemsCount() async {
-    if (getData().loader != null) {
-      var result = await getData().loader!.getDataAsync();
+  Future<int> getItemsCount(CWWidgetCtx ctx) async {
+    if (getData().dataloader != null) {
+      var result = await getData().dataloader!.getDataAsync(ctx);
+      // debugPrint('set getItemsCount ${getData().hashCode} content $result');
       getData().content = result;
-      CoreGlobalCacheResultQuery.setCacheValue(this, getData().content);
+      CoreGlobalCache.setCacheValue(this, getData().content);
     }
     return getData().content.length;
   }
 
   int getItemsCountSync() {
-    if (getData().loader != null) {
-      var result = getData().loader!.getDataSync();
+    if (getData().dataloader != null) {
+      var result = getData().dataloader!.getDataSync();
+      // debugPrint('set getItemsCountSync ${getData().hashCode} content $result');
       getData().content = result;
     }
     return getData().content.length;

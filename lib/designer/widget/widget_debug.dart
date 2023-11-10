@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_json_viewer/flutter_json_viewer.dart';
-import 'package:xui_flutter/designer/widget_tab.dart';
+import 'package:xui_flutter/designer/widget/widget_tab.dart';
 
-import 'application_manager.dart';
-import 'designer.dart';
+import '../application_manager.dart';
+import '../designer.dart';
 
 class WidgetDebug extends StatefulWidget {
   const WidgetDebug({super.key});

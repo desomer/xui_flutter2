@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:xui_flutter/designer/selector_manager.dart';
 
 import '../../designer/action_manager.dart';
@@ -7,6 +8,8 @@ import '../../designer/builder/prop_builder.dart';
 import '../../widget/cw_toolkit.dart';
 import '../data/core_data.dart';
 import 'cw_core_loader.dart';
+
+final log = Logger('SelectorActionWidget');
 
 class SelectorActionWidget extends StatefulWidget {
   const SelectorActionWidget({super.key});
@@ -121,8 +124,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   @override
   void initState() {
     super.initState();
-
     if (!isInitiaziled) {
+      log.fine('init event listener');
       isInitiaziled = true;
       onPreviewFct = CoreDesigner.on(CDDesignEvent.preview, (arg) {
         isPreviewMode = arg as bool;

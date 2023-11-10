@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
 
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'cw_array.dart';
 import 'cw_list.dart';
+
+final log = Logger('CWArrayRow');
 
 class CWArrayRow extends StatefulWidget {
   const CWArrayRow(
@@ -25,6 +28,7 @@ class CWArrayRow extends StatefulWidget {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onRowSelected.toString();
     CWProvider? provider = CWProvider.of(stateArray.widget.ctx);
+    print('selected row $rowIdx');
     if (provider != null) {
       ctxWE.provider = provider;
       ctxWE.payload = rowIdx;
@@ -48,7 +52,7 @@ class CWArrayRowState extends State<CWArrayRow> {
   @override
   void dispose() {
     super.dispose();
-    debugPrint('remove row ${widget.rowIdx}');
+    log.finest('dispose CWArrayRow ${widget.rowIdx}');
     //widget.stateArray.widget.listState.remove(widget.rowIdx);
     for (var element in mapFocus.entries) {
       element.value.dispose();
@@ -75,6 +79,9 @@ class CWArrayRowState extends State<CWArrayRow> {
             builder: (context, constraints) {
               CWProvider? provider =
                   CWProvider.of(widget.stateArray.widget.ctx);
+
+              //debugPrint('get array provider ${provider!.name} hash = ${provider.getData().hashCode}');
+
               CoreDataEntity r = provider!.content[widget.rowIdx];
 
               return CustomPaint(

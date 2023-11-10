@@ -1,10 +1,14 @@
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
+import 'package:xui_flutter/db_icon_icons.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_data_filter.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
+import 'application_manager.dart';
 
 class DesignerQuery extends CWWidgetMap {
   const DesignerQuery({super.key, required super.ctx});
@@ -15,6 +19,8 @@ class DesignerQuery extends CWWidgetMap {
   @override
   void initSlot(String path) {}
 }
+
+final log = Logger('DesignerQuery');
 
 class _DesignerQueryState extends State<DesignerQuery> {
   TreeViewController? _controller;
@@ -99,31 +105,61 @@ class _DesignerQueryState extends State<DesignerQuery> {
   }
 
   Container getCell(IndexedTreeNode<CoreDataEntity> node) {
-    Widget cell;
+    Widget? cell;
     if (node.level == 0) {
       cell = const Text('Queries');
     } else {
-      cell = getDrag(node, Text("all ${node.data?.value["name"]}"));
+      switch (node.data?.value[r'$type']) {
+        case 'DataModel':
+          cell = getDrag(node, Row(  children : [const  Icon(DBIcon.database, size: 15), const SizedBox(width: 10), Text("all ${node.data?.value["name"]}")]));
+          break;
+        case 'DataFilter':
+          cell = getDrag(node,  Row( children : [const Icon(Icons.filter_alt_outlined, size: 20), const SizedBox(width: 10), Text("filter ${node.data?.value["name"]}")]));
+          break;          
+        default:
+      }
     }
 
     return Container(
         margin: const EdgeInsets.fromLTRB(25, 0, 0, 0),
         constraints: const BoxConstraints(minHeight: 25),
-        child: Row(children: [Expanded(child: cell)]));
+        child: Row(children: [Expanded(child: cell!)]));
   }
 
   IndexedTreeNode<CoreDataEntity> getTreeData() {
-    var nodesRemovedIndexedTree = IndexedTreeNode<CoreDataEntity>.root();
+    var nodesIndexedTree = IndexedTreeNode<CoreDataEntity>.root();
 
-    for (CoreDataEntity aNode in provider.content) {
-      nodesRemovedIndexedTree
-          .add(IndexedTreeNode(key: aNode.value['_id_'], data: aNode));
+    var filters = CWApplication.of().mapFilters;
+    var mapModelFilter = <String, List<CoreDataFilter>>{};
+    for (var element in filters.entries) {
+      var value = element.value.dataFilter.value;
+      if (mapModelFilter[value['model']] == null) {
+        mapModelFilter[value['model']] = [];
+      }
+      mapModelFilter[value['model']]!.add(element.value);
     }
 
-    return nodesRemovedIndexedTree;
-  }
+    for (CoreDataEntity aNode in provider.content) {
+      var indexedTreeNode =
+          IndexedTreeNode(key: aNode.value['_id_'], data: aNode);
 
-  
+      log.finest(aNode.value);
+
+      if (mapModelFilter[aNode.value['_id_']] != null) {
+        var filtersOfModel = mapModelFilter[aNode.value['_id_']]!;
+        for (var element in filtersOfModel) {
+          var filterNode = IndexedTreeNode(
+              key: element.dataFilter.value['_id_'], data: element.dataFilter);
+          indexedTreeNode.add(filterNode);
+          log.finest(element.dataFilter);
+        }
+      }
+
+      nodesIndexedTree.add(indexedTreeNode);
+    }
+
+    return nodesIndexedTree;
+  }
 
   // final nodesRemovedIndexedTree = IndexedTreeNode.root()
   //   ..addAll([

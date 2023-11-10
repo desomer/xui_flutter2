@@ -9,15 +9,20 @@ import '../../core/widget/cw_core_widget.dart';
 import '../designer.dart';
 
 class ArrayBuilder {
-  List<Widget> getArrayWidget(String name, CWProvider provider,
-      CWAppLoaderCtx loaderCtx, String type, BoxConstraints constraints) {
-    var listWidget = <Widget>[];
+
+  Widget getCWArray(String name, CWProvider provider,
+      CWAppLoaderCtx loaderCtx, String type) {
     ColRowLoader? loader =
         _createDesign(loaderCtx, provider, type, name, name, true);
+    return loader.getWidget(name, name);
+  }
+
+  List<Widget> getArrayWidget(Widget array, BoxConstraints constraints) {
+    var listWidget = <Widget>[];
 
     listWidget.add(Container(
         constraints: BoxConstraints(maxHeight: constraints.maxHeight - 32),
-        child: loader.getWidget(name, name)));
+        child: array));
     return listWidget;
   }
 
@@ -25,7 +30,7 @@ class ArrayBuilder {
   void createArray(CWArray widget, CoreDataEntity query) async {
     var app = CWApplication.of();
     // init les data models
-    await app.dataModelProvider.getItemsCount();
+    await app.dataModelProvider.getItemsCount(widget.ctx);
 
     CWProvider provider =
         CWProviderCtx.createFromTable(query.value['_id_'], widget.ctx);

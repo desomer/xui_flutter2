@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/widget/cw_core_selector_overlay_action.dart';
 
 import '../core/data/core_data.dart';
@@ -9,6 +12,8 @@ import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import '../designer/designer.dart';
 import 'cw_router.dart';
+
+final log = Logger('CWFrameDesktop');
 
 // ignore: must_be_immutable
 class CWFrameDesktop extends CWWidget {
@@ -19,6 +24,8 @@ class CWFrameDesktop extends CWWidget {
 
   @override
   State<CWFrameDesktop> createState() => _CWFrameDesktop();
+
+  static int timeResize = 0;
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     c
@@ -46,7 +53,7 @@ class CWFrameDesktop extends CWWidget {
             //constraintEntity: 'CWRouteConstraint'
           ));
       addSlotPath('$path.Btn$i', SlotConfig('${ctx.xid}Btn$i'));
-      addSlotPath('$path.AppBar$i', SlotConfig('${ctx.xid}AppBar$i')); 
+      addSlotPath('$path.AppBar$i', SlotConfig('${ctx.xid}AppBar$i'));
     }
   }
 
@@ -89,7 +96,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     var nb = widget.nbBtnBottomNavBar();
     if (nb == 0) nb = 1;
     if (widget.listRoute.isEmpty || widget.listRoute.length != nb) {
-      debugPrint('create route');
+      log.fine('create all routes');
       widget.listRoute.clear();
       for (var i = 0; i < nb; i++) {
         var aRoute = getSubRoute(i == 0 ? '/' : '/route$i', (state) {
@@ -119,14 +126,16 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     //FocusScope.of(context).requestFocus(FocusNode());
     //*******************************************************************/
 
-    if (routerWidgetCache ==null || CWFrameDesktop.router == null || widget.listAction.length != nb) {
+    if (routerWidgetCache == null ||
+        CWFrameDesktop.router == null ||
+        widget.listAction.length != nb) {
       String r = '/';
       if (CWFrameDesktop.router != null) {
         var l = CWFrameDesktop.router!.routerDelegate.currentConfiguration.uri;
         r = l.path;
       }
       final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-      debugPrint('create go router');
+      log.fine('create GoRouter instance');
       CWFrameDesktop.router = GoRouter(
           navigatorKey: rootNavigatorKey,
           initialLocation: r,
@@ -149,7 +158,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
 
       routerWidgetCache = MaterialApp.router(
         key: widget.rootMainKey,
-        title: 'Flutter Demo',
+        title: 'ElisView',
         routerConfig: CWFrameDesktop.router,
         theme: ThemeData().copyWith(scaffoldBackgroundColor: Colors.blue),
         debugShowCheckedModeBanner: false,
@@ -173,9 +182,12 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     super.dispose();
   }
 
+
   @override
   void didChangeMetrics() {
     debugPrint('physical Size ${View.of(context).physicalSize}');
+    var now = DateTime.now();
+    CWFrameDesktop.timeResize = now.millisecondsSinceEpoch;
     if (widget.ctx.loader.mode == ModeRendering.design) {
       // double refresh car animation de resize par le composant Preview
       Future.delayed(const Duration(milliseconds: 50), () {
