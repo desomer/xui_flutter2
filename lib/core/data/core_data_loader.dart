@@ -14,13 +14,14 @@ abstract class CoreDataLoader {
   List<CoreDataEntity> getDataSync();
   bool isSync();
   Future<void> saveData(dynamic content);
-  void deleteData(dynamic content);
+  Future<void> deleteData(dynamic content);
   void deleteAll();
   void changed(CWProvider provider, CoreDataEntity entity);
   void reorder(int oldIndex, int newIndex);
   void reload();
   void setFilter(CWProvider provider, CoreDataFilter? aFilter);
   CoreDataFilter? getFilter();
+  void setCacheViewID(String cacheID, {required String onTable});
 }
 
 final log = Logger('CoreDataLoaderMap');
@@ -48,7 +49,8 @@ class CoreDataLoaderMap extends CoreDataLoader {
 
   @override
   Future<List<CoreDataEntity>> getDataAsync(CWWidgetCtx ctx) async {
-    log.fine('get async data table <$_table> idView=$_cacheViewId by ${ctx.pathWidget}');
+    log.fine(
+        'get async data table <$_table> idView=$_cacheViewId by ${ctx.pathWidget}');
     _currentLoading[_cacheViewId!] = _currentLoading[_cacheViewId] ??
         _getFuturData(_dicoFilter[_cacheViewId]?.dataFilter);
     return _currentLoading[_cacheViewId]!;
@@ -107,8 +109,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
       log.finest(
           'getDataFromQuery viewId=<$_cacheViewId> = ${_dicoDataContainerEntity[_cacheViewId]!}');
     } else {
-      log.finest(
-          'getDataFromCache viewId=<$_cacheViewId>');
+      log.finest('getDataFromCache viewId=<$_cacheViewId>');
     }
     var ret = _dicoDataContainerEntity[_cacheViewId]!;
     return ret;
@@ -133,6 +134,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
     }
   }
 
+  @override
   void setCacheViewID(String cacheID, {required String onTable}) {
     _cacheViewId = cacheID;
     _table = onTable;
@@ -145,7 +147,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  void deleteData(content) async {
+  Future<void> deleteData(content) async {
     StoreDriver? storage = await StoreDriver.getDefautDriver('main');
     if (_dicoDataContainerEntity[_cacheViewId] != null && storage != null) {
       await storage.deleteData(_table!, content);
@@ -169,7 +171,9 @@ class CoreDataLoaderMap extends CoreDataLoader {
     if (aFilter == null) {
       _dicoFilter.remove(_cacheViewId);
     } else if (_cacheViewId != null) {
-      _dicoFilter[provider.getProviderCacheID(aFilter: aFilter)] = aFilter;
+      var providerCacheID = provider.getProviderCacheID(aFilter: aFilter);
+      _dicoFilter[providerCacheID] = aFilter;
+      log.fine('set filter on $providerCacheID');
     }
   }
 
@@ -233,7 +237,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
   void deleteAll() {}
 
   @override
-  void deleteData(content) {
+  Future<void> deleteData(content) async {
     CoreDataEntity selected = providerParent.getSelectedEntity()!;
     List<dynamic> result = selected.value[attribut];
     for (var element in content as List) {
@@ -270,5 +274,10 @@ class CoreDataLoaderNested extends CoreDataLoader {
   @override
   CoreDataFilter? getFilter() {
     return null;
+  }
+  
+  @override
+  void setCacheViewID(String cacheID, {required String onTable}) {
+    // TODO: implement setCacheViewID
   }
 }

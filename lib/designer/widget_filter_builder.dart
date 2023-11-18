@@ -8,10 +8,9 @@ import '../core/data/core_data_filter.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
+import '../core/store/driver.dart';
 import '../widget/cw_array.dart';
 import '../widget/cw_textfield.dart';
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // ignore: must_be_immutable
@@ -81,18 +80,16 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
           onTable: idModel); // choix de la map a afficher
       if (providerData.loader!.getFilter() == null) {
         var aFilter = CoreDataFilter();
-        aFilter.init(idModel, 'preview');
+        aFilter.initFilter(idModel, 'preview');
         widget.filter = aFilter;
         var group = widget.filter!.addGroup(aFilter.dataFilter);
         widget.filter!.addClause(group);
         providerData.setFilter(widget.filter);
-        dataLoader.setCacheViewID(
-            providerData.getProviderCacheID(aFilter: aFilter),
-            onTable: idModel); // choix de la map a afficher
       }
       widget.filter = providerData.loader!.getFilter();
+      providerData.setFilter(widget.filter);
     } else {
-      widget.filter = CoreDataFilter()..init('?', '?');
+      widget.filter = CoreDataFilter()..initFilter('?', '?');
     }
   }
 
@@ -137,12 +134,17 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
                 textStyle: Theme.of(context).textTheme.labelLarge,
               ),
               child: const Text('Create'),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
                 widget.filter!.dataFilter.value['name'] = ctrl.text;
                 CWApplication.of()
                         .mapFilters[widget.filter!.dataFilter.value['_id_']] =
                     widget.filter!;
+
+                StoreDriver? storage =
+                    await StoreDriver.getDefautDriver('main');
+                storage!.setData('filters', widget.filter!.dataFilter.value);
+
                 CWProvider providerData = CWApplication.of().dataProvider;
                 providerData.loader!.setFilter(providerData, null);
                 setState(() {

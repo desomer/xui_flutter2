@@ -186,13 +186,6 @@ class ScaffoldResponsiveDrawer extends StatelessWidget {
   ScaffoldResponsiveDrawer(
       {super.key, required this.appBar, required this.body});
 
-  //int _selectedIndex = 0;
-
-  // void _onItemTapped(int index) {
-  //   setState(() {
-  //     _selectedIndex = index;
-  //   });
-  // }
 
   final AppBar appBar;
   final Widget body;
@@ -209,9 +202,9 @@ class ScaffoldResponsiveDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-            ),
+            // decoration: BoxDecoration(
+            //   color: Colors.blue,
+            // ),
             child: Text('Drawer Header'),
           ),
           ListTile(
@@ -380,25 +373,11 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
 
   @override
   Widget build(BuildContext context) {
-    // var actions = <NavigationDestination>[];
-
-    // for (var element in listAction) {
-    //   actions.add(
-    //       NavigationDestination(label: element.name, icon: Icon(element.icon)));
-    // }
-
     return Scaffold(
         body: body,
         bottomNavigationBar: MediaQuery(
           data: MediaQuery.of(context).removePadding(removeBottom: true),
           child: getBottomNavigation(),
-          // child: NavigationBar(
-          //   height: 200,
-          //   // type: BottomNavigationBarType.fixed,
-          //   selectedIndex: selectedIndex,
-          //   destinations: actions,
-          //   onDestinationSelected: onDestinationSelected,
-          // ),
         ));
   }
 }

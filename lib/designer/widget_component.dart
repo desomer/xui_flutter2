@@ -93,7 +93,7 @@ class CardComponents extends StatelessWidget {
     }
 
     var header = Container(
-      color: Theme.of(context).secondaryHeaderColor,
+      color: Theme.of(context).highlightColor,
       child: Row(
         children: [
           ExpandableIcon(

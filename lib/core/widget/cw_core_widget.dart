@@ -63,9 +63,7 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
   }
 
   void repaint() {
-    //var state = ((key as GlobalKey).currentState as StateCW?);
     ctx.state.repaint();
-    //state?.repaint();
   }
 
   void select() {
@@ -74,8 +72,13 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
 }
 
 abstract class StateCW<T extends CWWidget> extends State<T> {
+  int repaintTime = 0;
+  bool mustRepaint = false;
+  
   void repaint() {
     if (mounted) {
+      repaintTime = DateTime.now().millisecondsSinceEpoch;
+      mustRepaint = true;
       setState(() {});
     }
   }

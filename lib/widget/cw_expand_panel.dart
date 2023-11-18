@@ -55,6 +55,9 @@ class CWExpandPanel extends CWWidget {
 class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
   final ctrl = ExpandableController(initialExpanded: true);
   final debouncer = Debouncer(milliseconds: 200);
+  int timeResize = 0;
+  double lastHeight = 0;
+  
   @override
   Widget build(BuildContext context) {
     List<ExpandInfo> listInfo = [];
@@ -73,7 +76,11 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
 
     return LayoutBuilder(builder: (context, constraints) {
       // print('CWExpandPanelState $constraints ${widget.ctx.xid}');
-      bool display = debouncer.mustVisible(this);
+      if (lastHeight != constraints.maxHeight) {
+        lastHeight = constraints.maxHeight;
+        timeResize = DateTime.now().millisecondsSinceEpoch;
+      }
+      bool display = debouncer.mustVisible(this, timeResize);
 
       return ExpandableNotifier(
         controller: ctrl,
@@ -145,7 +152,7 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
     }
 
     return Container(
-      color: Theme.of(context).secondaryHeaderColor,
+      color: Theme.of(context).highlightColor,
       child: Row(
         children: header,
       ),

@@ -10,6 +10,9 @@ import 'cw_list.dart';
 final log = Logger('CWArrayRow');
 
 class CWArrayRow extends StatefulWidget {
+
+  static double heightRow = 26;
+
   const CWArrayRow(
       {required this.rowIdx,
       //required this.children,

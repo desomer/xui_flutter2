@@ -161,6 +161,16 @@ class AttrFormLoader extends CWWidgetLoader {
         addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
             'CWSelector', <String, dynamic>{
           'label': attrDesc['name'],
+          'type': 'icon',
+          'bind': attribut.name,
+          'providerName': provider.name
+        });
+      }
+      if (attribut.typeName == 'color') {
+        addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
+            'CWSelector', <String, dynamic>{
+          'label': attrDesc['name'],
+          'type': 'color',
           'bind': attribut.name,
           'providerName': provider.name
         });
@@ -191,7 +201,7 @@ class AttrFormLoader extends CWWidgetLoader {
       // le titre
       addWidget('rootTitle0', 'title0', 'CWActionLink', <String, dynamic>{
         'label': provider.header?.value['label'] ?? entity.type,
-        '_idAction_':'onTapHeader@properties'
+        '_idAction_': 'onTapHeader@properties'
       });
 
       // la colonne d'attribut

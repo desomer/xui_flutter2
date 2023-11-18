@@ -143,7 +143,7 @@ class _DesignerQueryState extends State<DesignerQuery> {
       var indexedTreeNode =
           IndexedTreeNode(key: aNode.value['_id_'], data: aNode);
 
-      log.finest(aNode.value);
+      //log.finest(aNode.value);
 
       if (mapModelFilter[aNode.value['_id_']] != null) {
         var filtersOfModel = mapModelFilter[aNode.value['_id_']]!;
@@ -151,7 +151,7 @@ class _DesignerQueryState extends State<DesignerQuery> {
           var filterNode = IndexedTreeNode(
               key: element.dataFilter.value['_id_'], data: element.dataFilter);
           indexedTreeNode.add(filterNode);
-          log.finest(element.dataFilter);
+          //log.finest(element.dataFilter);
         }
       }
 

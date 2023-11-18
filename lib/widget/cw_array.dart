@@ -155,7 +155,7 @@ class _CwArrayState extends StateCW<CWArray> {
                         width: w - heightBorder * 2, // 2 = border
                         child: Column(children: [
                           Container(
-                              color: Theme.of(context).secondaryHeaderColor,
+                              color: Theme.of(context).highlightColor,
                               child: header),
                           Scrollbar(
                               thumbVisibility: true,
@@ -178,7 +178,7 @@ class _CwArrayState extends StateCW<CWArray> {
             ? h - heightScroll - (heightBorder * 2) - borderDrag
             : 100,
         child: DottedBorder(
-            color: Colors.grey,
+            color: Theme.of(context).dividerColor,
             dashPattern: const <double>[6, 4],
             strokeWidth: 2,
             child: const Center(
@@ -251,7 +251,7 @@ class _CwArrayState extends StateCW<CWArray> {
           ),
           i,
           maxWidth,
-          null));
+          CWArrayRow.heightRow));
     }
 
     // delete
@@ -303,7 +303,7 @@ class _CwArrayState extends StateCW<CWArray> {
             decoration: BoxDecoration(
                 border: Border(
                     right: BorderSide(
-                        color: Theme.of(context).dividerColor, width: 1))),
+                        color: Theme.of(context).dividerColor, width: 0.5))),
             child: cell));
   }
 }

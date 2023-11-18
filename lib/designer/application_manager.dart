@@ -272,27 +272,28 @@ class CWApplication {
   }
 
   CWProvider getDesignDataProvider(
-      CWAppLoaderCtx loader, CoreDataEntity tableEntity) {
+      CWAppLoaderCtx loader, CoreDataEntity tableEntity,
+      {CoreDataFilter? filter}) {
     //var label = tableEntity.value["name"];
-    var idData = tableEntity.value['_id_'];
+    var type = tableEntity.value['_id_'];
 
     var coreDataLoaderMap = CoreDataLoaderMap(loader, cacheMapData, 'listData');
     CWProviderData dataLoaderFinal = CWProviderData(coreDataLoaderMap);
 
-    CWProviderData dataLoaderDesign =
-        CWProviderData(null); //pas de data en design
+    //pas de data en design
+    CWProviderData dataLoaderDesign = CWProviderData(null);
 
-    CWProvider designData = CWProvider(tableEntity.value['name'], idData,
+    CWProvider designData = CWProvider(tableEntity.value['name'], type,
         CWProviderDataSelector(dataLoaderFinal, dataLoaderDesign, loader));
 
-    dataLoaderFinal.dataloader?.setFilter(designData, null);
+    var aFilter = (filter?.isFilter() ?? false) ? filter : null;
+    var providerCacheID = designData.getProviderCacheID(aFilter: aFilter);
+    coreDataLoaderMap.setCacheViewID(providerCacheID, onTable: type);
+    designData.setFilter(aFilter);
 
-    coreDataLoaderMap.setCacheViewID(designData.getProviderCacheID(),
-        onTable: idData);
-
-    designData.type = idData;
+    designData.type = type;
     // une ligne par défaut
-    designData.content.add(loader.collectionDataModel.createEntity(idData));
+    designData.content.add(loader.collectionDataModel.createEntity(type));
     designData.getData().idxSelected = 0;
     return designData;
   }

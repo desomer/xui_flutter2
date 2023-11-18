@@ -15,7 +15,6 @@ class MyErrorsHandler {
     FlutterErrorDetails details, {
     bool forceReport = false,
   }) {
-
     bool ifIsOverflowError = false;
     bool isUnableToLoadAsset = false;
 
@@ -64,8 +63,14 @@ void main() async {
   Logger.root.level = Level.ALL; // defaults to Level.INFO
   Logger.root.onRecord.listen((record) {
     // ignore: avoid_print
+
     print(
         '$white${formatter.format(record.time)}-${record.time.millisecond.toString().padLeft(3, '0')}$reset [$green${record.loggerName.padRight(20)}$reset] ${record.level.name.padRight(6)}: $yellow${record.message}$reset');
+
+    // ignore: avoid_print
+    if (record.error != null) print('$red${record.error}');
+    // ignore: avoid_print
+    if (record.stackTrace != null) print(record.stackTrace);
   });
 
   // var myErrorsHandler = MyErrorsHandler();

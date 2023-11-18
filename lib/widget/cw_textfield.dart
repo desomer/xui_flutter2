@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:xui_flutter/widget/cw_array_row.dart';
 import 'package:xui_flutter/widget/cw_cell.dart';
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -217,11 +218,13 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     }
 
     return Container(
-        height: label == null ? 24 : 32,
-        decoration: BoxDecoration(
-            border: Border(
-                bottom: BorderSide(
-                    width: 1.0, color: Theme.of(context).dividerColor))),
+        height: label == null ? CWArrayRow.heightRow : 34,
+        decoration: label == null
+            ? null
+            : BoxDecoration(  // dans un formulaire
+                border: Border(
+                    bottom: BorderSide(
+                        width: 0.5, color: Theme.of(context).dividerColor))),
         child: getCell(type, mask!.getTextfield()));
   }
 
@@ -305,9 +308,9 @@ class MaskConfig {
       onTap: controller.selectAll,
       focusNode: focus,
       controller: controller,
-      style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
+      // style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
       keyboardType: textInputType,
-      scrollPadding: const EdgeInsets.all(0),
+      // scrollPadding: const EdgeInsets.all(0),
       inputFormatters: formatter ?? [],
       autocorrect: false,
       decoration: InputDecoration(
@@ -317,7 +320,7 @@ class MaskConfig {
           isDense: true,
           labelText: label,
           // labelStyle: const TextStyle(color: Colors.white70),
-          contentPadding: EdgeInsets.fromLTRB(5, label == null ? 7 : 1, 5, 0)),
+          contentPadding: EdgeInsets.fromLTRB(5, label == null ? 5 : 0, 5, 0)),
       //autofocus: true,
     );
   }

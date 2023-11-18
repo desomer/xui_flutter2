@@ -25,13 +25,14 @@ class CWFrameDesktop extends CWWidget {
   @override
   State<CWFrameDesktop> createState() => _CWFrameDesktop();
 
-  static int timeResize = 0;
-
   static void initFactory(CWWidgetCollectionBuilder c) {
     c
         .addWidget('CWFrameDesktop',
             (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
         .addAttr('fill', CDAttributType.bool)
+        .addAttr('color', CDAttributType.one, tname: 'color')
+        .addAttr('dark', CDAttributType.bool)
+        //.addAttr('bgcolor', CDAttributType.one, tname: 'color')
         .addAttr('nbBtnBottomNavBar', CDAttributType.int)
         .withAction(AttrActionDefault(0));
 
@@ -57,12 +58,17 @@ class CWFrameDesktop extends CWWidget {
     }
   }
 
-  // String getTitle() {
-  //   return ctx.designEntity!.getString('title', def: '?')!;
-  // }
+  Color? getColor(String id) {
+    String? v = ctx.designEntity!.value[id]?['color'];
+    return v != null ? Color(int.parse(v, radix: 16)) : null;
+  }
 
   bool isFill() {
     return ctx.designEntity!.getBool('fill', false);
+  }
+
+  bool isDark() {
+    return ctx.designEntity!.getBool('dark', false);
   }
 
   int nbBtnBottomNavBar() {
@@ -84,7 +90,6 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     return StatefulShellBranch(routes: <RouteBase>[
       GoRoute(
         path: path,
-        //pageBuilder : animPageBuilder(fct)
         builder: (context, state) {
           return fct(state);
         },
@@ -92,26 +97,33 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     ]);
   }
 
-  Widget getRouter(BuildContext context) {
+  Widget getRouterWithCache(BuildContext context) {
     var nb = widget.nbBtnBottomNavBar();
     if (nb == 0) nb = 1;
-    if (widget.listRoute.isEmpty || widget.listRoute.length != nb) {
+
+    Color mainColor = widget.getColor('color') ?? Colors.white;
+    //Color? backColor = widget.getColor('bgcolor');
+    Color barForegorundColor =
+        (mainColor.computeLuminance() > 0.300) ? Colors.black : Colors.white;
+
+    var colorScheme2 = ColorScheme.fromSeed(
+        seedColor: mainColor,
+        brightness: widget.isDark() ? Brightness.dark : Brightness.light);
+
+    var backgroundColor = colorScheme2.background;
+
+    if (widget.listRoute.isEmpty || mustRepaint) {
       log.fine('create all routes');
       widget.listRoute.clear();
       for (var i = 0; i < nb; i++) {
         var aRoute = getSubRoute(i == 0 ? '/' : '/route$i', (state) {
-          // CWWidgetCtx? constraint =
-          //     widget.ctx.factory.mapConstraintByXid['${widget.ctx.xid}Body$i'];
-          // //print("getCell -------- ${slot.ctx.xid} $constraint");
-          // String title = constraint?.designEntity?.value['title'] ?? 'none';
-
           return ScaffoldResponsiveDrawer(
               appBar: AppBar(elevation: 0, title: getTitle(i)),
               body: ClipRRect(
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20)),
-                  child: Container(color: Colors.white, child: getBody(i))));
+                  child: Container(color: backgroundColor, child: getBody(i))));
         });
         widget.listRoute.add(aRoute);
       }
@@ -128,7 +140,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
 
     if (routerWidgetCache == null ||
         CWFrameDesktop.router == null ||
-        widget.listAction.length != nb) {
+        widget.listAction.length != nb ||
+        mustRepaint) {
       String r = '/';
       if (CWFrameDesktop.router != null) {
         var l = CWFrameDesktop.router!.routerDelegate.currentConfiguration.uri;
@@ -160,13 +173,21 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
         key: widget.rootMainKey,
         title: 'ElisView',
         routerConfig: CWFrameDesktop.router,
-        theme: ThemeData().copyWith(scaffoldBackgroundColor: Colors.blue),
+        theme: ThemeData(
+            scaffoldBackgroundColor: mainColor,
+            appBarTheme: AppBarTheme(
+              foregroundColor: barForegorundColor,
+              backgroundColor: mainColor,
+            ),
+            useMaterial3: true,
+            colorScheme: colorScheme2),
         debugShowCheckedModeBanner: false,
         builder: DevicePreview.appBuilder,
         locale: DevicePreview.locale(context),
       );
     }
 
+    mustRepaint = false;
     return routerWidgetCache!;
   }
 
@@ -182,12 +203,10 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     super.dispose();
   }
 
-
   @override
   void didChangeMetrics() {
-    debugPrint('physical Size ${View.of(context).physicalSize}');
-    var now = DateTime.now();
-    CWFrameDesktop.timeResize = now.millisecondsSinceEpoch;
+    //debugPrint('physical Size ${View.of(context).physicalSize}');
+
     if (widget.ctx.loader.mode == ModeRendering.design) {
       // double refresh car animation de resize par le composant Preview
       Future.delayed(const Duration(milliseconds: 50), () {
@@ -221,41 +240,7 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
         lastHeight = constraints.maxHeight;
       }
 
-      // Widget aFrame = MaterialApp(
-      //     theme: ThemeData().copyWith(scaffoldBackgroundColor: Colors.blue),
-      //     debugShowCheckedModeBanner: false,
-      //     title: 'ElisView',
-      //     builder: DevicePreview.appBuilder,
-      //     locale: DevicePreview.locale(context),
-      //     // theme: ThemeData.light(),
-      //     // darkTheme: ThemeData.dark(),
-      //     home: Scaffold(
-      //         appBar: AppBar(
-      //           backgroundColor: Colors.blue,
-      //           elevation: 0,
-      //           leading: const Icon(Icons.menu),
-      //           title: Text(widget.getTitle()),
-      //           actions: [
-      //             // Icon(Icons.favorite),
-      //             // Padding(
-      //             //   padding: EdgeInsets.symmetric(horizontal: 16),
-      //             //   child: Icon(Icons.search),
-      //             // ),
-      //             IconButton(
-      //               icon: const Icon(Icons.more_vert),
-      //               onPressed: () {},
-      //             ),
-      //           ],
-      //         ),
-      //         body: ClipRRect(
-      //             borderRadius: const BorderRadius.only(
-      //                 topLeft: Radius.circular(20),
-      //                 topRight: Radius.circular(20)),
-      //             child: Container(color: Colors.white, child: getBody())),
-      //         bottomNavigationBar: getBottomBar(context)));
-
-      //Widget aFrame  = CwRouter(body: getBody());
-      Widget aFrame = getRouter(context);
+      Widget aFrame = getRouterWithCache(context);
 
       var slot = CWSlot(
           type: 'root',
@@ -267,34 +252,6 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
       return slot;
     });
   }
-
-  // MediaQuery? getBottomBar(BuildContext context) {
-  //   var bottomBar = getBottomNavigation();
-  //   if (bottomBar == null) return null;
-  //   return MediaQuery(
-  //     data: MediaQuery.of(context).removePadding(removeBottom: true),
-  //     child: bottomBar,
-  //   );
-  // }
-
-  // BottomNavigationBar? getBottomNavigation() {
-  //   if (widget.nbBtnBottomNavBar() < 2) return null;
-
-  //   List<BottomNavigationBarItem> listBtn = [];
-  //   for (var i = 0; i < widget.nbBtnBottomNavBar(); i++) {
-  //     listBtn.add(const BottomNavigationBarItem(
-  //       label: 'Home',
-  //       icon: Icon(Icons.home),
-  //     ));
-  //   }
-
-  //   return BottomNavigationBar(
-  //       currentIndex: 0,
-  //       //fixedColor: Colors.green,
-  //       items: listBtn,
-  //       type: BottomNavigationBarType.fixed,
-  //       onTap: (int indexOfItem) {});
-  // }
 
   Widget getTitle(int idx) {
     return CWSlot(

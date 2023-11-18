@@ -93,25 +93,25 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
     );
   }
 
-  Widget getOvalBtn() {
-    return SizedBox.fromSize(
-      size: const Size(56, 56),
-      child: ClipOval(
-        child: Material(
-          color: Colors.amberAccent,
-          child: InkWell(
-            splashColor: Colors.green,
-            onTap: () {},
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(Icons.shopping_cart), // <-- Icon
-                Text('Buy'), // <-- Text
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget getOvalBtn() {
+  //   return SizedBox.fromSize(
+  //     size: const Size(56, 56),
+  //     child: ClipOval(
+  //       child: Material(
+  //         color: Colors.amberAccent,
+  //         child: InkWell(
+  //           splashColor: Colors.green,
+  //           onTap: () {},
+  //           child: const Column(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: <Widget>[
+  //               Icon(Icons.shopping_cart), // <-- Icon
+  //               Text('Buy'), // <-- Text
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 }

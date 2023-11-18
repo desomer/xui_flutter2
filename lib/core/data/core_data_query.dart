@@ -16,7 +16,7 @@ class CoreGlobalCache {
       log.finer('save cache on bdd <$idCache> with $nbrow rows');
       saveCache(provider);
     } else {
-      log.finer('init cache <$idCache> with $nbrow rows');
+      log.finer('set cache nbrow <$idCache> with $nbrow rows');
     }
   }
 
@@ -43,7 +43,7 @@ class CoreGlobalCache {
     }
 
     if (contentToDelete.isNotEmpty) {
-      provider.loader?.deleteData(contentToDelete);
+      await provider.loader?.deleteData(contentToDelete);
     }
     if (contentToSave.isNotEmpty) {
       await provider.loader?.saveData(contentToSave);
@@ -53,7 +53,7 @@ class CoreGlobalCache {
   static void setCacheValue(CWProvider provider, List<CoreDataEntity> rows) {
     String idCache = provider.getProviderCacheID();
     cacheDataValue[idCache] = rows;
-    log.finer('set value cache <$idCache> with ${rows.length} rows');
+    log.finer('set cache value <$idCache> with ${rows.length} json; nb Cache = ${cacheDataValue.length}');
   }
 
   static void notifNewRow(CWProvider provider) {

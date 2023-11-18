@@ -2,6 +2,8 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
+import '../core/data/core_data_filter.dart';
+import '../core/store/driver.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_selector_overlay_action.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -64,8 +66,8 @@ class DesignerView extends StatefulWidget {
         repaintAll();
       });
       await (loader as CWLoaderTest).loadCWFactory();
-      await Future.delayed(const Duration(
-          milliseconds: 500)); // pour faire apparaitre le tournicotton
+      // await Future.delayed(const Duration(
+      //     milliseconds: 500)); // pour faire apparaitre le tournicotton
       log.fine('get loadCWFactory from BDD OK');
     }
 
@@ -75,8 +77,18 @@ class DesignerView extends StatefulWidget {
     rootWidget = loader!.getWidget('root', 'root');
     var app = CWApplication.of();
     // init les data models
-    log.fine('init dataModel Provider for design');
+    log.fine('init dataModels Provider for design');
     await app.dataModelProvider.getItemsCount((rootWidget as CWWidget).ctx);
+
+    log.fine('init dataFilters for design');
+    StoreDriver storage = await StoreDriver.getDefautDriver('main')!;
+    var filters = await storage.getJsonData('filters', null);
+    List<dynamic> listFilter = filters['listData'];
+    for (var aFilterData in listFilter) {
+      var aFilter = CoreDataFilter();
+      aFilter.initFilterWithData(aFilterData);
+      CWApplication.of().mapFilters[aFilter.dataFilter.value['_id_']] = aFilter;
+    }
 
     log.fine('init virtual widget');
     for (var widVir in loader!.ctxLoader.factory.mapWidgetVirtualByXid.values) {
@@ -202,7 +214,8 @@ class DesignerViewState extends State<DesignerView> {
           ));
         } else if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError) {
-            log.severe('error getPageRoot from BDD', snapshot.error, snapshot.stackTrace);
+            log.severe('error getPageRoot from BDD', snapshot.error,
+                snapshot.stackTrace);
             return const Text('     Error');
           } else if (snapshot.hasData) {
             Future.delayed(const Duration(milliseconds: 100), () {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/core/data/core_data_filter.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/widget/cw_array.dart';
 
@@ -9,9 +10,8 @@ import '../../core/widget/cw_core_widget.dart';
 import '../designer.dart';
 
 class ArrayBuilder {
-
-  Widget getCWArray(String name, CWProvider provider,
-      CWAppLoaderCtx loaderCtx, String type) {
+  Widget getCWArray(
+      String name, CWProvider provider, CWAppLoaderCtx loaderCtx, String type) {
     ColRowLoader? loader =
         _createDesign(loaderCtx, provider, type, name, name, true);
     return loader.getWidget(name, name);
@@ -32,11 +32,17 @@ class ArrayBuilder {
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);
 
+    var filterMgr = CoreDataFilter()..setFilterData(query);
+
     CWProvider provider =
-        CWProviderCtx.createFromTable(query.value['_id_'], widget.ctx);
+        CWProviderCtx.createFromTable(filterMgr.getModel(), widget.ctx, filter: filterMgr);
 
     _createDesign(widget.ctx.loader, provider, 'Array', widget.ctx.xid,
         widget.ctx.pathWidget, false);
+
+    // if (filterMgr.isFilter()) {
+    //   provider.setFilter(filterMgr);
+    // }
 
     CoreDesigner.ofView().rebuild();
     // ignore: invalid_use_of_protected_member
@@ -67,7 +73,8 @@ class ArrayBuilder {
     loader.addWidget(
         'root', 'provider_${provider.name}', 'CWProvider', <String, dynamic>{
       'type': provider.type,
-      'providerName': provider.name
+      'providerName': provider.name,
+      'filter' : provider.getFilter()?.dataFilter.value['_id_']
     });
 
     if (isRoot) {

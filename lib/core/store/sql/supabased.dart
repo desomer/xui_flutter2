@@ -65,31 +65,35 @@ class SupabaseDriver extends StoreDriver {
   @override
   dynamic getJsonData(String idTable, CoreDataEntity? filters) async {
     if (idTable == '#pages') {
-      var query = client['main']!
-          .from('ListApp')
-          .select('json')
-          .eq('idData', 'Home')
-          .eq('idCustomer', idCustomer)
-          .eq('idNamespace', idNamespace);
-
-      var ret = await query;
-      var result = [];
-      if (ret is List) {
-        if (ret.isNotEmpty) {
-          for (var r in ret) {
-            result.add(r['json']);
-          }
-        } else {
-          return null;
-        }
-      }
-      return result[0];
+      return await _getJsonPages();
     } else {
-      return getJsonDataModel(idTable, filters);
+      return await _getJsonDataModel(idTable, filters);
     }
   }
 
-  dynamic getJsonDataModel(String idTable, CoreDataEntity? filters) async {
+  Future<dynamic> _getJsonPages() async {
+    var query = client['main']!
+        .from('ListApp')
+        .select('json')
+        .eq('idData', 'Home')
+        .eq('idCustomer', idCustomer)
+        .eq('idNamespace', idNamespace);
+    
+    var ret = await query;
+    var result = [];
+    if (ret is List) {
+      if (ret.isNotEmpty) {
+        for (var r in ret) {
+          result.add(r['json']);
+        }
+      } else {
+        return null;
+      }
+    }
+    return result[0];
+  }
+
+  dynamic _getJsonDataModel(String idTable, CoreDataEntity? filters) async {
     var query = client['main']!
             .from('ListModel')
             .select('json')
@@ -148,9 +152,19 @@ class SupabaseDriver extends StoreDriver {
           'idCustomer': idCustomer,
           'idNamespace': idNamespace,
           'idData': 'Home',
-          'json': data // json.encode(element)
+          'json': data
         }
-      ]); //.select('json').eq("idTable", idTable);
+      ]);
+    } else if (idTable == 'filters') {
+      await client['main']!.from('ListModel').upsert([
+        {
+          'idTable': 'filters',
+          'idCustomer': idCustomer,
+          'idNamespace': idNamespace,
+          'idData': '${data['_id_']}',
+          'json': data
+        }
+      ]); 
     } else if (data[CoreDataEntity.cstTypeAttr] == 'DataContainer') {
       // save data & model
       for (var element in data['listData']) {

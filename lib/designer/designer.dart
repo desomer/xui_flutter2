@@ -190,16 +190,22 @@ class _CoreDesignerState extends State<CoreDesigner>
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
         theme: ThemeData(
+          tabBarTheme: const TabBarTheme(labelColor: Colors.white),
+          secondaryHeaderColor: Colors.grey.shade800,
           useMaterial3: true,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepOrange,
+            brightness: Brightness.dark,
+          ),
+          //visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
         // standard dark theme
-        darkTheme: ThemeData.dark().copyWith(
-            indicatorColor: Colors.amber,
-            inputDecorationTheme: const InputDecorationTheme(
-                labelStyle: TextStyle(color: Colors.white70))),
+        // darkTheme: ThemeData.dark().copyWith(
+        //     indicatorColor: Colors.amber,
+        //     inputDecorationTheme: const InputDecorationTheme(
+        //         labelStyle: TextStyle(color: Colors.white70))),
         //themeMode: ThemeMode.system,
-        themeMode: ThemeMode.dark,
+        //themeMode: ThemeMode.dark,
         home: Scaffold(
           appBar: AppBar(
             title: Row(
@@ -215,7 +221,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                     },
                   ),
                   const SizedBox(width: 20),
-                  const Text('ElisView v0.4.1'),
+                  const Text('ElisView v0.4.2'),
                   const SizedBox(width: 5),
                   IconButton(
                     iconSize: 30,
@@ -237,11 +243,13 @@ class _CoreDesignerState extends State<CoreDesigner>
             },
           ),
           bottomNavigationBar: BottomAppBar(
+              height: 40,
               shape: const CircularNotchedRectangle(),
-              notchMargin: 4.0,
+              notchMargin: 8.0,
+              padding: EdgeInsets.zero,
               child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // mainAxisSize: MainAxisSize.max,
+                //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Row(children: [
                     IconButton(
@@ -260,7 +268,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                         )),
                   ]),
                   const Spacer(),
-                  const Text('Desomer G.  02/11/23'),
+                  const Text('Desomer G.  14/11/23'),
                   IconButton(
                     icon: const Icon(Icons.help),
                     onPressed: () {},
@@ -272,9 +280,9 @@ class _CoreDesignerState extends State<CoreDesigner>
               padding: EdgeInsets.zero,
               children: [
                 const DrawerHeader(
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                  ),
+                  // decoration: BoxDecoration(
+                  //   color: Colors.blue,
+                  // ),
                   child: Text('Entete du Drawer'),
                 ),
                 ListTile(
@@ -405,8 +413,7 @@ class _CoreDesignerState extends State<CoreDesigner>
         ]),
         Column(
           children: [
-            WidgetFilterbuilder(
-                key: widget.dataFilterKey),
+            WidgetFilterbuilder(key: widget.dataFilterKey),
             Expanded(child: DesignerData(key: widget.dataKey))
           ],
         ),
@@ -559,7 +566,7 @@ class _NavRailState extends State<NavRail> {
         NavigationRail(
           minWidth: 40,
           labelType: NavigationRailLabelType.none,
-          selectedIconTheme: const IconThemeData(color: Colors.deepOrange),
+          //selectedIconTheme: const IconThemeData(color: Colors.deepOrange),
           // unselectedIconTheme: const IconThemeData(color: Colors.blueGrey),
           // selectedLabelTextStyle: const TextStyle(color: Colors.green),
           // unselectedLabelTextStyle: const TextStyle(color: Colors.blueGrey),
@@ -569,6 +576,11 @@ class _NavRailState extends State<NavRail> {
               selectedIndex = index;
               pageController.jumpToPage(index);
 
+              if (index == 0) {
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  CoreDesigner.emit(CDDesignEvent.reselect, null);
+                });
+              }
               // pageController.animateToPage(index,
               //     duration: const Duration(milliseconds: 200),
               //     curve: Curves.easeIn);
@@ -599,6 +611,7 @@ class _NavRailState extends State<NavRail> {
             ),
           ],
         ),
+        const VerticalDivider(thickness: 1, width: 1),
         Expanded(
             child: PageView(
           controller: pageController,

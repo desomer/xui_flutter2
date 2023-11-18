@@ -25,3 +25,8 @@ flutter pub deps  : pour voir les dépendences
 
 lakos . > test.txt
 Get-Content -Path .\test.txt | dot -Tsvg > output.svg
+
+
+https://waytolearnx.com/2018/08/difference-entre-table-des-faits-et-table-de-dimension.html
+
+flutter build web --web-renderer canvaskit --no-tree-shake-icons --release  --dart-define=mode=false

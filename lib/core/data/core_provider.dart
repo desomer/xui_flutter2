@@ -66,24 +66,27 @@ class CWProviderCtx extends CWWidgetVirtual {
 
   @override
   void init() {
-    if (ctx.loader.factory
-            .mapProvider[ctx.designEntity!.value['providerName']] ==
-        null) {
+    var providerName = ctx.designEntity!.value['providerName'];
+    if (ctx.loader.factory.mapProvider[providerName] == null) {
       CWProvider provider =
           createFromTable(ctx.designEntity!.value['type'], ctx);
+      String filterID = ctx.designEntity!.value['filter']??'none';    
+      provider.setFilter(CWApplication.of().mapFilters[filterID]);
       log.fine(
           'init appli provider <${provider.name}> [${provider.type}] hash = ${provider.getData().hashCode}');
       ctx.loader.factory.mapProvider[provider.name] = provider;
     }
   }
 
-  static CWProvider createFromTable(String id, CWWidgetCtx ctx) {
+  static CWProvider createFromTable(String id, CWWidgetCtx ctx,
+      {CoreDataFilter? filter}) {
     var app = CWApplication.of();
     List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
     var tableEntity = listTableEntity
         .firstWhere((CoreDataEntity element) => element.value['_id_'] == id);
     app.initDataModelWithAttr(ctx.loader, tableEntity);
-    CWProvider provider = app.getDesignDataProvider(ctx.loader, tableEntity);
+    CWProvider provider =
+        app.getDesignDataProvider(ctx.loader, tableEntity, filter: filter);
     return provider;
   }
 }
@@ -98,10 +101,10 @@ class CWProvider {
   late CWProviderDataSelector dataSelector;
 
   String getProviderCacheID({CoreDataFilter? aFilter}) {
-    if (aFilter!=null) {
-      return '$name#id=$type;fl=${aFilter.hashCode}';
+    if (aFilter != null) {
+      return '$name#id=$type;fl=${aFilter.getQueryKey()}';
     }
-    return '$name#id=$type;fl=${dataSelector.getData().dataloader?.getFilter()?.hashCode ?? 'null'}';
+    return '$name#id=$type;fl=${getFilter()?.getQueryKey() ?? 'null'}';
   }
 
   CWProviderData getData() {
@@ -121,7 +124,14 @@ class CWProvider {
   }
 
   void setFilter(CoreDataFilter? aFilter) {
-    getData().dataloader?.setFilter(this, aFilter);
+    dataSelector.finalData.dataloader?.setCacheViewID(
+        getProviderCacheID(aFilter: aFilter),
+        onTable: aFilter?.getModel() ?? type); // choix de la map a afficher
+    dataSelector.finalData.dataloader?.setFilter(this, aFilter);
+  }
+
+  CoreDataFilter? getFilter() {
+    return dataSelector.finalData.dataloader?.getFilter();
   }
 
   void addContent(CoreDataEntity add) {

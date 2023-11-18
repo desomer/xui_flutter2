@@ -88,11 +88,13 @@ class _CWTabState extends StateCW<CWTab> {
 
     return SizedBox(
       height: heightHeader + 2,
-      child: ColoredBox(
-          color: Theme.of(context).primaryColor,
-          child: TabBar(
+      child: // ColoredBox(
+          //color: Theme.of(context).primaryColor,
+          //child: 
+          TabBar(
             tabs: listTab,
-          )),
+          //)
+          ),
     );
   }
 

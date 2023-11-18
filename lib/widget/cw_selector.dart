@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
+import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
 import '../core/data/core_data.dart';
@@ -25,6 +26,113 @@ class CWSelector extends CWWidgetMap {
 
 class _CWSelectorState extends StateCW<CWSelector> {
   Icon? _icon;
+  Color? _color;
+
+  @override
+  Widget build(BuildContext context) {
+    Map<String, dynamic>? oneValue = widget.getMapOne();
+
+    return Container(
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+            border: Border(
+                bottom: BorderSide(
+                    width: 0.5, color: Theme.of(context).dividerColor))),
+        child: Row(children: getTypeContent(oneValue)));
+  }
+
+  List<Widget> getTypeContent(Map<String, dynamic>? oneValue) {
+    switch (widget.ctx.designEntity!.value['type']) {
+      case 'color':
+        return getColorContent(oneValue);
+      default:
+        return getIconContent(oneValue);
+    }
+  }
+
+  //------------------------------------------------------------------- 
+  List<Widget> getColorContent(Map<String, dynamic>? oneValue) {
+    if (oneValue != null) {
+      _color = Color(int.parse(oneValue['color'], radix: 16));
+    }
+    return [
+      Text(widget.getLabel()),
+      const SizedBox(width: 20),
+      Container(width: 20, height: 20, color: _color),
+      const Spacer(),
+      InkWell(
+        onTap: _pickColor,
+        child: const Icon(Icons.color_lens),
+      )
+    ];
+  }
+
+  void _pickColor() async {
+    Color? selColor;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: MaterialColorPicker(
+                onColorChange: (Color color) {
+                  debugPrint(color.toString());
+                  selColor = color;
+                },
+                onMainColorChange: (ColorSwatch<dynamic>? color) {
+                  debugPrint(color!.value.toString());
+                },
+                selectedColor: _color),
+            actions: <Widget>[
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge,
+                ),
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge,
+                ),
+                child: const Text('Ok'),
+                onPressed: () {
+                  _color = selColor;
+                  if (_color != null) {
+                    var v = {'color': _color!.value.toRadixString(16).padLeft(8, '0')};
+                    widget.setValue(v);
+                  }
+                  else
+                  {
+                    widget.setValue(null);
+                  }
+                  setState(() {});
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        });
+  }
+
+  //---------------------------------------------------------------------------------------
+  List<Widget> getIconContent(Map<String, dynamic>? oneValue) {
+    if (oneValue != null) {
+      IconData? ic = deserializeIcon(oneValue);
+      _icon = Icon(ic);
+    }
+    return [
+      Text(widget.getLabel()),
+      const SizedBox(width: 20),
+      _icon ?? Container(),
+      const Spacer(),
+      InkWell(
+        onTap: _pickIcon,
+        child: const Icon(Icons.apps),
+      )
+    ];
+  }
 
   void _pickIcon() async {
     IconData? icon = await FlutterIconPicker.showIconPicker(context,
@@ -42,25 +150,5 @@ class _CWSelectorState extends StateCW<CWSelector> {
     } else {
       widget.setValue(null);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    Map<String, dynamic>? v = widget.getMapOne();
-    if (v!=null) {
-      IconData? ic = deserializeIcon(v);
-      _icon = Icon(ic);
-    }
-
-    return Row(children: [
-      Text(' icon', style: TextStyle(color: Colors.grey.shade400)),
-      const SizedBox(width: 20),
-      _icon ?? Container(),
-      const Spacer(),
-      InkWell(
-        onTap: _pickIcon,
-        child: const Icon(Icons.apps),
-      )
-    ]);
   }
 }
