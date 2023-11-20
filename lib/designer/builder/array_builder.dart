@@ -27,7 +27,7 @@ class ArrayBuilder {
   }
 
   /// creation d'un array au drop de query
-  void createArray(CWArray widget, CoreDataEntity query) async {
+  Future<void> createArray(CWArray widget, CoreDataEntity query) async {
     var app = CWApplication.of();
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);
@@ -40,9 +40,6 @@ class ArrayBuilder {
     _createDesign(widget.ctx.loader, provider, 'Array', widget.ctx.xid,
         widget.ctx.pathWidget, false);
 
-    // if (filterMgr.isFilter()) {
-    //   provider.setFilter(filterMgr);
-    // }
 
     CoreDesigner.ofView().rebuild();
     // ignore: invalid_use_of_protected_member

@@ -41,10 +41,6 @@ class CWActionLink extends CWWidget with CWActionManager {
         .addAttr('_idAction_', CDAttributType.text);
   }
 
-  String getLabel() {
-    return ctx.designEntity?.getString('label') ?? '[empty]';
-  }
-
   Map<String, dynamic>? getIcon() {
     return ctx.designEntity?.value['icon'];
   }

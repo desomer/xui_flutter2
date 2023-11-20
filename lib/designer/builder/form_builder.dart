@@ -46,7 +46,7 @@ class FormBuilder {
     return listWidget;
   }
 
-  void createForm(CWWidget widget, CoreDataEntity query) async {
+  Future<void> createForm(CWWidget widget, CoreDataEntity query) async {
     var app = CWApplication.of();
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);

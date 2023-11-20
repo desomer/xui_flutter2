@@ -1,6 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/designer/designer.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
@@ -8,7 +9,7 @@ import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/builder/array_builder.dart';
 import '../designer/cw_factory.dart';
-import '../designer/designer_query.dart';
+import '../designer/designer_selector_query.dart';
 import '../designer/widget_crud.dart';
 import 'cw_array_row.dart';
 
@@ -115,7 +116,8 @@ class _CwArrayState extends StateCW<CWArray> {
     }, onWillAccept: (item) {
       return true;
     }, onAccept: (item) async {
-      ArrayBuilder().createArray(widget, item.query);
+      await ArrayBuilder().createArray(widget, item.query);
+      CoreDesigner.of().providerKey.currentState!.setState(() {});
     });
   }
 

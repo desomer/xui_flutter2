@@ -69,6 +69,15 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
   void select() {
     CoreDesigner.emit(CDDesignEvent.select, ctx.getSlot()!.ctx);
   }
+
+  Color? getColor(String id) {
+    String? v = ctx.designEntity?.value[id]?['color'];
+    return v != null ? Color(int.parse(v, radix: 16)) : null;
+  }  
+
+  String getLabel() {
+    return ctx.designEntity?.getString('label') ?? '[empty]';
+  }    
 }
 
 abstract class StateCW<T extends CWWidget> extends State<T> {
@@ -190,10 +199,6 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
     if (provider != null) {
       provider.getData().idxDisplayed = idx;
     }
-  }
-
-  String getLabel() {
-    return ctx.designEntity?.getString('label') ?? '[empty]';
   }
 
   int getCountChildren() {

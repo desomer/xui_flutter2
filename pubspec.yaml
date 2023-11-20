@@ -46,7 +46,7 @@ dependencies:
   flutter_material_color_picker: ^1.2.0
   localstorage: ^4.0.0
   flutter_json_viewer: ^1.0.1
-  assorted_layout_widgets: ^8.0.4
+  assorted_layout_widgets: ^9.0.0
   event_listener: ^0.2.0
   nanoid: ^1.0.0
   rich_clipboard: ^1.0.1

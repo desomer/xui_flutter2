@@ -11,7 +11,8 @@ import '../core/widget/cw_core_widget.dart';
 import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
 import '../designer/builder/prop_builder.dart';
-import '../designer/designer_query.dart';
+import '../designer/designer.dart';
+import '../designer/designer_selector_query.dart';
 
 abstract class CWContainer extends CWWidget {
   const CWContainer({super.key, required super.ctx});
@@ -87,7 +88,7 @@ class CWColumn extends CWContainer {
         .addWidget('CWColumn',
             (CWWidgetCtx ctx) => CWColumn(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.int)
-        .withAction(AttrActionDefault(3))
+        .withAction(AttrActionDefault(2))
         .addAttr('fill', CDAttributType.bool)
         .withAction(AttrActionDefault(true));
 
@@ -104,7 +105,7 @@ class CWColumn extends CWContainer {
 
   @override
   int getDefChild() {
-    return isForm ? 0 : 3;
+    return isForm ? 0 : 2;
   }
 }
 
@@ -150,8 +151,9 @@ class CWColumnState extends StateCW<CWColumn>
   double wm = 0;
 
   @override
-  void onDragQuery(DragQueryCtx query) {
-    FormBuilder().createForm(widget, query.query);
+  void onDragQuery(DragQueryCtx query) async {
+    await FormBuilder().createForm(widget, query.query);
+    CoreDesigner.of().providerKey.currentState!.setState(() {});
   }
 
   Widget buildProvider(BuildContext context) {
@@ -248,9 +250,6 @@ mixin CWDroppable {
       return true;
     }, onAccept: (item) async {
       onDragQuery(item);
-      //print("object");
-      // FormBuilder().createForm(widget, item.query);
-      /// ArrayBuilder().createArray(widget, item.query);
     });
   }
 

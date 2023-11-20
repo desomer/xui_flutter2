@@ -40,7 +40,7 @@ class CoreDesignerSelector {
       propBuilder.buildWidgetProperties(ctx, 1);
       unselect();
       _lastSelectedPath = ctx.pathWidget;
-      CoreDesigner.of().controllerTabRight.index = 0;
+      CoreDesigner.of().editor.controllerTabRight.index = 0;
 
       // Future<RichClipboardData?> data = RichClipboard.getData();
       // data.then((clipboardData) {

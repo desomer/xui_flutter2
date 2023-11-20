@@ -8,7 +8,7 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/cw_factory.dart';
-import '../designer/designer_query.dart';
+import '../designer/designer_selector_query.dart';
 import 'cw_array_row.dart';
 import 'cw_toolkit.dart';
 

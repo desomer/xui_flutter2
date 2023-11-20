@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/action_manager.dart';
 import 'dart:math' as math;
 
-
 class ComponentDesc {
   static List<Widget> get getListComponent {
     return [
@@ -35,15 +34,11 @@ class ComponentDesc {
     ];
   }
 
-  ComponentDesc(this.name, this.icon, String widget) {
-    impl = widget;
-  }
+  ComponentDesc(this.name, this.icon, this.impl);
 
   String name;
   IconData icon;
-  late String impl;
-
-
+  String impl;
 }
 
 // ignore: must_be_immutable

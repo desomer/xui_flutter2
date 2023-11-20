@@ -21,12 +21,12 @@ class CWLoaderTest extends CWWidgetLoader {
   @override
   CoreDataEntity getCWFactory() {
     if (loadEmpty) {
-      loadEmpty = false;
+      loadEmpty = false; 
       setRoot('root', 'CWFrameDesktop');
       setProp(
           'root',
           ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',
-              <String, dynamic>{'title': 'un titre modifiable', 'fill': true}));
+              <String, dynamic>{'fill': true}));
     }
 
     //------------------------------------------------------------------

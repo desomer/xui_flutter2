@@ -9,7 +9,7 @@ import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_expand_panel.dart';
 import 'cw_factory.dart';
-import 'designer_data.dart';
+import 'designer_model_data.dart';
 import 'designer_model.dart';
 
 class CWApplication {

@@ -27,6 +27,23 @@ class CWSelector extends CWWidgetMap {
 class _CWSelectorState extends StateCW<CWSelector> {
   Icon? _icon;
   Color? _color;
+  TextEditingController edit = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    edit.addListener(() {
+      Map<String, dynamic>? oneValue = widget.getMapOne();
+      if (oneValue?['color'] != edit.text) {
+        if (edit.text.length == 8) {
+          oneValue?['color'] = edit.text;
+          widget.setValue(oneValue);
+        } else if (edit.text.isEmpty) {
+          widget.setValue(null);
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,14 +67,26 @@ class _CWSelectorState extends StateCW<CWSelector> {
     }
   }
 
-  //------------------------------------------------------------------- 
+  //-------------------------------------------------------------------
   List<Widget> getColorContent(Map<String, dynamic>? oneValue) {
     if (oneValue != null) {
       _color = Color(int.parse(oneValue['color'], radix: 16));
+      edit.text = oneValue['color'];
+    } else {
+      _color = null;
+      edit.text = '';
     }
     return [
       Text(widget.getLabel()),
       const SizedBox(width: 20),
+      SizedBox(
+          width: 100,
+          child: TextField(
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 0)),
+              controller: edit)),
       Container(width: 20, height: 20, color: _color),
       const Spacer(),
       InkWell(
@@ -75,12 +104,9 @@ class _CWSelectorState extends StateCW<CWSelector> {
           return AlertDialog(
             content: MaterialColorPicker(
                 onColorChange: (Color color) {
-                  debugPrint(color.toString());
                   selColor = color;
                 },
-                onMainColorChange: (ColorSwatch<dynamic>? color) {
-                  debugPrint(color!.value.toString());
-                },
+                onMainColorChange: (ColorSwatch<dynamic>? color) {},
                 selectedColor: _color),
             actions: <Widget>[
               TextButton(
@@ -100,11 +126,11 @@ class _CWSelectorState extends StateCW<CWSelector> {
                 onPressed: () {
                   _color = selColor;
                   if (_color != null) {
-                    var v = {'color': _color!.value.toRadixString(16).padLeft(8, '0')};
+                    var v = {
+                      'color': _color!.value.toRadixString(16).padLeft(8, '0')
+                    };
                     widget.setValue(v);
-                  }
-                  else
-                  {
+                  } else {
                     widget.setValue(null);
                   }
                   setState(() {});

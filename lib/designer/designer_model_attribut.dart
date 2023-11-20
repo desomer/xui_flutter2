@@ -8,7 +8,71 @@ import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_expand_panel.dart';
 import 'builder/form_builder.dart';
+import 'widget/widget_tab.dart';
 
+class DesignerModelAttribut extends StatelessWidget {
+  const DesignerModelAttribut({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetTab tabAttributDesc = WidgetTab(heightTab: 30, listTab: const [
+      Tab(text: 'Properties'),
+      Tab(text: 'Validator'),
+      Tab(text: 'Style')
+    ], listTabCont: [
+      Row(
+        children: [const Expanded(child: DesignerAttribut()), getRainbox()],
+      ),
+      Container(),
+      Container()
+    ]);
+    return tabAttributDesc;
+  }
+
+  Widget getRainbox()
+  {
+     return Container(
+      width: 100,
+      height: 100,
+      margin: const EdgeInsets.all(20),
+      decoration: const BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            offset: Offset(-20, 20),
+            color: Colors.red,
+            blurRadius: 15,
+            spreadRadius: -10,
+          ),
+          BoxShadow(
+            offset: Offset(-20, -20),
+            color: Colors.orange,
+            blurRadius: 15,
+            spreadRadius: -10,
+          ),
+          BoxShadow(
+            offset: Offset(20, -20),
+            color: Colors.blue,
+            blurRadius: 15,
+            spreadRadius: -10,
+          ),
+          BoxShadow(
+            offset: Offset(25, 25),
+            color: Colors.deepPurple,
+            blurRadius: 15,
+            spreadRadius: -10,
+          )
+        ],
+        //color: Colors.grey.shade800
+      ),
+      child: Card(
+        color: Colors.grey.shade800,
+        elevation: 3,
+      ),
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////
 class DesignerAttribut extends StatefulWidget {
   const DesignerAttribut({super.key});
 

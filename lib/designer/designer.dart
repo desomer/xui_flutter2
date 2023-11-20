@@ -3,14 +3,10 @@ import 'dart:async';
 import 'package:event_listener/event_listener.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
-import 'package:xui_flutter/designer/designer_pages.dart';
-import 'package:xui_flutter/designer/designer_provider.dart';
-import 'package:xui_flutter/designer/widget_component.dart';
 import 'package:xui_flutter/designer/widget/widget_debug.dart';
 import 'package:xui_flutter/designer/widget/widget_drag_file.dart';
 import 'package:xui_flutter/designer/widget/widget_tab.dart';
@@ -18,34 +14,40 @@ import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
 import '../core/store/driver.dart';
 import '../db_icon_icons.dart';
-import '../widget/cw_dialog.dart';
-import '../widget/cw_image.dart';
 import 'cw_factory.dart';
-import 'designer_attribut.dart';
-import 'designer_data.dart';
+import 'designer_model_attribut.dart';
+import 'designer_model_data.dart';
 import 'designer_model.dart';
-import 'designer_query.dart';
-import 'designer_view.dart';
+import 'designer_selector_query.dart';
+import 'designer_editor.dart';
 import 'help/widget_hidden_box.dart';
+import 'widget/plateform/widget_image.dart';
 import 'widget/widget_preview.dart';
-import 'widget_model_attribut.dart';
-import 'widget_properties.dart';
+import 'designer_selector_attribut.dart';
 import 'widget_filter_builder.dart';
 
-enum CDDesignEvent { select, reselect, preview, save }
+enum CDDesignEvent { select, reselect, preview, save, clear }
 
 final log = Logger('CoreDesigner');
 
 // ignore: must_be_immutable
 class CoreDesigner extends StatefulWidget {
   CoreDesigner({super.key}) {
-    designView = DesignerView(key: designerKey);
     _coreDesigner = this;
+
     log.fine('init event listener');
     CoreDesigner.on(CDDesignEvent.save, (arg) async {
       log.fine('save action');
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
       storage?.setData('#pages', CoreDesigner.ofLoader().cwFactory.value);
+    });
+    CoreDesigner.on(CDDesignEvent.clear, (arg) async {
+      log.fine('clear action');
+      StoreDriver? storage = await StoreDriver.getDefautDriver('main');
+      storage?.deleteData('#pages', []);
+      CoreDesigner.ofView().clearAll();
+      // ignore: invalid_use_of_protected_member
+      CoreDesigner.of().designerKey.currentState?.setState(() {});
     });
   }
 
@@ -79,7 +81,6 @@ class CoreDesigner extends StatefulWidget {
   }
 
   static late CoreDesigner _coreDesigner;
-  late DesignerView designView;
 
   final GlobalKey imageKey = GlobalKey(debugLabel: 'CoreDesigner.imageKey');
   final GlobalKey rootKey = GlobalKey(debugLabel: 'rootKey');
@@ -91,18 +92,13 @@ class CoreDesigner extends StatefulWidget {
   final GlobalKey dataFilterKey =
       GlobalKey(debugLabel: 'CoreDesigner.dataFilterKey');
 
+  final GlobalKey providerKey =
+      GlobalKey(debugLabel: 'CoreDesigner.designerProviderKey');
+
   final _eventListener = EventListener();
-  late TabController controllerTabRight;
+  final editor = DesignerEditor();
+  late DesignerView designView = DesignerView(key: designerKey);
 
-  final ScrollController scrollComponentController = ScrollController(
-    initialScrollOffset: 0.0,
-    keepScrollOffset: true,
-  );
-
-  final ScrollController scrollPropertiesController = ScrollController(
-    initialScrollOffset: 0.0,
-    keepScrollOffset: true,
-  );
 
   @override
   State<CoreDesigner> createState() => _CoreDesignerState();
@@ -148,10 +144,10 @@ class _CoreDesignerState extends State<CoreDesigner>
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
     nav.listTabNav = [
-      getDesignPan(),
+      widget.editor,
       getDataPan(),
       getQueryPan(),
-      getDebugPan(),
+      const WidgetDebug(),
       getTestPan()
     ];
 
@@ -167,25 +163,6 @@ class _CoreDesignerState extends State<CoreDesigner>
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        // supportedLocales: const [
-        //   Locale('en'),
-        //   Locale('fr')
-        // ],
-        // localeResolutionCallback:
-        //     (Locale? locale, Iterable<Locale> supportedLocales) {
-        //   for (Locale supportedLocale in supportedLocales) {
-        //     if (kIsWeb) {
-        //       Locale webLocale = Locale(ui.window.locale.languageCode, '');
-        //       print('system locale is ${webLocale}');
-        //       return webLocale;
-        //     } else if (supportedLocale.languageCode == locale!.languageCode ||
-        //         supportedLocale.countryCode == locale.countryCode) {
-        //       print('device Locale is $locale');
-        //       return supportedLocale;
-        //     }
-        //   }
-        //   return supportedLocales.first;
-        // },
         key: CoreDesigner.of().rootKey,
         debugShowCheckedModeBanner: false,
         title: 'ElisView',
@@ -197,38 +174,28 @@ class _CoreDesignerState extends State<CoreDesigner>
             seedColor: Colors.deepOrange,
             brightness: Brightness.dark,
           ),
-          //visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        // standard dark theme
-        // darkTheme: ThemeData.dark().copyWith(
-        //     indicatorColor: Colors.amber,
-        //     inputDecorationTheme: const InputDecorationTheme(
-        //         labelStyle: TextStyle(color: Colors.white70))),
-        //themeMode: ThemeMode.system,
-        //themeMode: ThemeMode.dark,
         home: Scaffold(
           appBar: AppBar(
-            title: Row(
-                // color: Colors.blue.withOpacity(0.3),
-                children: [
-                  BreadCrumbNavigator(currentRouteStack),
-                  const Spacer(),
-                  const WidgetPreview(),
-                  InkWell(
-                    child: const Icon(size: 25, Icons.save),
-                    onTap: () {
-                      CoreDesigner.emit(CDDesignEvent.save, null);
-                    },
-                  ),
-                  const SizedBox(width: 20),
-                  const Text('ElisView v0.4.2'),
-                  const SizedBox(width: 5),
-                  IconButton(
-                    iconSize: 30,
-                    icon: const Icon(Icons.apps),
-                    onPressed: () {},
-                  )
-                ]),
+            title: Row(children: [
+              BreadCrumbNavigator(currentRouteStack),
+              const Spacer(),
+              const WidgetPreview(),
+              InkWell(
+                child: const Icon(size: 25, Icons.save),
+                onTap: () {
+                  CoreDesigner.emit(CDDesignEvent.save, null);
+                },
+              ),
+              const SizedBox(width: 20),
+              const Text('ElisView v0.4.3'),
+              const SizedBox(width: 5),
+              IconButton(
+                iconSize: 30,
+                icon: const Icon(Icons.apps),
+                onPressed: () {},
+              )
+            ]),
           ),
           body: PageStorage(bucket: _bucket, child: nav),
           floatingActionButtonLocation:
@@ -239,7 +206,7 @@ class _CoreDesignerState extends State<CoreDesigner>
             mini: true,
             child: const Icon(Icons.add, color: Colors.white),
             onPressed: () {
-              widget.controllerTabRight.index = 1;
+              widget.editor.controllerTabRight.index = 1;
             },
           ),
           bottomNavigationBar: BottomAppBar(
@@ -264,7 +231,9 @@ class _CoreDesignerState extends State<CoreDesigner>
                         message: 'Clear all',
                         child: IconButton(
                           icon: const Icon(Icons.clear_all),
-                          onPressed: () {},
+                          onPressed: () {
+                            CoreDesigner.emit(CDDesignEvent.clear, null);
+                          },
                         )),
                   ]),
                   const Spacer(),
@@ -316,73 +285,6 @@ class _CoreDesignerState extends State<CoreDesigner>
   }
 
   Widget getDataPan() {
-    var viewAttribute = Container(
-      color: Colors.black26,
-      child: Stack(
-        children: [
-          Positioned(
-              left: 20,
-              top: 20,
-              width: 300,
-              child: Container(
-                  decoration:
-                      BoxDecoration(border: Border.all(color: Colors.grey)),
-                  child: const DesignerModel()))
-        ],
-      ),
-    );
-
-    var rainboxBox = Container(
-      width: 100,
-      height: 100,
-      margin: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            offset: Offset(-20, 20),
-            color: Colors.red,
-            blurRadius: 15,
-            spreadRadius: -10,
-          ),
-          BoxShadow(
-            offset: Offset(-20, -20),
-            color: Colors.orange,
-            blurRadius: 15,
-            spreadRadius: -10,
-          ),
-          BoxShadow(
-            offset: Offset(20, -20),
-            color: Colors.blue,
-            blurRadius: 15,
-            spreadRadius: -10,
-          ),
-          BoxShadow(
-            offset: Offset(25, 25),
-            color: Colors.deepPurple,
-            blurRadius: 15,
-            spreadRadius: -10,
-          )
-        ],
-        //color: Colors.grey.shade800
-      ),
-      child: Card(
-        color: Colors.grey.shade800,
-        elevation: 3,
-      ),
-    );
-
-    WidgetTab tabAttributDesc = WidgetTab(heightTab: 30, listTab: const [
-      Tab(text: 'Properties'),
-      Tab(text: 'Validator'),
-      Tab(text: 'Style')
-    ], listTabCont: [
-      Row(
-        children: [const Expanded(child: DesignerAttribut()), rainboxBox],
-      ),
-      Container(),
-      Container()
-    ]);
-
     WidgetTab tabModelDesc = WidgetTab(
       heightTab: 60,
       listTab: const [
@@ -398,8 +300,8 @@ class _CoreDesignerState extends State<CoreDesigner>
               Expanded(
                   child: Column(
                 children: [
-                  Expanded(child: viewAttribute), // les attributs
-                  WidgetHiddenBox(child: tabAttributDesc)
+                  const Expanded(child: DesignerModel()), // les attributs
+                  WidgetHiddenBox(child: const DesignerModelAttribut())
                 ],
               )), // ),
               SizedBox(
@@ -432,108 +334,29 @@ class _CoreDesignerState extends State<CoreDesigner>
     );
   }
 
-  Widget getDebugPan() {
-    return const WidgetDebug();
-  }
-
   Widget getTestPan() {
+    Widget img =
+        Plateform().getImage('https://googleflutter.com/sample_image.jpg');
+
     return SingleChildScrollView(
         child: Column(children: [
-      Image.network('https://googleflutter.com/sample_image.jpg', width: 200),
+      img,
       const WidgetDragTarget(),
-      const DialogExample(key: PageStorageKey<String>('pageMain')),
-      CwImage(key: CoreDesigner.of().imageKey),
-      MaterialColorPicker(
-          onColorChange: (Color color) {
-            debugPrint(color.toString());
-          },
-          onMainColorChange: (ColorSwatch<dynamic>? color) {
-            debugPrint(color!.value.toString());
-          },
-          selectedColor: Colors.red)
+      // const DialogExample(key: PageStorageKey<String>('pageMain')),
+      //CwImage(key: CoreDesigner.of().imageKey),
+      // MaterialColorPicker(
+      //     onColorChange: (Color color) {
+      //       debugPrint(color.toString());
+      //     },
+      //     onMainColorChange: (ColorSwatch<dynamic>? color) {
+      //       debugPrint(color!.value.toString());
+      //     },
+      //     selectedColor: Colors.red)
     ]));
   }
 
-  Widget getDesignPan() {
-    CWWidgetCtx ctxQuery = CWWidgetCtx('', CWApplication.of().loaderModel, '');
-    ctxQuery.designEntity = CWApplication.of()
-        .loaderModel
-        .collectionWidget
-        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
 
-    CWWidgetCtx ctxPages = CWWidgetCtx('', CWApplication.of().loaderModel, '');
-    ctxPages.designEntity = CWApplication.of()
-        .loaderModel
-        .collectionWidget
-        .createEntityByJson('CWArray', {'providerName': 'PagesProvider'});
 
-    return Row(children: [
-      SizedBox(
-        width: 300,
-        child: WidgetTab(heightTab: 40, listTab: const [
-          Tab(icon: Tooltip(message: 'Navigation', child: Icon(Icons.near_me))),
-          Tab(icon: Tooltip(message: 'Data', child: Icon(Icons.manage_search)))
-        ], listTabCont: [
-          DesignerPages(ctx: ctxPages),
-          Column(
-            children: [
-              Expanded(child: DesignerQuery(ctx: ctxQuery)),
-              const Divider(thickness: 1, height: 1),
-              Expanded(child: DesignerProvider(ctx: ctxQuery))
-            ],
-          )
-        ]),
-      ),
-      Expanded(child: widget.designView),
-      SizedBox(
-          //  margin: new EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
-          width: 300,
-          child: getTabProperties())
-    ]);
-    // return SplitPane(
-    //     child1: getDesignerBody(),
-    //     child2: Container(
-    //       color: Colors.red,
-    //       width: 300,
-    //     ));
-  }
-
-  Widget getTabProperties() {
-    final List<Widget> listTab = <Widget>[];
-    listTab.add(const Tab(
-      // height: 30,
-      icon: Icon(Icons.edit_note),
-    ));
-
-    listTab.add(const Tab(
-      // height: 30,
-      icon: Icon(Icons.widgets),
-    ));
-
-    final List<Widget> listTabCont = <Widget>[];
-
-    listTabCont.add(SingleChildScrollView(
-        key: const PageStorageKey<String>('pageProp'),
-        controller: widget.scrollPropertiesController,
-        scrollDirection: Axis.vertical,
-        child: DesignerProp(key: CoreDesigner.of().propKey)));
-
-    listTabCont.add(SingleChildScrollView(
-        key: const PageStorageKey<String>('pageWidget'),
-        controller: widget.scrollComponentController,
-        scrollDirection: Axis.vertical,
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: ComponentDesc.getListComponent))); // const Steps());
-
-    return WidgetTab(
-        heightTab: 40,
-        onController: (TabController a) {
-          widget.controllerTabRight = a;
-        },
-        listTab: listTab,
-        listTabCont: listTabCont);
-  }
 }
 /////////////////////////////////////////////////////////////////
 

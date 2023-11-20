@@ -11,8 +11,106 @@ import '../test_loader.dart';
 import 'application_manager.dart';
 import 'cw_factory.dart';
 import 'designer.dart';
+import 'designer_selector_component.dart';
+import 'designer_selector_pages.dart';
+import 'designer_selector_properties.dart';
+import 'designer_selector_provider.dart';
+import 'designer_selector_query.dart';
+import 'widget/widget_tab.dart';
 
 final log = Logger('DesignerView');
+
+// ignore: must_be_immutable
+class DesignerEditor extends StatelessWidget {
+  DesignerEditor({super.key});
+
+  late TabController controllerTabRight;
+
+  final ScrollController scrollComponentController = ScrollController(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+  );
+
+  final ScrollController scrollPropertiesController = ScrollController(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    CWWidgetCtx ctxQuery = CWWidgetCtx('', CWApplication.of().loaderModel, '');
+    ctxQuery.designEntity = CWApplication.of()
+        .loaderModel
+        .collectionWidget
+        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
+
+    CWWidgetCtx ctxPages = CWWidgetCtx('', CWApplication.of().loaderModel, '');
+    ctxPages.designEntity = CWApplication.of()
+        .loaderModel
+        .collectionWidget
+        .createEntityByJson('CWArray', {'providerName': 'PagesProvider'});
+
+    return Row(children: [
+      SizedBox(
+        width: 300,
+        child: WidgetTab(heightTab: 40, listTab: const [
+          Tab(icon: Tooltip(message: 'Navigation', child: Icon(Icons.near_me))),
+          Tab(icon: Tooltip(message: 'Data', child: Icon(Icons.manage_search)))
+        ], listTabCont: [
+          DesignerPages(ctx: ctxPages),
+          Column(
+            children: [
+              Expanded(child: DesignerQuery(ctx: ctxQuery)),
+              const Divider(thickness: 1, height: 1),
+              Expanded(
+                  child:
+                      DesignerProvider(key: CoreDesigner.of().providerKey, ctx: ctxQuery))
+            ],
+          )
+        ]),
+      ),
+      Expanded(child: CoreDesigner.of().designView),
+      SizedBox(width: 300, child: getTabProperties())
+    ]);
+  }
+
+    Widget getTabProperties() {
+    final List<Widget> listTab = <Widget>[];
+    listTab.add(const Tab(
+      // height: 30,
+      icon: Icon(Icons.edit_note),
+    ));
+
+    listTab.add(const Tab(
+      // height: 30,
+      icon: Icon(Icons.widgets),
+    ));
+
+    final List<Widget> listTabCont = <Widget>[];
+
+    listTabCont.add(SingleChildScrollView(
+        key: const PageStorageKey<String>('pageProp'),
+        controller: scrollPropertiesController,
+        scrollDirection: Axis.vertical,
+        child: DesignerProp(key: CoreDesigner.of().propKey)));
+
+    listTabCont.add(SingleChildScrollView(
+        key: const PageStorageKey<String>('pageWidget'),
+        controller: scrollComponentController,
+        scrollDirection: Axis.vertical,
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: ComponentDesc.getListComponent))); // const Steps());
+
+    return WidgetTab(
+        heightTab: 40,
+        onController: (TabController a) {
+          controllerTabRight = a;
+        },
+        listTab: listTab,
+        listTabCont: listTabCont);
+  }
+}
 
 // ignore: must_be_immutable
 class DesignerView extends StatefulWidget {
@@ -38,6 +136,17 @@ class DesignerView extends StatefulWidget {
     loader?.ctxLoader.factory.mapWidgetByXid.clear();
   }
 
+  void clearAll() {
+    rebuild();
+    loader = null;
+    isLoad = false;
+    var loaderDesigner = CWApplication.of().loaderDesigner;
+    loaderDesigner.entityCWFactory =
+        loaderDesigner.collectionWidget.createEntity('CWFactory');
+    loaderDesigner.factory = WidgetFactoryEventHandler(loaderDesigner);
+    loaderDesigner.setModeRendering(ModeRendering.design);
+  }
+
   void repaintAll() {
     // ignore: invalid_use_of_protected_member
     CoreDesigner.of().designerKey.currentState?.setState(() {});
@@ -47,6 +156,8 @@ class DesignerView extends StatefulWidget {
   }
 
   bool isLoad = false;
+  bool isEventInit = false;
+
   Future<Widget> getPageRoot({ModeRendering? mode}) async {
     loader ??= CWLoaderTest(CWApplication.of().loaderDesigner);
     if (mode != null) {
@@ -54,8 +165,8 @@ class DesignerView extends StatefulWidget {
       loader?.ctxLoader.setModeRendering(mode);
     }
 
-    if (!isLoad) {
-      isLoad = true;
+    if (!isEventInit) {
+      isEventInit = true;
       log.fine('init event listener');
       CoreDesigner.on(CDDesignEvent.preview, (arg) {
         bool isPreviewMode = arg as bool;
@@ -65,34 +176,40 @@ class DesignerView extends StatefulWidget {
         rebuild();
         repaintAll();
       });
+    }
+
+    if (!isLoad) {
+      isLoad = true;
       await (loader as CWLoaderTest).loadCWFactory();
       // await Future.delayed(const Duration(
       //     milliseconds: 500)); // pour faire apparaitre le tournicotton
       log.fine('get loadCWFactory from BDD OK');
     }
 
-    if (rootWidget != null) return rootWidget!;
+    if (rootWidget == null) {
+      log.fine('create root widget by browsing Json');
+      rootWidget = loader!.getWidget('root', 'root');
+      var app = CWApplication.of();
+      // init les data models
+      log.fine('init dataModels Provider for design');
+      await app.dataModelProvider.getItemsCount((rootWidget as CWWidget).ctx);
 
-    log.fine('create root widget by browsing Json');
-    rootWidget = loader!.getWidget('root', 'root');
-    var app = CWApplication.of();
-    // init les data models
-    log.fine('init dataModels Provider for design');
-    await app.dataModelProvider.getItemsCount((rootWidget as CWWidget).ctx);
+      log.fine('init dataFilters for design');
+      StoreDriver storage = await StoreDriver.getDefautDriver('main')!;
+      var filters = await storage.getJsonData('filters', null);
+      List<dynamic> listFilter = filters['listData'];
+      for (var aFilterData in listFilter) {
+        var aFilter = CoreDataFilter();
+        aFilter.initFilterWithData(aFilterData);
+        CWApplication.of().mapFilters[aFilter.dataFilter.value['_id_']] =
+            aFilter;
+      }
 
-    log.fine('init dataFilters for design');
-    StoreDriver storage = await StoreDriver.getDefautDriver('main')!;
-    var filters = await storage.getJsonData('filters', null);
-    List<dynamic> listFilter = filters['listData'];
-    for (var aFilterData in listFilter) {
-      var aFilter = CoreDataFilter();
-      aFilter.initFilterWithData(aFilterData);
-      CWApplication.of().mapFilters[aFilter.dataFilter.value['_id_']] = aFilter;
-    }
-
-    log.fine('init virtual widget');
-    for (var widVir in loader!.ctxLoader.factory.mapWidgetVirtualByXid.values) {
-      widVir.init();
+      log.fine('init virtual widget');
+      for (var widVir
+          in loader!.ctxLoader.factory.mapWidgetVirtualByXid.values) {
+        widVir.init();
+      }
     }
 
     return rootWidget!;

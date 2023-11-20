@@ -5,7 +5,7 @@ import 'package:xui_flutter/designer/application_manager.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
-import 'designer_query.dart';
+import 'designer_selector_query.dart';
 
 class DesignerProvider extends CWWidgetMap {
   const DesignerProvider({super.key, required super.ctx});

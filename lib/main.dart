@@ -64,6 +64,7 @@ void main() async {
   Logger.root.onRecord.listen((record) {
     // ignore: avoid_print
 
+    // ignore: avoid_print
     print(
         '$white${formatter.format(record.time)}-${record.time.millisecond.toString().padLeft(3, '0')}$reset [$green${record.loggerName.padRight(20)}$reset] ${record.level.name.padRight(6)}: $yellow${record.message}$reset');
 
@@ -96,8 +97,8 @@ void main() async {
 
   CoreDesigner();
   Widget view = CoreDesigner.of();
-  bool m = const bool.fromEnvironment('mode', defaultValue: false);
-  if (m) {
+  bool modeview = const bool.fromEnvironment('modeview', defaultValue: false);
+  if (modeview) {
     view = await CoreDesigner.of()
         .designView
         .getPageRoot(mode: ModeRendering.view);

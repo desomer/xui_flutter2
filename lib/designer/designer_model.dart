@@ -11,6 +11,7 @@ import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import 'help/widget_help_bounce.dart';
 
+/// la liste des model
 class DesignerListModel extends StatefulWidget {
   const DesignerListModel({super.key});
 
@@ -96,31 +97,55 @@ class OnSelectModel extends CoreDataAction {
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-class DesignerModel extends StatefulWidget {
+
+class DesignerModel extends StatelessWidget {
   const DesignerModel({super.key});
 
   @override
-  State<DesignerModel> createState() => _DesignerModelState();
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black26,
+      child: Stack(
+        children: [
+          Positioned(
+              left: 20,
+              top: 20,
+              width: 300,
+              child: Container(
+                  decoration:
+                      BoxDecoration(border: Border.all(color: Colors.grey)),
+                  child: const DesignerListAttribut()))
+        ],
+      ),
+    );
+  }
 }
 
-class _DesignerModelState extends State<DesignerModel> {
+/// le model (liste des attributs)
+class DesignerListAttribut extends StatefulWidget {
+  const DesignerListAttribut({super.key});
+
+  @override
+  State<DesignerListAttribut> createState() => _DesignerListAttributState();
+}
+
+class _DesignerListAttributState extends State<DesignerListAttribut> {
   @override
   Widget build(BuildContext context) {
-    CWProvider providerAttr = CWApplication.of().dataAttributProvider;
+    var app = CWApplication.of();
+    CWProvider providerAttr = app.dataAttributProvider;
 
-    if (CWApplication.of().dataModelProvider.getData().idxSelected > -1) {
-      var name = CWApplication.of()
-              .dataModelProvider
-              .getSelectedEntity()
-              ?.value['name'] ??
-          '?';
+    if (app.dataModelProvider.getData().idxSelected > -1) {
+      var name =
+          app.dataModelProvider.getSelectedEntity()?.value['name'] ?? '?';
       providerAttr.header!.value['label'] = name;
     }
+
     var ab = ArrayBuilder();
     var arr = ab.getCWArray(
       'rootAttr',
       providerAttr,
-      CWApplication.of().loaderModel,
+      app.loaderModel,
       'ReorderList',
     );
 

@@ -5,7 +5,7 @@ import '../../core/data/core_provider.dart';
 import '../../core/widget/cw_core_loader.dart';
 import '../../core/widget/cw_core_widget.dart';
 import '../designer.dart';
-import '../widget_properties.dart';
+import '../designer_selector_properties.dart';
 import 'form_builder.dart';
 
 class PropBuilder {

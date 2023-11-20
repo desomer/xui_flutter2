@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/widget/cw_core_selector_overlay_action.dart';
+import 'package:xui_flutter/designer/action_manager.dart';
 
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import '../designer/designer.dart';
+import '../designer/designer_selector_component.dart';
 import 'cw_router.dart';
 
 final log = Logger('CWFrameDesktop');
@@ -58,11 +60,6 @@ class CWFrameDesktop extends CWWidget {
     }
   }
 
-  Color? getColor(String id) {
-    String? v = ctx.designEntity!.value[id]?['color'];
-    return v != null ? Color(int.parse(v, radix: 16)) : null;
-  }
-
   bool isFill() {
     return ctx.designEntity!.getBool('fill', false);
   }
@@ -97,14 +94,29 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     ]);
   }
 
+  Color lightenOrDarken(bool dark, Color color, [double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+
+    final hsl = HSLColor.fromColor(color);
+    HSLColor? hslColor;
+    if (dark) {
+      hslColor = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    } else {
+      hslColor = hsl.withLightness((hsl.lightness + amount).clamp(0.0, 1.0));
+    }
+    return hslColor.toColor();
+  }
+
   Widget getRouterWithCache(BuildContext context) {
     var nb = widget.nbBtnBottomNavBar();
     if (nb == 0) nb = 1;
 
-    Color mainColor = widget.getColor('color') ?? Colors.white;
+    Color mainColor = widget.getColor('color') ??
+        (widget.isDark() ? Colors.grey.shade900 : Colors.white);
     //Color? backColor = widget.getColor('bgcolor');
-    Color barForegorundColor =
-        (mainColor.computeLuminance() > 0.300) ? Colors.black : Colors.white;
+    Color barForegorundColor = (mainColor.computeLuminance() > 0.400)
+        ? lightenOrDarken(true, mainColor, 0.5) // dark
+        : lightenOrDarken(false, mainColor, 0.5);
 
     var colorScheme2 = ColorScheme.fromSeed(
         seedColor: mainColor,
@@ -267,7 +279,8 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
             child: CWSlot(
                 type: 'body',
                 key: GlobalKey(debugLabel: 'slot body'),
-                ctx: widget.createChildCtx(widget.ctx, 'Body$idx', null)))
+                ctx: widget.createChildCtx(widget.ctx, 'Body$idx', null),
+                slotAction: SlotBodyAction()))
       ]);
     } else {
       return NotificationListener<ScrollNotification>(
@@ -281,9 +294,95 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
               CWSlot(
                   type: 'body',
                   key: GlobalKey(debugLabel: 'slot body'),
-                  ctx: widget.createChildCtx(widget.ctx, 'Body$idx', null))
+                  ctx: widget.createChildCtx(widget.ctx, 'Body$idx', null),
+                  slotAction: SlotBodyAction())
             ]),
           ));
     }
+  }
+}
+
+class SlotBodyAction extends SlotAction {
+  @override
+  bool addBottom(CWWidgetCtx ctx) {
+    // int ic = ctx.pathWidget.lastIndexOf('.Cont');
+    // int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
+    CWWidget root = ctx.getParentCWWidget() as CWWidget;
+
+    String path = ctx.pathWidget;
+    CWWidget? last = ctx.findWidgetByPath(path);
+
+    CWWidget colWidget = DesignActionManager()
+        .doCreate(ctx, ComponentDesc('', Icons.abc, 'CWColumn'));
+
+    if (last != null) {
+      String pathTo = '${colWidget.ctx.pathWidget}.Cont0';
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        var v2 = ctx.findSlotByPath(pathTo);
+        DesignActionManager().doMoveWidget(last, v2!.ctx);
+        root.repaint();
+        Future.delayed(const Duration(milliseconds: 100), () {
+         // CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
+        });
+      });
+    }
+
+    // int nbChild = parent.getNbChild(parent.getDefChild());
+
+    // if (idxChild < nbChild - 1) {
+    //   debugPrint('move $idxChild');
+
+    //   var v2 = ctx.findSlotByPath(pathTo);
+    //   if (v != null) {
+    //     DesignActionManager().doSwap(v.ctx.getSlot()!.ctx, v2!.ctx);
+    //   }
+    // }
+    return true;
+  }
+
+  @override
+  bool addTop(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool canAddBottom() {
+    return true;
+  }
+
+  @override
+  bool canAddTop() {
+    return true;
+  }
+
+  @override
+  bool canDelete() {
+    return true;
+  }
+
+  @override
+  bool canMoveBottom() {
+    return true;
+  }
+
+  @override
+  bool canMoveTop() {
+    return true;
+  }
+
+  @override
+  bool doDelete(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool moveBottom(CWWidgetCtx ctx) {
+    return true;
+  }
+
+  @override
+  bool moveTop(CWWidgetCtx ctx) {
+    return true;
   }
 }

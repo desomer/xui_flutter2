@@ -4,7 +4,7 @@ import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/designer.dart';
 import 'package:xui_flutter/designer/selector_manager.dart';
-import 'package:xui_flutter/designer/widget_component.dart';
+import 'package:xui_flutter/designer/designer_selector_component.dart';
 
 class DragCtx {
   DragCtx(this.component, this.srcWidgetCtx);
@@ -78,6 +78,16 @@ class DesignActionManager {
     }
   }
 
+  void doMoveWidget(CWWidget wid, CWWidgetCtx toCtxSlot)
+  {
+    var aLoader = CoreDesigner.ofLoader().ctxLoader;
+    CoreDataPath path = aLoader.entityCWFactory
+        .getPath(aLoader.collectionWidget, wid.ctx.pathDataCreate!);
+    CoreDataEntity cwchild = path.remove(false);
+    _move(toCtxSlot, wid, cwchild, toCtxSlot);
+  }
+
+
   void doMove(CWWidgetCtx ctxSlot, CWWidgetCtx toCtxSlot,
       {bool repaint = true}) {
     CWWidget? child = ctxSlot.getWidgetInSlot();
@@ -139,8 +149,8 @@ class DesignActionManager {
     });
   }
 
-  void doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
-    _doCreate(toCtxSlot, desc);
+  CWWidget doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
+    var cmp = _doCreate(toCtxSlot, desc);
 
     final rootWidget = toCtxSlot.factory.mapWidgetByXid['root']!;
     rootWidget.initSlot('root');
@@ -153,10 +163,12 @@ class DesignActionManager {
     Future.delayed(const Duration(milliseconds: 100), () {
       CoreDesigner.emit(CDDesignEvent.reselect, null);
     });
+
+    return cmp;
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
-  void _doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
+  CWWidget _doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
     String newXid = desc.impl + customAlphabet('1234567890abcdef', 10);
 
     String pathCreate =
@@ -176,6 +188,7 @@ class DesignActionManager {
     newWidget.ctx.pathDataCreate = pathCreate;
     toCtxSlot.factory.mapChildXidByXid[toCtxSlot.xid] = newXid;
     newWidget.ctx.xid = newXid;
+    return newWidget;
   }
 
   void _move(CWWidgetCtx toCtxSlot, CWWidget child, CoreDataEntity cwchild,
@@ -185,7 +198,8 @@ class DesignActionManager {
 
     final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, ctxSlot.loader,
         '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
-
+        
+    //recrer un composant
     CoreDataCtx ctx = CoreDataCtx();
     ctx.payload = ctxW;
     final CoreDataObjectBuilder wid =

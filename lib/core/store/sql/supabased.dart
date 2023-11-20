@@ -78,7 +78,7 @@ class SupabaseDriver extends StoreDriver {
         .eq('idData', 'Home')
         .eq('idCustomer', idCustomer)
         .eq('idNamespace', idNamespace);
-    
+
     var ret = await query;
     var result = [];
     if (ret is List) {
@@ -164,7 +164,7 @@ class SupabaseDriver extends StoreDriver {
           'idData': '${data['_id_']}',
           'json': data
         }
-      ]); 
+      ]);
     } else if (data[CoreDataEntity.cstTypeAttr] == 'DataContainer') {
       // save data & model
       for (var element in data['listData']) {
@@ -199,15 +199,25 @@ class SupabaseDriver extends StoreDriver {
 
   @override
   Future deleteData(String idTable, List data) async {
-    for (var element in data) {
+    if (idTable == '#pages') {
       await client['main']!
-          .from('ListModel')
+          .from('ListApp')
           .delete()
-          .eq('idTable', idTable)
           .eq('idCustomer', idCustomer)
           .eq('idNamespace', idNamespace)
-          .eq('idData', element['_id_']);
-      debugPrint('delete row $idTable $element');
+          .eq('idData', 'Home');
+      debugPrint('delete row app');
+    } else {
+      for (var element in data) {
+        await client['main']!
+            .from('ListModel')
+            .delete()
+            .eq('idTable', idTable)
+            .eq('idCustomer', idCustomer)
+            .eq('idNamespace', idNamespace)
+            .eq('idData', element['_id_']);
+        debugPrint('delete row $idTable $element');
+      }
     }
   }
 
