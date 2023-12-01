@@ -32,14 +32,14 @@ class ArrayBuilder {
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);
 
-    var filterMgr = CoreDataFilter()..setFilterData(query);
+    var aFilter = CoreDataFilter()..setFilterData(query);
 
-    CWProvider provider =
-        CWProviderCtx.createFromTable(filterMgr.getModel(), widget.ctx, filter: filterMgr);
+    CWProvider provider = CWProviderCtx.createFromTable(
+        aFilter.getModelID(), widget.ctx,
+        filter: aFilter);
 
     _createDesign(widget.ctx.loader, provider, 'Array', widget.ctx.xid,
         widget.ctx.pathWidget, false);
-
 
     CoreDesigner.ofView().rebuild();
     // ignore: invalid_use_of_protected_member
@@ -71,7 +71,7 @@ class ArrayBuilder {
         'root', 'provider_${provider.name}', 'CWProvider', <String, dynamic>{
       'type': provider.type,
       'providerName': provider.name,
-      'filter' : provider.getFilter()?.dataFilter.value['_id_']
+      'filter': provider.getFilter()?.dataFilter.value['_id_']
     });
 
     if (isRoot) {

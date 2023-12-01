@@ -1,6 +1,7 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:xui_flutter/designer/widget_filter_builder.dart';
 
 import '../core/data/core_data_filter.dart';
 import '../core/store/driver.dart';
@@ -60,11 +61,13 @@ class DesignerEditor extends StatelessWidget {
           DesignerPages(ctx: ctxPages),
           Column(
             children: [
-              Expanded(child: DesignerQuery(ctx: ctxQuery)),
+              Expanded(
+                  child: DesignerQuery(
+                      mode: FilterBuilderMode.selector, ctx: ctxQuery)),
               const Divider(thickness: 1, height: 1),
               Expanded(
-                  child:
-                      DesignerProvider(key: CoreDesigner.of().providerKey, ctx: ctxQuery))
+                  child: DesignerProvider(
+                      key: CoreDesigner.of().providerKey, ctx: ctxQuery))
             ],
           )
         ]),
@@ -74,7 +77,7 @@ class DesignerEditor extends StatelessWidget {
     ]);
   }
 
-    Widget getTabProperties() {
+  Widget getTabProperties() {
     final List<Widget> listTab = <Widget>[];
     listTab.add(const Tab(
       // height: 30,
@@ -200,7 +203,7 @@ class DesignerView extends StatefulWidget {
       List<dynamic> listFilter = filters['listData'];
       for (var aFilterData in listFilter) {
         var aFilter = CoreDataFilter();
-        aFilter.initFilterWithData(aFilterData);
+        aFilter.createFilterWithData(aFilterData);
         CWApplication.of().mapFilters[aFilter.dataFilter.value['_id_']] =
             aFilter;
       }

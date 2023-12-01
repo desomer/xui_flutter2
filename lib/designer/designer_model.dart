@@ -4,7 +4,6 @@ import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/builder/array_builder.dart';
-import 'package:xui_flutter/designer/designer.dart';
 import 'package:xui_flutter/designer/widget_crud.dart';
 
 import '../core/data/core_data.dart';
@@ -14,6 +13,7 @@ import 'help/widget_help_bounce.dart';
 /// la liste des model
 class DesignerListModel extends StatefulWidget {
   const DesignerListModel({super.key});
+
 
   @override
   State<DesignerListModel> createState() {
@@ -76,23 +76,29 @@ class OnSelectModel extends CoreDataAction {
     CoreGlobalCache.saveCache(CWApplication.of().dataProvider);
     CoreGlobalCache.saveCache(CWApplication.of().dataModelProvider);
 
-    var name = event!.provider?.getSelectedEntity()!.value['name'];
+    var selectedModel = event!.provider?.getSelectedEntity();
+    changeLabel(selectedModel!);
 
+    // chargement
+    CWApplication.of().bindFilter.onSelect(selectedModel);
+    CWApplication.of().bindData.onSelect(selectedModel);
+
+  }
+
+  void changeLabel(CoreDataEntity selectedModel) {
+    var name = selectedModel.value['name'];
+    
     CWApplication.of()
         .loaderModel
         .findByXid('rootAttrTitle0')!
         .changeProp('label', name);
-
-    CWApplication.of()
+    
+    CWApplication.of() 
         .loaderData
         .findByXid('rootDataTitle0')
         ?.changeProp('label', name);
-
+    
     CWApplication.of().loaderModel.findWidgetByXid('rootAttrExp')?.repaint();
-    // ignore: invalid_use_of_protected_member
-    CoreDesigner.of().dataFilterKey.currentState?.setState(() {});
-    // ignore: invalid_use_of_protected_member
-    CoreDesigner.of().dataKey.currentState?.setState(() {});
   }
 }
 

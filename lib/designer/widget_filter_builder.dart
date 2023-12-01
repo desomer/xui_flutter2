@@ -9,42 +9,78 @@ import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
 import '../core/store/driver.dart';
+import '../core/widget/cw_core_bind.dart';
 import '../widget/cw_array.dart';
 import '../widget/cw_textfield.dart';
+
+enum FilterBuilderMode { data, query, selector }
 
 ////////////////////////////////////////////////////////////////////////////////
 // ignore: must_be_immutable
 class WidgetFilterbuilder extends StatefulWidget {
-  WidgetFilterbuilder({super.key});
+  WidgetFilterbuilder({required this.mode, super.key, this.bindWidget}) {
+    if (bindWidget != null) {
+      bindWidget!.fctBindNested = (CoreDataEntity item) {
+        if (mode == FilterBuilderMode.data) {
+          String? idModel = item.getString('_id_');
+          initFilterOnData(idModel);
+        }
+        if (mode == FilterBuilderMode.query) {
+          var aFilter = CoreDataFilter();
+          aFilter.createFilterWithData(item.value);
+          filter = aFilter;
+        }
+      };
+    }
+  }
 
   CoreDataFilter? filter;
+  FilterBuilderMode mode;
+  final CWBindWidget? bindWidget;
 
   @override
   State<WidgetFilterbuilder> createState() => _WidgetFilterbuilderState();
+
+  void initFilterOnData(String? idModel) {
+    if (idModel != null) {
+      CWProvider providerData = CWApplication.of().dataProvider;
+      providerData.type = idModel;
+      CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
+      dataLoader.setCacheViewID(providerData.getProviderCacheID(),
+          onTable: idModel); // choix de la map a afficher
+      if (providerData.loader!.getFilter() == null) {
+        var aFilter = CoreDataFilter();
+        aFilter.createFilter(idModel, 'preview');
+        filter = aFilter;
+        var group = filter!.addGroup(aFilter.dataFilter);
+        filter!.addClause(group);
+        providerData.setFilter(filter);
+      }
+      filter = providerData.loader!.getFilter();
+      providerData.setFilter(filter);
+    } else {
+      filter = CoreDataFilter()..createFilter('?', '?');
+    }
+  }
 }
 
 class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
   @override
   void initState() {
     super.initState();
+    widget.bindWidget?.nestedWidgetState = this;
   }
 
   @override
   Widget build(BuildContext context) {
-    String? idModel = CWApplication.of()
-        .dataModelProvider
-        .getSelectedEntity()
-        ?.getString('_id_');
-
-    initFilter(idModel);
-
+    widget.bindWidget?.nestedWidgetState = this;
     CoreDataCollection c = CWApplication.of().collection;
-    CoreDataPath? listGroup = widget.filter!.dataFilter.getPath(c, 'listGroup');
+    CoreDataPath? listGroup = widget.filter?.dataFilter.getPath(c, 'listGroup');
 
     List<Widget> listGroupWidget = [];
     int i = 0;
 
-    for (Map<String, dynamic> r in listGroup.value) {
+    for (Map<String, dynamic> r in listGroup?.value ?? []) {
       listGroupWidget.add(WidgetQueryGroup(
           key: ValueKey(r.hashCode), widget.filter!, 'listGroup[$i]', 0));
       i++;
@@ -54,43 +90,25 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
         margin: const EdgeInsets.all(5),
         child: Row(children: [
           Expanded(child: Column(key: GlobalKey(), children: listGroupWidget)),
-          IconButton(
-              onPressed: () {
-                saveFilter(context);
-              },
-              icon: const Icon(Icons.bookmark_add)),
-          IconButton(
-              onPressed: () async {
-                await CoreGlobalCache.saveCache(
-                    CWApplication.of().dataProvider);
-                await CoreGlobalCache.saveCache(
-                    CWApplication.of().dataModelProvider);
-                refreshData();
-              },
-              icon: const Icon(Icons.search_rounded))
+          Visibility(
+              visible: listGroupWidget.isNotEmpty,
+              child: IconButton(
+                  onPressed: () {
+                    saveFilter(context);
+                  },
+                  icon: const Icon(Icons.bookmark_add))),
+          Visibility(
+              visible: listGroupWidget.isNotEmpty,
+              child: IconButton(
+                  onPressed: () async {
+                    await CoreGlobalCache.saveCache(
+                        CWApplication.of().dataProvider);
+                    await CoreGlobalCache.saveCache(
+                        CWApplication.of().dataModelProvider);
+                    refreshData();
+                  },
+                  icon: const Icon(Icons.search_rounded)))
         ]));
-  }
-
-  void initFilter(String? idModel) {
-    if (idModel != null) {
-      CWProvider providerData = CWApplication.of().dataProvider;
-      providerData.type = idModel;
-      CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-      dataLoader.setCacheViewID(providerData.getProviderCacheID(),
-          onTable: idModel); // choix de la map a afficher
-      if (providerData.loader!.getFilter() == null) {
-        var aFilter = CoreDataFilter();
-        aFilter.initFilter(idModel, 'preview');
-        widget.filter = aFilter;
-        var group = widget.filter!.addGroup(aFilter.dataFilter);
-        widget.filter!.addClause(group);
-        providerData.setFilter(widget.filter);
-      }
-      widget.filter = providerData.loader!.getFilter();
-      providerData.setFilter(widget.filter);
-    } else {
-      widget.filter = CoreDataFilter()..initFilter('?', '?');
-    }
   }
 
   void refreshData() {
@@ -146,10 +164,9 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
                 storage!.setData('filters', widget.filter!.dataFilter.value);
 
                 CWProvider providerData = CWApplication.of().dataProvider;
+                // recharge un filter vide
                 providerData.loader!.setFilter(providerData, null);
-                setState(() {
-                  // recharge
-                });
+                setState(() {});
                 refreshData();
               },
             ),
@@ -347,7 +364,9 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
     var c = CWApplication.of().collection;
     path = widget.filter.dataFilter.getPath(c, widget.pathFilter);
     _controller.text = path.getLastEntity().value['value1'] ?? '';
+    
     bool isEmpty = path.getLastEntity().value['colId'] == null;
+    dropdownvalue = path.getLastEntity().value['operator'] ?? '=';
 
     return Row(
       children: [
@@ -388,7 +407,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
               // print('b ${pathGroup.getLastEntity().value}');
               (pathGroup.getLastEntity().value['listGroup'] as List)
                   .remove(remove);
-              // print('f ${pathGroup.getLastEntity().value}');
+
               CoreDesigner.of().dataFilterKey.currentState?.setState(() {});
             } else {
               (path.value as Map).remove('colId');
@@ -507,10 +526,9 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
     }, onAccept: (item) {
       setState(() {
         var c = CWApplication.of().collection;
-        var listAttr = CWApplication.of()
-            .dataModelProvider
-            .getSelectedEntity()!
-            .value['listAttr'];
+        var tableEntity = CWApplication.of().getTableModelByID(widget.filter.getModelID());
+        var listAttr = tableEntity.value['listAttr'];
+
         attribut =
             c.createEntityByJson('ModelAttributs', listAttr[item.idxCol]);
 
@@ -540,8 +558,10 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
     var c = CWApplication.of().collection;
     var vd = widget.filter.dataFilter.getPath(c, widget.pathFilter);
     String? colId = vd.getLastEntity().value['colId'];
+    String idTable = widget.filter.getModelID();
+
     if (colId != null) {
-      attribut = CWApplication.of().getCurrentAttributById(colId);
+      attribut = CWApplication.of().getAttributById(idTable, colId);
     } else {
       attribut = null;
     }

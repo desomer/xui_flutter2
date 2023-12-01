@@ -5,6 +5,7 @@ import '../core/data/core_data_filter.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_expand_panel.dart';
@@ -159,6 +160,10 @@ class CWApplication {
     _initProvider();
   }
 
+  CWBindWidget bindFilter = CWBindWidget(ModeBindWidget.selected);
+  CWBindWidget bindData = CWBindWidget(ModeBindWidget.selected);
+  CWBindWidget bindDataQuery = CWBindWidget(ModeBindWidget.selected);
+
   void _initProvider() {
     dataModelProvider.header =
         collection.createEntityByJson('DataHeader', {'label': 'Entity'});
@@ -217,11 +222,28 @@ class CWApplication {
 
   //////////////////////////////////////////////////////////////////////////
 
-  CoreDataEntity? getCurrentAttributById(String id) {
-    var v = getAttributValueById(
-        CWApplication.of().dataModelProvider.getSelectedEntity()!, id);
+  CoreDataEntity getTableModelByID(String id) {
+    List<CoreDataEntity> listTableEntity = dataModelProvider.content;
+    var tableEntity = listTableEntity
+        .firstWhere((CoreDataEntity element) => element.value['_id_'] == id);
+    return tableEntity;
+  }
+
+  CoreDataEntity? getAttributById(String table, String id) {
+    var v = getAttributValueById(getTableModelByID(table), id);
     if (v != null) {
-      var ent = CWApplication.of().collection.createEntity(v[r'$type']);
+      var ent = collection.createEntity(v[r'$type']);
+      ent.value = v;
+      return ent;
+    } else {
+      return null;
+    }
+  }
+
+  CoreDataEntity? getCurrentAttributById(String id) {
+    var v = getAttributValueById(dataModelProvider.getSelectedEntity()!, id);
+    if (v != null) {
+      var ent = collection.createEntity(v[r'$type']);
       ent.value = v;
       return ent;
     } else {

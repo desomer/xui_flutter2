@@ -1,6 +1,7 @@
 import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:xui_flutter/core/widget/cw_core_bind.dart';
 import 'package:xui_flutter/db_icon_icons.dart';
 
 import '../core/data/core_data.dart';
@@ -9,9 +10,14 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
+import 'widget_filter_builder.dart';
 
 class DesignerQuery extends CWWidgetMap {
-  const DesignerQuery({super.key, required super.ctx});
+  const DesignerQuery(
+      {required this.mode, super.key, required super.ctx, this.listBindWidget});
+
+  final FilterBuilderMode mode;
+  final List<CWBindWidget>? listBindWidget;
 
   @override
   State<DesignerQuery> createState() => _DesignerQueryState();
@@ -31,6 +37,9 @@ class _DesignerQueryState extends State<DesignerQuery> {
   void initState() {
     super.initState();
     provider = CWProvider.of(widget.ctx)!;
+    for (CWBindWidget element in widget.listBindWidget ?? []) {
+      element.masterProvider = provider;
+    }
   }
 
   @override
@@ -75,6 +84,9 @@ class _DesignerQueryState extends State<DesignerQuery> {
           _controller!.expandAllChildren(nodesRemovedIndexedTree);
         },
         onItemTap: (item) {
+          for (CWBindWidget element in widget.listBindWidget ?? []) {
+            element.onSelect(item.data!);
+          }
           // ScaffoldMessenger.of(context).showSnackBar(
           //   SnackBar(
           //     content: Text("Item tapped: ${item.key}"),
@@ -111,11 +123,23 @@ class _DesignerQueryState extends State<DesignerQuery> {
     } else {
       switch (node.data?.value[r'$type']) {
         case 'DataModel':
-          cell = getDrag(node, Row(  children : [const  Icon(DBIcon.database, size: 15), const SizedBox(width: 10), Text("all ${node.data?.value["name"]}")]));
+          cell = getDrag(
+              node,
+              Row(children: [
+                const Icon(DBIcon.database, size: 15),
+                const SizedBox(width: 10),
+                Text("all ${node.data?.value["name"]}")
+              ]));
           break;
         case 'DataFilter':
-          cell = getDrag(node,  Row( children : [const Icon(Icons.filter_alt_outlined, size: 20), const SizedBox(width: 10), Text("filter ${node.data?.value["name"]}")]));
-          break;          
+          cell = getDrag(
+              node,
+              Row(children: [
+                const Icon(Icons.filter_alt_outlined, size: 20),
+                const SizedBox(width: 10),
+                Text("filter ${node.data?.value["name"]}")
+              ]));
+          break;
         default:
       }
     }

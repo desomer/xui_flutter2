@@ -13,6 +13,7 @@ import 'package:xui_flutter/designer/widget/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
 import '../core/store/driver.dart';
+import '../core/widget/cw_core_bind.dart';
 import '../db_icon_icons.dart';
 import 'cw_factory.dart';
 import 'designer_model_attribut.dart';
@@ -88,7 +89,7 @@ class CoreDesigner extends StatefulWidget {
       GlobalKey(debugLabel: 'CoreDesignerdesignerKey');
   final GlobalKey propKey = GlobalKey(debugLabel: 'CoreDesigner.propKey');
 
-  final GlobalKey dataKey = GlobalKey(debugLabel: 'CoreDesigner.dataKey');
+  //final GlobalKey dataKey = GlobalKey(debugLabel: 'CoreDesigner.dataKey');
   final GlobalKey dataFilterKey =
       GlobalKey(debugLabel: 'CoreDesigner.dataFilterKey');
 
@@ -98,7 +99,6 @@ class CoreDesigner extends StatefulWidget {
   final _eventListener = EventListener();
   final editor = DesignerEditor();
   late DesignerView designView = DesignerView(key: designerKey);
-
 
   @override
   State<CoreDesigner> createState() => _CoreDesignerState();
@@ -272,18 +272,6 @@ class _CoreDesignerState extends State<CoreDesigner>
         ));
   }
 
-  Widget getQueryPan() {
-    CWWidgetCtx ctx = CWWidgetCtx('', CWApplication.of().loaderModel, '');
-    ctx.designEntity = CWApplication.of()
-        .loaderModel
-        .collectionWidget
-        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
-
-    return Row(
-      children: [SizedBox(width: 300, child: DesignerQuery(ctx: ctx))],
-    );
-  }
-
   Widget getDataPan() {
     WidgetTab tabModelDesc = WidgetTab(
       heightTab: 60,
@@ -315,8 +303,14 @@ class _CoreDesignerState extends State<CoreDesigner>
         ]),
         Column(
           children: [
-            WidgetFilterbuilder(key: widget.dataFilterKey),
-            Expanded(child: DesignerData(key: widget.dataKey))
+            WidgetFilterbuilder(
+                mode: FilterBuilderMode.data,
+                key: widget.dataFilterKey,
+                bindWidget: CWApplication.of().bindFilter),
+            Expanded(
+                child: DesignerData(
+                    /*key: widget.dataKey,*/ bindWidget:
+                        CWApplication.of().bindData))
           ],
         ),
         Container()
@@ -330,6 +324,73 @@ class _CoreDesignerState extends State<CoreDesigner>
           child: DesignerListModel(),
         ),
         Expanded(child: tabModelDesc)
+      ],
+    );
+  }
+
+  Widget getQueryPan() {
+    CWWidgetCtx ctx = CWWidgetCtx('', CWApplication.of().loaderModel, '');
+    ctx.designEntity = CWApplication.of()
+        .loaderModel
+        .collectionWidget
+        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
+
+    CWBindWidget bindFilter = CWBindWidget(ModeBindWidget.selected);
+
+    return Row(
+      children: [
+        SizedBox(
+            width: 300,
+            child: DesignerQuery(
+                mode: FilterBuilderMode.query,
+                ctx: ctx,
+                listBindWidget: [bindFilter, CWApplication.of().bindDataQuery])),
+        const VerticalDivider(thickness: 1, width: 1),
+        Expanded(
+            child: Column(
+          children: [
+            Container(
+              height: 30,
+              width: double.maxFinite,
+              padding: const EdgeInsets.all(6),
+              color: Theme.of(context).highlightColor,
+              child: const Row(children: [
+                Icon(Icons.filter_alt_outlined),
+                SizedBox(width: 10),
+                Text('Filter')
+              ]),
+            ),
+            WidgetFilterbuilder(
+                mode: FilterBuilderMode.query,
+                key: widget.dataFilterKey,
+                bindWidget: bindFilter),
+            const Divider(height: 1),
+            Expanded(
+                child: Row(children: [
+              SizedBox(
+                  width: 300,
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 30,
+                        width: double.maxFinite,
+                        padding: const EdgeInsets.all(6),
+                        color: Theme.of(context).highlightColor,
+                        child: const Row(children: [
+                          Icon(Icons.manage_search_outlined),
+                          SizedBox(width: 10),
+                          Text('Parameters')
+                        ]),
+                      )
+                    ],
+                  )),
+              const VerticalDivider(width: 1),
+              Expanded(
+                  child: DesignerData(
+                      bindWidget: CWApplication.of().bindDataQuery))
+            ]))
+          ],
+        )),
       ],
     );
   }
@@ -354,9 +415,6 @@ class _CoreDesignerState extends State<CoreDesigner>
       //     selectedColor: Colors.red)
     ]));
   }
-
-
-
 }
 /////////////////////////////////////////////////////////////////
 

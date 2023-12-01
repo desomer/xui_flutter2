@@ -70,7 +70,7 @@ class CWProviderCtx extends CWWidgetVirtual {
     if (ctx.loader.factory.mapProvider[providerName] == null) {
       CWProvider provider =
           createFromTable(ctx.designEntity!.value['type'], ctx);
-      String filterID = ctx.designEntity!.value['filter']??'none';    
+      String filterID = ctx.designEntity!.value['filter'] ?? 'none';
       provider.setFilter(CWApplication.of().mapFilters[filterID]);
       log.fine(
           'init appli provider <${provider.name}> [${provider.type}] hash = ${provider.getData().hashCode}');
@@ -81,9 +81,7 @@ class CWProviderCtx extends CWWidgetVirtual {
   static CWProvider createFromTable(String id, CWWidgetCtx ctx,
       {CoreDataFilter? filter}) {
     var app = CWApplication.of();
-    List<CoreDataEntity> listTableEntity = app.dataModelProvider.content;
-    var tableEntity = listTableEntity
-        .firstWhere((CoreDataEntity element) => element.value['_id_'] == id);
+    var tableEntity = app.getTableModelByID(id);
     app.initDataModelWithAttr(ctx.loader, tableEntity);
     CWProvider provider =
         app.getDesignDataProvider(ctx.loader, tableEntity, filter: filter);
@@ -91,6 +89,7 @@ class CWProviderCtx extends CWWidgetVirtual {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////////
 class CWProvider {
   CWProvider(this.name, this.type, this.dataSelector);
 
@@ -126,7 +125,7 @@ class CWProvider {
   void setFilter(CoreDataFilter? aFilter) {
     dataSelector.finalData.dataloader?.setCacheViewID(
         getProviderCacheID(aFilter: aFilter),
-        onTable: aFilter?.getModel() ?? type); // choix de la map a afficher
+        onTable: aFilter?.getModelID() ?? type); // choix de la map a afficher
     dataSelector.finalData.dataloader?.setFilter(this, aFilter);
   }
 

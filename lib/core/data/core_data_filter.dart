@@ -41,7 +41,7 @@ class CoreDataFilter {
     return listGroup.value;
   }
 
-  String getModel() {
+  String getModelID() {
     if (isFilter()) {
       return dataFilter.value['model'];
     } else if (isTable()) {
@@ -67,15 +67,15 @@ class CoreDataFilter {
     return buf.toString();
   }
 
-  void initFilter(String idModel, String name) {
+  void createFilter(String idModel, String name) {
     dataFilter = c.createEntityByJson('DataFilter', {'listGroup': []});
     dataFilter.setAttr(loader, 'model', idModel);
     dataFilter.setAttr(loader, 'name', name);
   }
 
-  void initFilterWithData(Map<String, dynamic> data) {
+  void createFilterWithData(Map<String, dynamic> data) {
     dataFilter = c.createEntityByJson('DataFilter', data);
-  }  
+  }
 
   bool isFilter() {
     String type = dataFilter.value[r'$type'];
