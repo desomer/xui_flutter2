@@ -1,4 +1,5 @@
 import '../core/data/core_data.dart';
+import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import 'cw_container.dart';
@@ -17,7 +18,7 @@ class CWForm extends CWColumn {
         .withAction(AttrActionDefault(1))
         .addAttr('fill', CDAttributType.bool)
         .withAction(AttrActionDefault(false))
-        .addAttr('providerName', CDAttributType.text)
+        .addAttr(iDProviderName, CDAttributType.text)
         ;
   }
   

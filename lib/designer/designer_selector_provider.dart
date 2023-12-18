@@ -4,11 +4,13 @@ import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
+import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer_selector_query.dart';
 
 class DesignerProvider extends CWWidgetMap {
-  const DesignerProvider({super.key, required super.ctx});
+  const DesignerProvider({super.key, required super.ctx, this.bindWidget});
+  final CWBindWidget? bindWidget;
 
   @override
   State<DesignerProvider> createState() => _DesignerProviderState();
@@ -20,12 +22,12 @@ class DesignerProvider extends CWWidgetMap {
 class _DesignerProviderState extends State<DesignerProvider> {
   TreeViewController? _controller;
   late IndexedTreeNode<CWProvider> nodesRemovedIndexedTree;
-  late CWProvider provider;
+ // late CWProvider provider;
 
   @override
   void initState() {
     super.initState();
-    provider = CWProvider.of(widget.ctx)!;
+   // provider = CWProvider.of(widget.ctx)!;
   }
 
   @override
@@ -54,6 +56,10 @@ class _DesignerProviderState extends State<DesignerProvider> {
           _controller!.expandAllChildren(nodesRemovedIndexedTree);
         },
         onItemTap: (item) {
+          var app = CWApplication.of(); 
+          var itemProvider = app.collection.createEntityByJson('DataHeader', {'name': item.data?.getName()??'', 'type': item.data!.type});
+          widget.bindWidget?.onSelect(itemProvider);
+          
           // ScaffoldMessenger.of(context).showSnackBar(
           //   SnackBar(
           //     content: Text("Item tapped: ${item.key}"),
@@ -88,7 +94,7 @@ class _DesignerProviderState extends State<DesignerProvider> {
     if (node.level == 0) {
       cell = const Text('Result');
     } else {
-      cell = getDrag(node, Text('all ${node.data!.name}'));
+      cell = getDrag(node, Text(node.data!.getName()));
     }
 
     return Container(
@@ -103,8 +109,7 @@ class _DesignerProviderState extends State<DesignerProvider> {
     var factory = CWApplication.of().loaderDesigner.factory;
 
     for (CWProvider aNode in factory.mapProvider.values) {
-      nodesRemovedIndexedTree
-          .add(IndexedTreeNode(key: aNode.name, data: aNode));
+      nodesRemovedIndexedTree.add(IndexedTreeNode(key: aNode.id, data: aNode));
     }
 
     return nodesRemovedIndexedTree;

@@ -276,7 +276,7 @@ class CoreDataEntity {
     }
   }
 
-  int getInt(String attr, int def) {
+  int? getInt(String attr, int? def) {
     final dynamic v = value[attr];
     if (v == null) {
       return def;

@@ -6,11 +6,9 @@ import 'package:xui_flutter/designer/cw_factory.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
-import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
-import '../designer/builder/prop_builder.dart';
 import '../designer/designer.dart';
 import '../designer/designer_selector_query.dart';
 
@@ -28,12 +26,15 @@ abstract class CWContainer extends CWWidget {
   }
 
   Widget getCell(int i, bool defFill,
-      {required bool canFill, bool? canHeight, bool? canWidth}) {
+      {required bool canFill,
+      bool? canHeight,
+      bool? canWidth,
+      required String type}) {
     var slot = CWSlot(
       type: 'body',
       key: GlobalKey(debugLabel: 'slot ${ctx.xid}_$i'),
       ctx: createChildCtx(ctx, 'Cont', i),
-      slotAction: SlotContainerAction(),
+      slotAction: SlotContainerAction(type),
     );
 
     CWWidgetCtx? constraint = ctx.factory.mapConstraintByXid[slot.ctx.xid];
@@ -129,7 +130,9 @@ class CWColumnState extends StateCW<CWColumn>
       final nb = widget.getNbChild(widget.getDefChild());
       for (var i = 0; i < nb; i++) {
         listSlot.add(widget.getCell(i, true,
-            canHeight: true, canFill: viewportConstraints.hasBoundedHeight));
+            canHeight: true,
+            canFill: viewportConstraints.hasBoundedHeight,
+            type: 'CWColumn'));
       }
 
       listStack.add(Column(
@@ -138,7 +141,7 @@ class CWColumnState extends StateCW<CWColumn>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: listSlot));
 
-      if (nb == 0) {
+      if (nb == 0 && widget.isForm) {
         return Column(children: [getDropQuery(100)]);
       }
 
@@ -226,7 +229,8 @@ class CWRowState extends StateCW<CWRow> {
     final List<Widget> listSlot = [];
     final nb = widget.getNbChild(widget.getDefChild());
     for (var i = 0; i < nb; i++) {
-      listSlot.add(widget.getCell(i, true, canFill: true, canWidth: true));
+      listSlot.add(widget.getCell(i, true,
+          canFill: true, canWidth: true, type: 'CWRow'));
     }
 
     return Row(
@@ -275,7 +279,11 @@ mixin CWDroppable {
   }
 }
 
+//////////////////////////////////////////////////////////////////////////////
 class SlotContainerAction extends SlotAction {
+  SlotContainerAction(this.type);
+  String type;
+
   @override
   bool canDelete() {
     return true;
@@ -293,73 +301,29 @@ class SlotContainerAction extends SlotAction {
 
   @override
   bool doDelete(CWWidgetCtx ctx) {
-    int i = ctx.pathWidget.lastIndexOf('.Cont');
-    int idxChild = int.parse(ctx.pathWidget.substring(i + 5));
-    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
-    int nbChild = parent.getNbChild(parent.getDefChild());
-
-    CoreDataEntity prop = PropBuilder.preparePropChange(
-        ctx.loader, DesignCtx().forDesign(parent.ctx));
-    prop.value['count'] = nbChild - 1;
-
-    if (idxChild < nbChild - 1) {
-      for (var i = idxChild + 1; i < nbChild; i++) {
-        debugPrint('move $i');
-        String path = '${parent.ctx.pathWidget}.Cont$i';
-        String pathTo = '${parent.ctx.pathWidget}.Cont${i - 1}';
-        var v = ctx.findWidgetByPath(path);
-        var v2 = ctx.findSlotByPath(pathTo);
-        if (v != null) {
-          DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2!.ctx);
-        }
-      }
-    }
-    parent
-      ..repaint()
-      ..select();
-    return true;
+    return DesignActionManager().doDeleteSlot(ctx);
   }
 
-  bool _addBottomOrTop(CWWidgetCtx ctx, bool top) {
-    int ic = ctx.pathWidget.lastIndexOf('.Cont');
-    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
-    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
-    int nbChild = parent.getNbChild(parent.getDefChild());
-
-    CoreDataEntity prop = PropBuilder.preparePropChange(
-        ctx.loader, DesignCtx().forDesign(parent.ctx));
-    prop.value['count'] = nbChild + 1;
-    parent
-      ..repaint()
-      ..select();
-
-    // delay pour avoir les nouveaux slot dans les findSlotByPath
-    Future.delayed(const Duration(milliseconds: 1), () {
-      if (idxChild < nbChild - 1 + (top ? 1 : 0)) {
-        for (var i = nbChild - 1; i > (idxChild - (top ? 1 : 0)); i--) {
-          debugPrint('move $i');
-          String path = '${parent.ctx.pathWidget}.Cont$i';
-          String pathTo = '${parent.ctx.pathWidget}.Cont${i + 1}';
-          var v = ctx.findWidgetByPath(path);
-          var v2 = ctx.findSlotByPath(pathTo);
-          if (v != null) {
-            DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2!.ctx);
-          }
-        }
-      }
-    });
-
-    return true;
-  }
-
+  //////////////////////////////////////////////////////////////////////////////
+  ///
   @override
   bool addBottom(CWWidgetCtx ctx) {
-    return _addBottomOrTop(ctx, false);
+    if (type == 'CWColumn') {
+      return DesignActionManager().addBeforeOrAfter(ctx, false);
+    } else {
+      DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont0');
+      return true;
+    }
   }
 
   @override
   bool addTop(CWWidgetCtx ctx) {
-    return _addBottomOrTop(ctx, true);
+    if (type == 'CWColumn') {
+      return DesignActionManager().addBeforeOrAfter(ctx, true);
+    } else {
+      DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont1');
+      return true;
+    }
   }
 
   @override
@@ -369,22 +333,20 @@ class SlotContainerAction extends SlotAction {
 
   @override
   bool moveBottom(CWWidgetCtx ctx) {
-    int ic = ctx.pathWidget.lastIndexOf('.Cont');
-    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
-    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
-    int nbChild = parent.getNbChild(parent.getDefChild());
-
-    if (idxChild < nbChild - 1) {
-      debugPrint('move $idxChild');
-      String path = '${parent.ctx.pathWidget}.Cont$idxChild';
-      String pathTo = '${parent.ctx.pathWidget}.Cont${idxChild + 1}';
-      var v = ctx.findWidgetByPath(path);
-      var v2 = ctx.findSlotByPath(pathTo);
-      if (v != null) {
-        DesignActionManager().doSwap(v.ctx.getSlot()!.ctx, v2!.ctx);
-      }
+    if (type == 'CWColumn') {
+      return DesignActionManager().moveBeforeOrAfter(ctx, false);
+    } else {
+      return false;
     }
-    return true;
+  }
+
+  @override
+  bool moveTop(CWWidgetCtx ctx) {
+    if (type == 'CWColumn') {
+      return DesignActionManager().moveBeforeOrAfter(ctx, true);
+    } else {
+      return false;
+    }
   }
 
   @override
@@ -393,22 +355,60 @@ class SlotContainerAction extends SlotAction {
   }
 
   @override
-  bool moveTop(CWWidgetCtx ctx) {
-    int ic = ctx.pathWidget.lastIndexOf('.Cont');
-    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
-    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
-    //int nbChild = parent.getNbChild(parent.getDefChild());
-
-    if (idxChild > 0) {
-      debugPrint('move $idxChild');
-      String path = '${parent.ctx.pathWidget}.Cont$idxChild';
-      String pathTo = '${parent.ctx.pathWidget}.Cont${idxChild - 1}';
-      var v = ctx.findWidgetByPath(path);
-      var v2 = ctx.findSlotByPath(pathTo);
-      if (v != null) {
-        DesignActionManager().doSwap(v.ctx.getSlot()!.ctx, v2!.ctx);
-      }
+  bool addLeft(CWWidgetCtx ctx) {
+    if (type == 'CWRow') {
+      return DesignActionManager().addBeforeOrAfter(ctx, true);
+    } else {
+      DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont1');
+      return true;
     }
-    return true;
+  }
+
+  @override
+  bool addRight(CWWidgetCtx ctx) {
+    if (type == 'CWRow') {
+      return DesignActionManager().addBeforeOrAfter(ctx, false);
+    } else {
+      DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont0');
+      return true;
+    }
+  }
+
+  @override
+  bool canAddLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool moveLeft(CWWidgetCtx ctx) {
+    if (type == 'CWRow') {
+      return DesignActionManager().moveBeforeOrAfter(ctx, true);
+    } else {
+      return false;
+    }
+  }
+
+  @override
+  bool moveRight(CWWidgetCtx ctx) {
+    if (type == 'CWRow') {
+      return DesignActionManager().moveBeforeOrAfter(ctx, false);
+    } else {
+      return false;
+    }
   }
 }

@@ -131,14 +131,55 @@ class _DesignerQueryState extends State<DesignerQuery> {
                 Text("all ${node.data?.value["name"]}")
               ]));
           break;
+
         case 'DataFilter':
+          var cellsWidget = [
+            const Icon(Icons.filter_alt_outlined, size: 20),
+            const SizedBox(width: 10),
+          ];
+
+          if (widget.mode == FilterBuilderMode.selector) {
+            cellsWidget.add(Text('filter ${node.data?.value['name']}'));
+          } else if (widget.mode == FilterBuilderMode.query) {
+            cellsWidget.add(const Text('filter '));
+            TextEditingController textCtrl = TextEditingController();
+            FocusNode focus = FocusNode();
+            focus.addListener(() {
+              if (focus.hasFocus) {
+                for (CWBindWidget element in widget.listBindWidget ?? []) {
+                  element.onSelect(node.data!);
+                }
+              }
+            });
+            textCtrl.text = node.data?.value['name'];
+            textCtrl.addListener(() {
+              node.data?.value['name'] = textCtrl.text;
+            });
+            cellsWidget.add(ConstrainedBox(
+                constraints:
+                    const BoxConstraints.tightFor(width: 130, height: 19),
+                child: TextField(
+                  decoration: const InputDecoration(
+                      hintText: '', border: UnderlineInputBorder()),
+                  style: DefaultTextStyle.of(context).style,
+                  controller: textCtrl,
+                  focusNode: focus,
+                )));
+
+            cellsWidget.add(InkResponse(
+                onTapDown: (e) {
+                  //showActions(e, actions);
+                },
+                child:
+                    Icon(Icons.more_vert, color: Theme.of(context).hintColor)));
+          }
+
           cell = getDrag(
               node,
-              Row(children: [
-                const Icon(Icons.filter_alt_outlined, size: 20),
-                const SizedBox(width: 10),
-                Text("filter ${node.data?.value["name"]}")
-              ]));
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: cellsWidget));
           break;
         default:
       }

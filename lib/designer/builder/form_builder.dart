@@ -18,8 +18,6 @@ class FormBuilder {
 
     builder ??= ctxLoader.collectionDataModel.getClass(entity.type);
 
-    //Map<String, dynamic> src = entity.value;
-
     ctxLoader.factory.disposePath('root');
 
     AttrFormLoader loader =
@@ -34,13 +32,14 @@ class FormBuilder {
         loader.addAttr(attr, attrDesc);
         //}
       } else if (attr.type == CDAttributType.many) {
+        // arrat
       } else {
         Map<String, dynamic> attrDesc = {'name': attr.name}; // par defaut
         loader.addAttr(attr, attrDesc);
       }
     }
 
-    loader.ctxLoader.factory.mapProvider[provider.name] = provider;
+    loader.ctxLoader.factory.mapProvider[provider.id] = provider;
 
     listWidget.add(loader.getWidget('root', 'root'));
     return listWidget;
@@ -111,17 +110,14 @@ class FormBuilder {
       }
       //if (loader.nbAttr > 0) break;
     }
-    loader.ctxLoader.factory.mapProvider[provider.name] = provider;
+    loader.ctxLoader.factory.mapProvider[provider.id] = provider;
 
-    loader.addWidget(
-        'root', 'provider_${provider.name}', 'CWProvider', <String, dynamic>{
-      'type': provider.type,
-      'providerName': provider.name
-    });
+    loader.addWidget('root', 'provider_${provider.id}', 'CWProvider',
+        <String, dynamic>{'type': provider.type, iDProviderName: provider.id});
 
     //loader.addRow();
     if (designOnly) {
-      loader.getCWFactory();
+      loader.initCWFactory();
     }
   }
 }
@@ -149,49 +145,66 @@ class AttrFormLoader extends CWWidgetLoader {
       return;
     }
 
+    String inSlot = '$xid$tagCol$nbAttr';
+    if (isRoot) {
+      addWidget(
+          '$xid$tagCol$nbAttr', '${xid}row$nbAttr', 'CWRow', <String, dynamic>{
+        'count': 2,
+      });
+
+      String inSlotBind = '${xid}row${nbAttr}Cont0';
+
+      addWidget(
+          inSlotBind, '${xid}bind$nbAttr', 'CWActionLink', <String, dynamic>{
+        '_idAction_': 'onTapLink@properProvider',
+        'label': '',
+        '_attr_': attribut
+      });
+
+      var constraint =
+          collection.createEntityByJson('CWRowConstraint', <String, dynamic>{
+        'width': 20,
+      });
+
+      setConstraint(inSlotBind, constraint);
+      inSlot = '${xid}row${nbAttr}Cont1';
+    }
+
     if (attribut.type == CDAttributType.bool) {
-      addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
-          'CWSwitch', <String, dynamic>{
+      addWidget(inSlot, '${xid}attr$nbAttr', 'CWSwitch', <String, dynamic>{
         'label': attrDesc['name'],
-        'bind': attribut.name,
-        'providerName': provider.name
+        iDBind: attribut.name,
+        iDProviderName: provider.id
       });
     } else if (attribut.type == CDAttributType.one) {
       if (attribut.typeName == 'icon') {
-        addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
-            'CWSelector', <String, dynamic>{
+        addWidget(inSlot, '${xid}attr$nbAttr', 'CWSelector', <String, dynamic>{
           'label': attrDesc['name'],
           'type': 'icon',
-          'bind': attribut.name,
-          'providerName': provider.name
+          iDBind: attribut.name,
+          iDProviderName: provider.id
         });
       }
       if (attribut.typeName == 'color') {
-        addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
-            'CWSelector', <String, dynamic>{
+        addWidget(inSlot, '${xid}attr$nbAttr', 'CWSelector', <String, dynamic>{
           'label': attrDesc['name'],
           'type': 'color',
-          'bind': attribut.name,
-          'providerName': provider.name
+          iDBind: attribut.name,
+          iDProviderName: provider.id
         });
       }
     } else {
-      addWidget('$xid$tagCol$nbAttr', '${xid}attr$nbAttr',
-          'CWTextfield', <String, dynamic>{
+      addWidget(inSlot, '${xid}attr$nbAttr', 'CWTextfield', <String, dynamic>{
         'label': attrDesc['name'],
-        'bind': attribut.name,
-        'providerName': provider.name
+        iDBind: attribut.name,
+        iDProviderName: provider.id
       });
-
-      // CoreDataEntity ent = cwFactory.getPath(collection, path).getLast();
-      // ent.custom[]
-      // // print("object $ent");
     }
     nbAttr++;
   }
 
   @override
-  CoreDataEntity getCWFactory() {
+  CoreDataEntity initCWFactory() {
     if (isRoot) {
       setProp(
           'root',
@@ -201,7 +214,7 @@ class AttrFormLoader extends CWWidgetLoader {
       // le titre
       addWidget('rootTitle0', 'title0', 'CWActionLink', <String, dynamic>{
         'label': provider.header?.value['label'] ?? entity.type,
-        '_idAction_': 'onTapHeader@properties'
+        '_idAction_': 'onTapHeader@properProvider'
       });
 
       // la colonne d'attribut
@@ -214,7 +227,7 @@ class AttrFormLoader extends CWWidgetLoader {
               'CWForm', <String, dynamic>{
             'count': nbAttr,
             'fill': false,
-            'providerName': provider.name
+            iDProviderName: provider.id
           }));
     }
 

@@ -13,13 +13,16 @@ import 'widget_crud.dart';
 
 // ignore: must_be_immutable
 class DesignerData extends StatefulWidget {
+  ArrayBuilder? arrayBuilder;
+
   DesignerData({super.key, required this.bindWidget}) {
+
     bindWidget.fctBindNested = (CoreDataEntity item) {
-      //tableEntity = item;
+      var app = CWApplication.of();
       CoreDataFilter filter = CoreDataFilter()..setFilterData(item);
       var modelID = filter.getModelID();
-      tableEntity = CWApplication.of().getTableModelByID(modelID);
-      CWProvider providerData = CWApplication.of().dataProvider;
+      tableEntity = app.getTableModelByID(modelID);
+      CWProvider providerData = app.dataProvider;
       if (filter.isFilter()) {
         providerData.type = modelID;
         CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
@@ -29,8 +32,16 @@ class DesignerData extends StatefulWidget {
       } else {
         providerData.setFilter(null);
       }
+
+      CWAppLoaderCtx loader = CWApplication.of().loaderData;
+      CWApplication.of().initDataModelWithAttr(loader, tableEntity!);
+      CWProvider provider =
+          CWApplication.of().getDataProvider(loader, tableEntity!);
+
+      arrayBuilder = ArrayBuilder(loaderCtx: loader, provider: provider);
+      arrayBuilder!.initDesignArrayFromLoader('rootData', 'Array');
     };
-  }
+  } 
 
   final CWBindWidget bindWidget;
   CoreDataEntity? tableEntity;
@@ -52,18 +63,12 @@ class _DesignerDataState extends State<DesignerData> {
 
     if (widget.tableEntity == null) return const Text('');
 
-    CWApplication.of().initDataModelWithAttr(loader, widget.tableEntity!);
-    CWProvider provider =
-        CWApplication.of().getDataProvider(loader, widget.tableEntity!);
-
-    var ab = ArrayBuilder();
-    var arr = ab.getCWArray('rootData', provider, loader, 'Array');
-
     return LayoutBuilder(builder: (context, constraints) {
-      List<Widget> listData = ArrayBuilder().getArrayWidget(arr, constraints);
+      List<Widget> listData =
+          widget.arrayBuilder!.getArrayWithConstraint(constraints: constraints);
 
       listData.add(WidgetAddBtn(
-        provider: provider,
+        provider: widget.arrayBuilder!.provider!,
         loader: loader,
         repaintXid: 'rootDataCol0',
       ));

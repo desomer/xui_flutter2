@@ -59,7 +59,7 @@ class PropBuilder {
     designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
 
     var provider = CWProvider(
-        'properties', designEntity.type, CWProviderDataSelector.noLoader())
+        'properProvider', designEntity.type, CWProviderDataSelector.noLoader())
       ..addContent(designEntity);
     provider.addAction(CWProviderAction.onValueChanged, RefreshDesign(aCtx));
     provider.addAction(
@@ -67,6 +67,8 @@ class PropBuilder {
     // provider.addAction(
     //     CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
     provider.addUserAction('onTapHeader', OnWidgetSelect(aCtx, pathWidget));
+    provider.addUserAction('onTapLink', OnLinkSelect(aCtx, pathWidget));
+    
 
     CWAppLoaderCtx loader = CWAppLoaderCtx().from(ctx.loader);
     provider.header = loader.collectionDataModel.createEntityByJson(

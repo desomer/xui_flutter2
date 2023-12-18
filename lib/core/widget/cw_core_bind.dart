@@ -6,8 +6,9 @@ import '../data/core_provider.dart';
 enum ModeBindWidget { selected }
 
 class CWBindWidget {
-  CWBindWidget(this.modeBindWidget);
+  CWBindWidget(this.id, this.modeBindWidget);
 
+  String id;
   State? nestedWidgetState;
   CWProvider? masterProvider;
   ModeBindWidget modeBindWidget;
@@ -28,6 +29,13 @@ class CWBindWidget {
         // ignore: invalid_use_of_protected_member
         nestedWidgetState?.setState(() {});
       }
+    }
+  }
+
+  void repaint() {
+    if (nestedWidgetState?.mounted ?? false) {
+      // ignore: invalid_use_of_protected_member
+      nestedWidgetState?.setState(() {});
     }
   }
 }

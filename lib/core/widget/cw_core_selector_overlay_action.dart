@@ -92,7 +92,7 @@ class ZoneDesc {
   List<Widget> actions = [];
 }
 
-enum DesignAction { delete, size, addTop, addBottom, moveBottom, moveTop, none }
+enum DesignAction { delete, size, addTop, addBottom, moveBottom, moveTop,  addRight, addLeft, moveRight, moveLeft, none }
 
 class SelectorActionWidgetState extends State<SelectorActionWidget> {
   double gBottom = 10;
@@ -181,8 +181,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
       rightZone.actions = [
         getAddAction(
-            topBtn - 25, leftBtn, Icons.navigate_next, DesignAction.none),
-        getAddAction(topBtn + 5, leftBtn, Icons.add, DesignAction.none),
+            topBtn - 25, leftBtn, Icons.navigate_next, DesignAction.moveRight),
+        getAddAction(topBtn + 5, leftBtn, Icons.add, DesignAction.addRight),
       ];
     };
 
@@ -202,8 +202,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
       leftZone.actions = [
         getAddAction(
-            topBtn - 25, leftBtn, Icons.navigate_before, DesignAction.none),
-        getAddAction(topBtn + 5, leftBtn, Icons.add, DesignAction.none),
+            topBtn - 25, leftBtn, Icons.navigate_before, DesignAction.moveLeft),
+        getAddAction(topBtn + 5, leftBtn, Icons.add, DesignAction.addLeft),
       ];
     };
 
@@ -413,7 +413,19 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
     }   
     else if (action == DesignAction.moveTop) {
       DesignActionManager().moveTop();
-    }    
+    } 
+    else if (action == DesignAction.addRight) {
+      DesignActionManager().addRight();
+    }
+    else if (action == DesignAction.addLeft) {
+      DesignActionManager().addLeft();
+    }
+    else if (action == DesignAction.moveRight) {
+      DesignActionManager().moveRight();
+    }   
+    else if (action == DesignAction.moveLeft) {
+      DesignActionManager().moveLeft();
+    }         
   }
 }
 

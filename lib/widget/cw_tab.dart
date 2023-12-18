@@ -33,7 +33,7 @@ class CWTab extends CWWidget {
   }
 
   int getTabHeight() {
-    return ctx.designEntity?.getInt('heightTabBar', 35) ?? 35;
+    return ctx.designEntity?.getInt('heightTabBar', 44) ?? 44;
   }
 
   @override
@@ -47,7 +47,7 @@ class CWTab extends CWWidget {
 }
 
 class _CWTabState extends StateCW<CWTab> {
-  double heightHeader = 20;
+  double heightHeader = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +65,7 @@ class _CWTabState extends StateCW<CWTab> {
 
           return Column(children: <Widget>[
             getTabsButton(),
-            getTabsSlot(heightBody, viewportConstraints)
+            getTabsContent(heightBody, viewportConstraints)
           ]);
         }));
   }
@@ -74,31 +74,31 @@ class _CWTabState extends StateCW<CWTab> {
     final List<Widget> listTab = <Widget>[];
 
     for (int i = 0; i < widget.getNb(); i++) {
+      var createChildCtx = widget.createChildCtx(widget.ctx, 'Tab', i);
+      // var w = createChildCtx.getWidgetInSlot();
+
       listTab.add(
           // icon: Icon(size:10,  Icons.access_alarm),
           Tab(
               height: heightHeader,
               child: CWSlot(
-                type: 'selector',
+                type: 'tab',
                 key: GlobalKey(debugLabel: 'tab btn slot ${widget.ctx.xid}'),
-                ctx: widget.createChildCtx(widget.ctx, 'Tab', i),
+                ctx: createChildCtx,
                 slotAction: SlotTabAction(),
               )));
     }
 
     return SizedBox(
       height: heightHeader + 2,
-      child: // ColoredBox(
-          //color: Theme.of(context).primaryColor,
-          //child: 
-          TabBar(
-            tabs: listTab,
-          //)
-          ),
+      child: TabBar(
+        tabs: listTab,
+      ),
     );
   }
 
-  Widget getTabsSlot(double fixedHeight, BoxConstraints viewportConstraints) {
+  Widget getTabsContent(
+      double fixedHeight, BoxConstraints viewportConstraints) {
     final List<Widget> listTab = <Widget>[];
     final nb = widget.getNb();
     for (int i = 0; i < nb; i++) {
@@ -129,9 +129,6 @@ class _CWTabState extends StateCW<CWTab> {
     }
 
     if (fixedHeight == -1) {
-      // return SizedBox(
-      //     height: widget.getHeight().toDouble(),
-      //     child: TabBarView(children: listTab));
       return SizedBox(
           height: widget.getHeight().toDouble(),
           child: TabBarView(children: listTab));
@@ -191,5 +188,45 @@ class SlotTabAction extends SlotAction {
   @override
   bool moveTop(CWWidgetCtx ctx) {
     return true;
+  }
+
+  @override
+  bool addLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool addRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool moveLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool moveRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
   }
 }

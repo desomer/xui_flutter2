@@ -1,10 +1,10 @@
-import 'package:mongo_dart/mongo_dart.dart';
+// import 'package:mongo_dart/mongo_dart.dart';
 
 class StartMongo {
   void init() async {
-    var db = await Db.create(
-        'mongodb+srv://gauthierdesomer:ycf9fmkWQHqo7cGQ@elisview.otznoja.mongodb.net/toto?retryWrites=true&w=majority');
-    await db.open();
+    // var db = await Db.create(
+    //     'mongodb+srv://gauthierdesomer:ycf9fmkWQHqo7cGQ@elisview.otznoja.mongodb.net/toto?retryWrites=true&w=majority');
+    // await db.open();
     //var n = await db.getCollectionNames();
 
     
@@ -18,6 +18,6 @@ class StartMongo {
 
     //debugPrint(ret);
 
-    await db.close();
+    // await db.close();
   }
 }

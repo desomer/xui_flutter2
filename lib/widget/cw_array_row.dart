@@ -31,7 +31,7 @@ class CWArrayRow extends StatefulWidget {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onRowSelected.toString();
     CWProvider? provider = CWProvider.of(stateArray.widget.ctx);
-    print('selected row $rowIdx');
+    //print('selected row $rowIdx');
     if (provider != null) {
       ctxWE.provider = provider;
       ctxWE.payload = rowIdx;

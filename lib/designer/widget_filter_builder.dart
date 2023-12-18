@@ -23,7 +23,7 @@ class WidgetFilterbuilder extends StatefulWidget {
       bindWidget!.fctBindNested = (CoreDataEntity item) {
         if (mode == FilterBuilderMode.data) {
           String? idModel = item.getString('_id_');
-          initFilterOnData(idModel);
+          setFilterOnData(idModel);
         }
         if (mode == FilterBuilderMode.query) {
           var aFilter = CoreDataFilter();
@@ -41,7 +41,7 @@ class WidgetFilterbuilder extends StatefulWidget {
   @override
   State<WidgetFilterbuilder> createState() => _WidgetFilterbuilderState();
 
-  void initFilterOnData(String? idModel) {
+  void setFilterOnData(String? idModel) {
     if (idModel != null) {
       CWProvider providerData = CWApplication.of().dataProvider;
       providerData.type = idModel;
@@ -91,10 +91,17 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
         child: Row(children: [
           Expanded(child: Column(key: GlobalKey(), children: listGroupWidget)),
           Visibility(
-              visible: listGroupWidget.isNotEmpty,
+              visible: (listGroupWidget.isNotEmpty && widget.mode == FilterBuilderMode.query),
               child: IconButton(
                   onPressed: () {
                     saveFilter(context);
+                  },
+                  icon: const Icon(Icons.save))),          
+          Visibility(
+              visible: listGroupWidget.isNotEmpty,
+              child: IconButton(
+                  onPressed: () {
+                    saveNewFilter(context);
                   },
                   icon: const Icon(Icons.bookmark_add))),
           Visibility(
@@ -121,7 +128,15 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
     CWApplication.of().loaderData.findWidgetByXid('rootData')!.repaint();
   }
 
-  Future<void> saveFilter(BuildContext context) {
+  Future<void> saveFilter(BuildContext context) async {
+    CWApplication.of().mapFilters[widget.filter!.dataFilter.value['_id_']] =
+        widget.filter!;
+
+    StoreDriver? storage = await StoreDriver.getDefautDriver('main');
+    storage!.setData('filters', widget.filter!.dataFilter.value);
+  }
+
+  Future<void> saveNewFilter(BuildContext context) {
     final ctrl = TextEditingController();
 
     return showDialog<void>(
@@ -155,13 +170,8 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
               onPressed: () async {
                 Navigator.of(context).pop();
                 widget.filter!.dataFilter.value['name'] = ctrl.text;
-                CWApplication.of()
-                        .mapFilters[widget.filter!.dataFilter.value['_id_']] =
-                    widget.filter!;
 
-                StoreDriver? storage =
-                    await StoreDriver.getDefautDriver('main');
-                storage!.setData('filters', widget.filter!.dataFilter.value);
+                await saveFilter(context);
 
                 CWProvider providerData = CWApplication.of().dataProvider;
                 // recharge un filter vide
@@ -224,7 +234,7 @@ class _WidgetQueryGroupState extends State<WidgetQueryGroup> {
             visible: listClause.length > 1,
             replacement: const Padding(
                 padding: EdgeInsets.fromLTRB(5, 5, 0, 0),
-                child: Text('Group filter')),
+                child: Text('Filter clause')),
             child: Row(children: [
               ToggleButtons(
                 borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -364,7 +374,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
     var c = CWApplication.of().collection;
     path = widget.filter.dataFilter.getPath(c, widget.pathFilter);
     _controller.text = path.getLastEntity().value['value1'] ?? '';
-    
+
     bool isEmpty = path.getLastEntity().value['colId'] == null;
     dropdownvalue = path.getLastEntity().value['operator'] ?? '=';
 
@@ -526,7 +536,8 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
     }, onAccept: (item) {
       setState(() {
         var c = CWApplication.of().collection;
-        var tableEntity = CWApplication.of().getTableModelByID(widget.filter.getModelID());
+        var tableEntity =
+            CWApplication.of().getTableModelByID(widget.filter.getModelID());
         var listAttr = tableEntity.value['listAttr'];
 
         attribut =

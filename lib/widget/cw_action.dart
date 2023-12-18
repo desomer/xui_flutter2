@@ -7,18 +7,23 @@ import '../core/data/core_provider.dart';
 import '../designer/cw_factory.dart';
 
 mixin CWActionManager {
-  void doAction(CWWidget widget, Map<String, dynamic> properties) {
+  void doAction(BuildContext context, CWWidget widget, Map<String, dynamic> properties) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     String? actionId = properties['_idAction_'];
-    if (actionId==null) return;
-    
+    if (actionId == null) return;
+
     var p = actionId.split('@');
     ctxWE.action = p[0];
-    CWProvider? provider = widget.ctx.loader.factory.mapProvider[p[1]];
-    if (provider != null) {
-      ctxWE.provider = provider;
-      ctxWE.loader = widget.ctx.loader;
-      provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
+    String dest = p[1];
+    if (dest.startsWith('#event#')) {
+    } else {
+      CWProvider? provider = widget.ctx.loader.factory.mapProvider[dest];
+      if (provider != null) {
+        ctxWE.provider = provider;
+        ctxWE.loader = widget.ctx.loader;
+        ctxWE.buildContext = context;
+        provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
+      }
     }
   }
 }
@@ -40,10 +45,6 @@ class CWActionLink extends CWWidget with CWActionManager {
         .addAttr('icon', CDAttributType.one, tname: 'icon')
         .addAttr('_idAction_', CDAttributType.text);
   }
-
-  Map<String, dynamic>? getIcon() {
-    return ctx.designEntity?.value['icon'];
-  }
 }
 
 class _CWActionLinkState extends StateCW<CWActionLink> {
@@ -58,35 +59,48 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
     }
 
     if (type == 'title') {
-      return InkWell(onTap: () {
-          widget.doAction(widget, widget.ctx.designEntity!.value);
-      }, child: Text(widget.getLabel()));
+      return InkWell(
+          onTap: () {
+            widget.doAction(context, widget, widget.ctx.designEntity!.value);
+          },
+          child: Text(widget.getLabel('[empty]')));
     }
 
     return ElevatedButton(
-      child: Text(widget.getLabel()),
-      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(5),
+      )),
+      onPressed: () {
+        widget.doAction(context, widget, widget.ctx.designEntity!.value);
+      },
+      child: Text(widget.getLabel('[empty]')),
     );
   }
 
   Widget getNavBtn() {
+    Widget icon = getIcon();
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        icon, // <-- Icon
+        Text(widget.getLabel('[empty]'),
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: IconTheme.of(context).color,
+                )), // <-- Text
+      ],
+    );
+  }
+
+  Widget getIcon() {
     Map<String, dynamic>? v = widget.getIcon();
     Widget icon = Container();
     if (v != null) {
       IconData? ic = deserializeIcon(v);
       icon = Icon(ic);
     }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        icon, // <-- Icon
-        Text(widget.getLabel(),
-            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: IconTheme.of(context).color,
-                )), // <-- Text
-      ],
-    );
+    return icon;
   }
 
   // Widget getOvalBtn() {

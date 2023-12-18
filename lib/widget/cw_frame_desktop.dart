@@ -12,7 +12,6 @@ import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import '../designer/designer.dart';
-import '../designer/designer_selector_component.dart';
 import 'cw_router.dart';
 
 final log = Logger('CWFrameDesktop');
@@ -69,7 +68,7 @@ class CWFrameDesktop extends CWWidget {
   }
 
   int nbBtnBottomNavBar() {
-    return ctx.designEntity!.getInt('nbBtnBottomNavBar', 0);
+    return ctx.designEntity!.getInt('nbBtnBottomNavBar', 0)!;
   }
 
   final listRoute = <StatefulShellBranch>[];
@@ -305,44 +304,13 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
 class SlotBodyAction extends SlotAction {
   @override
   bool addBottom(CWWidgetCtx ctx) {
-    // int ic = ctx.pathWidget.lastIndexOf('.Cont');
-    // int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
-    CWWidget root = ctx.getParentCWWidget() as CWWidget;
-
-    String path = ctx.pathWidget;
-    CWWidget? last = ctx.findWidgetByPath(path);
-
-    CWWidget colWidget = DesignActionManager()
-        .doCreate(ctx, ComponentDesc('', Icons.abc, 'CWColumn'));
-
-    if (last != null) {
-      String pathTo = '${colWidget.ctx.pathWidget}.Cont0';
-
-      Future.delayed(const Duration(milliseconds: 100), () {
-        var v2 = ctx.findSlotByPath(pathTo);
-        DesignActionManager().doMoveWidget(last, v2!.ctx);
-        root.repaint();
-        Future.delayed(const Duration(milliseconds: 100), () {
-         // CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
-        });
-      });
-    }
-
-    // int nbChild = parent.getNbChild(parent.getDefChild());
-
-    // if (idxChild < nbChild - 1) {
-    //   debugPrint('move $idxChild');
-
-    //   var v2 = ctx.findSlotByPath(pathTo);
-    //   if (v != null) {
-    //     DesignActionManager().doSwap(v.ctx.getSlot()!.ctx, v2!.ctx);
-    //   }
-    // }
+    DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont0');
     return true;
   }
 
   @override
   bool addTop(CWWidgetCtx ctx) {
+    DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont1');
     return true;
   }
 
@@ -358,31 +326,73 @@ class SlotBodyAction extends SlotAction {
 
   @override
   bool canDelete() {
-    return true;
+    return false;
   }
 
   @override
   bool canMoveBottom() {
-    return true;
+    return false;
   }
 
   @override
   bool canMoveTop() {
-    return true;
-  }
-
-  @override
-  bool doDelete(CWWidgetCtx ctx) {
-    return true;
+    return false;
   }
 
   @override
   bool moveBottom(CWWidgetCtx ctx) {
-    return true;
+    return false;
   }
 
   @override
   bool moveTop(CWWidgetCtx ctx) {
+    return false;
+  }
+
+  @override
+  bool doDelete(CWWidgetCtx ctx) {
+    return false;
+  }
+
+  @override
+  bool addLeft(CWWidgetCtx ctx) {
+    DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont1');
     return true;
+  }
+
+  @override
+  bool addRight(CWWidgetCtx ctx) {
+    DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont0');
+    return true;
+  }
+
+  @override
+  bool canAddLeft() {
+    return true;
+  }
+
+  @override
+  bool canAddRight() {
+    return true;
+  }
+
+  @override
+  bool canMoveLeft() {
+    return false;
+  }
+
+  @override
+  bool canMoveRight() {
+    return false;
+  }
+
+  @override
+  bool moveLeft(CWWidgetCtx ctx) {
+    return false;
+  }
+
+  @override
+  bool moveRight(CWWidgetCtx ctx) {
+    return false;
   }
 }

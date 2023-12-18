@@ -81,14 +81,12 @@ class SupabaseDriver extends StoreDriver {
 
     var ret = await query;
     var result = [];
-    if (ret is List) {
-      if (ret.isNotEmpty) {
-        for (var r in ret) {
-          result.add(r['json']);
-        }
-      } else {
-        return null;
+    if (ret.isNotEmpty) {
+      for (var r in ret) {
+        result.add(r['json']);
       }
+    } else {
+      return null;
     }
     return result[0];
   }
@@ -125,18 +123,16 @@ class SupabaseDriver extends StoreDriver {
     try {
       var ret = await query;
 
-      if (ret is List) {
-        if (ret.isNotEmpty) {
-          var result = [];
-          for (var r in ret) {
-            result.add(r['json']);
-          }
-          return {
-            r'$type': 'DataContainer',
-            'idData': idTable,
-            'listData': result
-          };
+      if (ret.isNotEmpty) {
+        var result = [];
+        for (var r in ret) {
+          result.add(r['json']);
         }
+        return {
+          r'$type': 'DataContainer',
+          'idData': idTable,
+          'listData': result
+        };
       }
     } on Exception catch (e) {
       debugPrint('Exception $e');

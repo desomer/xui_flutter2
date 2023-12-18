@@ -29,7 +29,7 @@ class _CWSwitchState extends StateCW<CWSwitch> {
     return SwitchListTile(
         contentPadding: const EdgeInsets.fromLTRB(5, 1, 5, 0),
         dense: true,
-        title: Text(widget.getLabel()),
+        title: Text(widget.getLabel('[empty]')),
         // This bool value toggles the switch.
         value: val,
         // activeColor: Colors.red,

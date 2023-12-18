@@ -86,7 +86,7 @@ void main() async {
 
   //ErrorWidget.builder = (FlutterErrorDetails details) => Container();
 
-  CWApplication.of().initDesigner();
+  CWApplication.of().initWidgetLoader();
   CWApplication.of().initModel();
 
   await StoreDriver.getDefautDriver('main');

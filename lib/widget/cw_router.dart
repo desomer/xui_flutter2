@@ -522,4 +522,44 @@ class SlotNavAction extends SlotAction {
   bool moveTop(CWWidgetCtx ctx) {
     return true;
   }
+  
+  @override
+  bool addLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+  
+  @override
+  bool addRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+  
+  @override
+  bool canAddLeft() {
+    throw UnimplementedError();
+  }
+  
+  @override
+  bool canAddRight() {
+    throw UnimplementedError();
+  }
+  
+  @override
+  bool canMoveLeft() {
+    throw UnimplementedError();
+  }
+  
+  @override
+  bool canMoveRight() {
+    throw UnimplementedError();
+  }
+  
+  @override
+  bool moveLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+  
+  @override
+  bool moveRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
 }

@@ -8,10 +8,11 @@ import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import '../core/widget/cw_core_loader.dart';
 import '../widget/cw_container.dart';
+import '../widget/cw_decorator.dart';
 import '../widget/cw_expand_panel.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_event.dart';
-import '../widget/cw_form.dart';
+import '../widget/cw_container_form.dart';
 import '../widget/cw_frame_desktop.dart';
 import '../widget/cw_list.dart';
 import '../widget/cw_tab.dart';
@@ -35,8 +36,8 @@ class CWWidgetCollectionBuilder {
     addWidget('CWSwitch',
             (CWWidgetCtx ctx) => CWSwitch(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.text)
-        .addAttr('bind', CDAttributType.text)
-        .addAttr('providerName', CDAttributType.text);
+        .addAttr(iDBind, CDAttributType.text)
+        .addAttr(iDProviderName, CDAttributType.text);
 
     CWLoader.initFactory(this);
     CWExpandPanel.initFactory(this);
@@ -48,6 +49,7 @@ class CWWidgetCollectionBuilder {
     CWArray.initFactory(this);
     CWActionLink.initFactory(this);
     CWSelector.initFactory(this);
+    CWDecorator.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -73,7 +75,7 @@ class CWWidgetCollectionBuilder {
       return CWProviderCtx(ctx);
     })
         .addAttr('type', CDAttributType.text)
-        .addAttr('providerName', CDAttributType.text);
+        .addAttr(iDProviderName, CDAttributType.text);
   }
 
   CoreDataObjectBuilder addWidget(String type, Function f) {

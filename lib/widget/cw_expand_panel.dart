@@ -146,7 +146,7 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
     if (actions != null) {
       header.add(InkResponse(
           onTapDown: (e) {
-            showActions(e, actions);
+            showActions(e, actions, context);
           },
           child: const Icon(Icons.more_vert)));
     }
@@ -159,7 +159,7 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
     );
   }
 
-  void showActions(TapDownDetails e, List actions) {
+  void showActions(TapDownDetails e, List actions, BuildContext context) {
     List<Widget> listActionWidget = [];
     for (Map<String, dynamic> action in actions) {
       listActionWidget.add(OutlinedButton.icon(
@@ -167,7 +167,7 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
             backgroundColor: Colors.black54, foregroundColor: Colors.white),
         onPressed: () {
           Navigator.pop(context);
-          doAction(widget, action);
+          doAction(context, widget, action);
         },
         icon: Icon(action['icon'] as IconData),
         label: Text(action['label'] as String),

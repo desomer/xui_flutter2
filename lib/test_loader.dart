@@ -11,7 +11,7 @@ class CWLoaderTest extends CWWidgetLoader {
   Future<CoreDataEntity> loadCWFactory() async {
     StoreDriver? storage = await StoreDriver.getDefautDriver('main');
     dynamic v = await storage?.getJsonData('#pages', null);
-    if (v!=null) {
+    if (v != null) {
       cwFactory.value = v;
       loadEmpty = false;
     }
@@ -19,14 +19,14 @@ class CWLoaderTest extends CWWidgetLoader {
   }
 
   @override
-  CoreDataEntity getCWFactory() {
+  CoreDataEntity initCWFactory() {
     if (loadEmpty) {
-      loadEmpty = false; 
+      loadEmpty = false;
       setRoot('root', 'CWFrameDesktop');
       setProp(
           'root',
-          ctxLoader.collectionWidget.createEntityByJson('CWFrameDesktop',
-              <String, dynamic>{'fill': true}));
+          ctxLoader.collectionWidget.createEntityByJson(
+              'CWFrameDesktop', <String, dynamic>{'fill': true}));
     }
 
     //------------------------------------------------------------------

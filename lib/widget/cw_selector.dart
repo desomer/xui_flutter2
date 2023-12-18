@@ -77,7 +77,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
       edit.text = '';
     }
     return [
-      Text(widget.getLabel()),
+      Text(widget.getLabel('[empty]')),
       const SizedBox(width: 20),
       SizedBox(
           width: 100,
@@ -149,7 +149,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
       _icon = Icon(ic);
     }
     return [
-      Text(widget.getLabel()),
+      Text(widget.getLabel('[empty]')),
       const SizedBox(width: 20),
       _icon ?? Container(),
       const Spacer(),

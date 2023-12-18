@@ -36,7 +36,7 @@ class CWArray extends CWWidgetMap {
         .addWidget('CWArray',
             (CWWidgetCtx ctx) => CWArray(key: ctx.getKey(), ctx: ctx))
         .addAttr('count', CDAttributType.int)
-        .addAttr('providerName', CDAttributType.text);
+        .addAttr(iDProviderName, CDAttributType.text);
 
     c.collection
         .addObject('CWColArrayConstraint')
@@ -116,7 +116,8 @@ class _CwArrayState extends StateCW<CWArray> {
     }, onWillAccept: (item) {
       return true;
     }, onAccept: (item) async {
-      await ArrayBuilder().createArray(widget, item.query);
+      await ArrayBuilder(loaderCtx: widget.ctx.loader)
+          .initDesignArrayFromQuery(widget, item.query, 'Array');
       CoreDesigner.of().providerKey.currentState!.setState(() {});
     });
   }
@@ -365,6 +366,46 @@ class ColumnAction extends SlotAction {
   @override
   bool moveTop(CWWidgetCtx ctx) {
     return true;
+  }
+
+  @override
+  bool addLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool addRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool moveLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool moveRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
   }
 }
 

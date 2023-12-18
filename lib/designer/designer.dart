@@ -12,15 +12,17 @@ import 'package:xui_flutter/designer/widget/widget_drag_file.dart';
 import 'package:xui_flutter/designer/widget/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
+import '../core/data/core_provider.dart';
 import '../core/store/driver.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../db_icon_icons.dart';
 import 'cw_factory.dart';
+import 'designer_model_list.dart';
 import 'designer_model_attribut.dart';
 import 'designer_model_data.dart';
 import 'designer_model.dart';
 import 'designer_selector_query.dart';
-import 'designer_editor.dart';
+import 'designer_page_editor.dart';
 import 'help/widget_hidden_box.dart';
 import 'widget/plateform/widget_image.dart';
 import 'widget/widget_preview.dart';
@@ -37,11 +39,13 @@ class CoreDesigner extends StatefulWidget {
     _coreDesigner = this;
 
     log.fine('init event listener');
+
     CoreDesigner.on(CDDesignEvent.save, (arg) async {
       log.fine('save action');
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
       storage?.setData('#pages', CoreDesigner.ofLoader().cwFactory.value);
     });
+
     CoreDesigner.on(CDDesignEvent.clear, (arg) async {
       log.fine('clear action');
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
@@ -49,6 +53,11 @@ class CoreDesigner extends StatefulWidget {
       CoreDesigner.ofView().clearAll();
       // ignore: invalid_use_of_protected_member
       CoreDesigner.of().designerKey.currentState?.setState(() {});
+      Future.delayed(const Duration(milliseconds: 100), () {
+        CWWidget wid =
+            CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
+        CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
+      });
     });
   }
 
@@ -83,18 +92,15 @@ class CoreDesigner extends StatefulWidget {
 
   static late CoreDesigner _coreDesigner;
 
-  final GlobalKey imageKey = GlobalKey(debugLabel: 'CoreDesigner.imageKey');
+  final GlobalKey imageKey = GlobalKey(debugLabel: 'imageKey');
   final GlobalKey rootKey = GlobalKey(debugLabel: 'rootKey');
-  final GlobalKey designerKey =
-      GlobalKey(debugLabel: 'CoreDesignerdesignerKey');
+  final GlobalKey designerKey = GlobalKey(debugLabel: 'designerKey');
   final GlobalKey propKey = GlobalKey(debugLabel: 'CoreDesigner.propKey');
 
-  //final GlobalKey dataKey = GlobalKey(debugLabel: 'CoreDesigner.dataKey');
-  final GlobalKey dataFilterKey =
-      GlobalKey(debugLabel: 'CoreDesigner.dataFilterKey');
+  final GlobalKey queryKey = GlobalKey(debugLabel: 'designerQueryKey');
+  final GlobalKey providerKey = GlobalKey(debugLabel: 'designerProviderKey');
 
-  final GlobalKey providerKey =
-      GlobalKey(debugLabel: 'CoreDesigner.designerProviderKey');
+  final GlobalKey dataFilterKey = GlobalKey(debugLabel: 'dataFilterKey');
 
   final _eventListener = EventListener();
   final editor = DesignerEditor();
@@ -110,7 +116,7 @@ class RouteTest extends Route {
 
 class _CoreDesignerState extends State<CoreDesigner>
     with SingleTickerProviderStateMixin {
-  final PageStorageBucket _bucket = PageStorageBucket();
+  //final PageStorageBucket _bucket = PageStorageBucket();
 
   final clipboardcontentstream = StreamController<String>.broadcast();
   Timer? clipboardtriggertime;
@@ -188,7 +194,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                 },
               ),
               const SizedBox(width: 20),
-              const Text('ElisView v0.4.3'),
+              const Text('ElisView v0.4.4'),
               const SizedBox(width: 5),
               IconButton(
                 iconSize: 30,
@@ -197,7 +203,7 @@ class _CoreDesignerState extends State<CoreDesigner>
               )
             ]),
           ),
-          body: PageStorage(bucket: _bucket, child: nav),
+          body: nav, // PageStorage(bucket: _bucket, child: nav),
           floatingActionButtonLocation:
               FloatingActionButtonLocation.miniCenterDocked,
           floatingActionButton: FloatingActionButton(
@@ -237,7 +243,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                         )),
                   ]),
                   const Spacer(),
-                  const Text('Desomer G.  14/11/23'),
+                  const Text('Desomer G.  09/12/23'),
                   IconButton(
                     icon: const Icon(Icons.help),
                     onPressed: () {},
@@ -288,7 +294,10 @@ class _CoreDesignerState extends State<CoreDesigner>
               Expanded(
                   child: Column(
                 children: [
-                  const Expanded(child: DesignerModel()), // les attributs
+                  Expanded(
+                      child: DesignerModel(
+                          bindWidget: CWApplication.of()
+                              .bindModel2Attr)), // les attributs
                   WidgetHiddenBox(child: const DesignerModelAttribut())
                 ],
               )), // ),
@@ -306,11 +315,11 @@ class _CoreDesignerState extends State<CoreDesigner>
             WidgetFilterbuilder(
                 mode: FilterBuilderMode.data,
                 key: widget.dataFilterKey,
-                bindWidget: CWApplication.of().bindFilter),
+                bindWidget: CWApplication.of().bindModel2Filter),
             Expanded(
                 child: DesignerData(
                     /*key: widget.dataKey,*/ bindWidget:
-                        CWApplication.of().bindData))
+                        CWApplication.of().bindModel2Data))
           ],
         ),
         Container()
@@ -333,9 +342,9 @@ class _CoreDesignerState extends State<CoreDesigner>
     ctx.designEntity = CWApplication.of()
         .loaderModel
         .collectionWidget
-        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
+        .createEntityByJson('CWArray', {iDProviderName: 'DataModelProvider'});
 
-    CWBindWidget bindFilter = CWBindWidget(ModeBindWidget.selected);
+    CWBindWidget bindFilter = CWBindWidget('bindFilter', ModeBindWidget.selected);
 
     return Row(
       children: [
@@ -344,7 +353,10 @@ class _CoreDesignerState extends State<CoreDesigner>
             child: DesignerQuery(
                 mode: FilterBuilderMode.query,
                 ctx: ctx,
-                listBindWidget: [bindFilter, CWApplication.of().bindDataQuery])),
+                listBindWidget: [
+                  bindFilter,
+                  CWApplication.of().bindFilter2Data
+                ])),
         const VerticalDivider(thickness: 1, width: 1),
         Expanded(
             child: Column(
@@ -357,7 +369,7 @@ class _CoreDesignerState extends State<CoreDesigner>
               child: const Row(children: [
                 Icon(Icons.filter_alt_outlined),
                 SizedBox(width: 10),
-                Text('Filter')
+                Text('Filter clauses')
               ]),
             ),
             WidgetFilterbuilder(
@@ -387,7 +399,7 @@ class _CoreDesignerState extends State<CoreDesigner>
               const VerticalDivider(width: 1),
               Expanded(
                   child: DesignerData(
-                      bindWidget: CWApplication.of().bindDataQuery))
+                      bindWidget: CWApplication.of().bindFilter2Data))
             ]))
           ],
         )),
@@ -438,6 +450,20 @@ class _NavRailState extends State<NavRail> {
   void dispose() {
     super.dispose();
     pageController.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    pageController.addListener(() {
+      print('pageController ${pageController.page}');
+      if (pageController.page == 0) {
+        // raffraichi le nom des filtres & tables
+        Future.delayed(const Duration(milliseconds: 100), () {
+          CoreDesigner.of().queryKey.currentState?.setState(() {});
+        });
+      }
+    });
   }
 
   @override

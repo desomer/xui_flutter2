@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:dotted_border/dotted_border.dart';
+// import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -44,19 +44,17 @@ class SelectorWidgetState extends State<SelectorWidget> {
   double wm = 0;
 
   Widget _getBorderOver(Widget child, Color color, double stroke) {
-    var borderOver = MouseRegion(
-      opaque: false,
-      child: DottedBorder(
-        color: color,
-        dashPattern: const <double>[4, 4],
-        strokeWidth: stroke,
-        child: SizedBox(width: wm, height: hm),
-      ),
-    );
+    // var borderOver = MouseRegion(
+    //   opaque: false,
+    //   child: DottedBorder(
+    //     color: color,
+    //     dashPattern: const <double>[4, 4],
+    //     strokeWidth: stroke,
+    //     child: SizedBox(width: wm, height: hm),
+    //   ),
+    // );
 
-    return Stack(
-      children: [child, borderOver],
-    );
+    return child; // Stack(fit: StackFit.passthrough, children: [child, borderOver]);
   }
 
   Widget getSelectorWithChild(BuildContext context) {
@@ -97,7 +95,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
         // height: 200.0,
         // width: 200.0,
         color: Colors.white,
-        child: const Material(elevation: 10, child:CwImage()),
+        child: const Material(elevation: 10, child: CwImage()),
       ),
       child: MouseRegion(
           onHover: onHover,
@@ -122,8 +120,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
       if (isSelectionChange) {
         CoreDesigner.emit(CDDesignEvent.select, widget.ctx);
 
-        setState(() {
-        });
+        setState(() {});
       }
 
       _capturePng();
@@ -149,7 +146,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
     debugPrint('$position');
 
-   // _showPopupMenu(Offset(position.dx + 10, position.dy + 10));
+    // _showPopupMenu(Offset(position.dx + 10, position.dy + 10));
   }
 
   void onExit(PointerExitEvent e) {
@@ -195,7 +192,6 @@ class SelectorWidgetState extends State<SelectorWidget> {
   }
 
   void _showPopupMenu(Offset offset) async {
-
     // showDialog(
     //     context: context,
     //     builder: (BuildContext c1) => PopupMenuButton(

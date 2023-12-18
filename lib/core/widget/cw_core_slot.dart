@@ -55,7 +55,7 @@ class _CWSlotState extends StateCW<CWSlot> {
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
 
     if (slotConfig == null) {
-      // init les slot lié a un ajout par les properties
+      // init tout les slot lié si ajout par drag
       CoreDesigner.ofFactory().initSlot();
       slotConfig =
           widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
@@ -135,4 +135,13 @@ abstract class SlotAction {
   bool moveBottom(CWWidgetCtx ctx);    
   bool canMoveTop();
   bool moveTop(CWWidgetCtx ctx);   
+
+  bool canAddRight();
+  bool addRight(CWWidgetCtx ctx);
+  bool canAddLeft();
+  bool addLeft(CWWidgetCtx ctx);  
+  bool canMoveRight();
+  bool moveRight(CWWidgetCtx ctx);    
+  bool canMoveLeft();
+  bool moveLeft(CWWidgetCtx ctx);   
 }

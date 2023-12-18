@@ -70,20 +70,28 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
     CoreDesigner.emit(CDDesignEvent.select, ctx.getSlot()!.ctx);
   }
 
+  int? getInt(String id, int? def) {
+    return ctx.designEntity?.getInt(id, def);
+  }
+
   Color? getColor(String id) {
     String? v = ctx.designEntity?.value[id]?['color'];
     return v != null ? Color(int.parse(v, radix: 16)) : null;
-  }  
+  }
 
-  String getLabel() {
-    return ctx.designEntity?.getString('label') ?? '[empty]';
-  }    
+  String getLabel(String def) {
+    return ctx.designEntity?.getString('label') ?? def;
+  }
+
+  Map<String, dynamic>? getIcon() {
+    return ctx.designEntity?.value['icon'];
+  }
 }
 
 abstract class StateCW<T extends CWWidget> extends State<T> {
   int repaintTime = 0;
   bool mustRepaint = false;
-  
+
   void repaint() {
     if (mounted) {
       repaintTime = DateTime.now().millisecondsSinceEpoch;
@@ -169,17 +177,17 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
 
   String getMapString() {
     CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getStringValueOf(ctx, 'bind') ?? 'no map';
+    return provider?.getStringValueOf(ctx, iDBind) ?? 'no map';
   }
 
   bool getMapBool() {
     CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getBoolValueOf(ctx, 'bind') ?? false;
+    return provider?.getBoolValueOf(ctx, iDBind) ?? false;
   }
 
   Map<String, dynamic>? getMapOne() {
     CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getMapValueOf(ctx, 'bind');
+    return provider?.getMapValueOf(ctx, iDBind);
   }
 
   void setValue(dynamic val) {
@@ -190,7 +198,7 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
       ctxWE.provider = provider;
       ctxWE.payload = null;
       ctxWE.loader = ctx.loader;
-      provider.setValueOf(ctx, ctxWE, 'bind', val);
+      provider.setValueOf(ctx, ctxWE, iDBind, val);
     }
   }
 
@@ -313,6 +321,7 @@ class CWWidgetCtx {
 }
 
 class CWWidgetEvent {
+  BuildContext? buildContext;
   CWWidgetCtx? widgetCtx;
   String? action;
   dynamic payload;

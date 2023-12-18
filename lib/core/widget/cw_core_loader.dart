@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/data/core_provider.dart';
 
 import '../data/core_data.dart';
@@ -71,8 +70,8 @@ abstract class CWWidgetLoader {
         xid, xidChild, type, collection.createEntityByJson(type, v));
   }
 
-  Widget getWidget(String path, String xid) {
-    final CoreDataEntity aCWFactory = getCWFactory();
+  CWWidget getWidget(String path, String xid) {
+    final CoreDataEntity aCWFactory = initCWFactory();
     final CoreDataCtx ctx = CoreDataCtx();
 
     ctx.browseHandler = ctxLoader.factory;
@@ -86,11 +85,13 @@ abstract class CWWidgetLoader {
     return rootWidget;
   }
 
-  CoreDataEntity getCWFactory();
+  CoreDataEntity initCWFactory();
   Future<CoreDataEntity>? loadCWFactory() {
     return null;
   }
 }
+
+/////////////////////////////////////////////////////////////////////////////////
 
 class CWAppLoaderCtx {
   late CoreDataCollection collectionWidget;
@@ -173,7 +174,7 @@ class CWAppLoaderCtx {
   }
 
   void addProvider(CWProvider provider) {
-    factory.mapProvider[provider.name] = provider;
+    factory.mapProvider[provider.id] = provider;
   }
 }
 
@@ -207,7 +208,7 @@ class DesignCtx {
     var isNotSlot = ctx.designEntity != null &&
         ctx.designEntity != ctx.inSlot?.ctx.designEntity;
 
-    if (isNotSlot || ctx.inSlot==null) {
+    if (isNotSlot || ctx.inSlot == null) {
       xid = ctx.factory.mapXidByPath[pathWidget];
       widget = ctx.factory.mapWidgetByXid[xid];
       pathDesign = widget?.ctx.pathDataDesign;

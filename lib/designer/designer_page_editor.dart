@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:xui_flutter/designer/widget_filter_builder.dart';
 
 import '../core/data/core_data_filter.dart';
+import '../core/data/core_provider.dart';
 import '../core/store/driver.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_selector_overlay_action.dart';
@@ -19,13 +20,14 @@ import 'designer_selector_provider.dart';
 import 'designer_selector_query.dart';
 import 'widget/widget_tab.dart';
 
-final log = Logger('DesignerView');
+final log = Logger('DesignerPageEditor');
 
 // ignore: must_be_immutable
 class DesignerEditor extends StatelessWidget {
   DesignerEditor({super.key});
 
   late TabController controllerTabRight;
+  late TabController controllerTabResult;
 
   final ScrollController scrollComponentController = ScrollController(
     initialScrollOffset: 0.0,
@@ -37,19 +39,35 @@ class DesignerEditor extends StatelessWidget {
     keepScrollOffset: true,
   );
 
+  final ScrollController scrollResultController = ScrollController(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+  );
+
+  final ScrollController scrollResultAttributController = ScrollController(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+  );
+
   @override
   Widget build(BuildContext context) {
     CWWidgetCtx ctxQuery = CWWidgetCtx('', CWApplication.of().loaderModel, '');
     ctxQuery.designEntity = CWApplication.of()
         .loaderModel
         .collectionWidget
-        .createEntityByJson('CWArray', {'providerName': 'DataModelProvider'});
+        .createEntityByJson('CWArray', {iDProviderName: 'DataModelProvider'});
+
+    CWWidgetCtx ctxResult = CWWidgetCtx('', CWApplication.of().loaderModel, '');
+    // ctxQuery.designEntity = CWApplication.of()
+    //     .loaderModel
+    //     .collectionWidget
+    //     .createEntityByJson('CWArray', {iDProviderName: 'ResultProvider'});        
 
     CWWidgetCtx ctxPages = CWWidgetCtx('', CWApplication.of().loaderModel, '');
     ctxPages.designEntity = CWApplication.of()
         .loaderModel
         .collectionWidget
-        .createEntityByJson('CWArray', {'providerName': 'PagesProvider'});
+        .createEntityByJson('CWArray', {iDProviderName: 'PagesProvider'});
 
     return Row(children: [
       SizedBox(
@@ -63,11 +81,11 @@ class DesignerEditor extends StatelessWidget {
             children: [
               Expanded(
                   child: DesignerQuery(
-                      mode: FilterBuilderMode.selector, ctx: ctxQuery)),
+                      key: CoreDesigner.of().queryKey,
+                      mode: FilterBuilderMode.selector,
+                      ctx: ctxQuery)),
               const Divider(thickness: 1, height: 1),
-              Expanded(
-                  child: DesignerProvider(
-                      key: CoreDesigner.of().providerKey, ctx: ctxQuery))
+              Expanded(child: getResultProperties(ctxResult))
             ],
           )
         ]),
@@ -75,6 +93,41 @@ class DesignerEditor extends StatelessWidget {
       Expanded(child: CoreDesigner.of().designView),
       SizedBox(width: 300, child: getTabProperties())
     ]);
+  }
+
+  Widget getResultProperties(CWWidgetCtx ctxResult) {
+    final List<Widget> listTab = <Widget>[];
+    listTab.add(const Tab(
+      icon: Icon(Icons.saved_search_rounded),
+    ));
+
+    listTab.add(const Tab(
+      icon: Icon(Icons.data_object_rounded),
+    ));
+
+    final List<Widget> listTabCont = <Widget>[];
+
+    return LayoutBuilder(builder: (context, constraints) {
+      listTabCont.add(SingleChildScrollView(
+          controller: scrollResultController,
+          scrollDirection: Axis.vertical,
+          child: SizedBox( height: constraints.maxHeight-45,
+              child: DesignerProvider(
+                  key: CoreDesigner.of().providerKey, ctx: ctxResult))));
+
+      listTabCont.add(SingleChildScrollView(
+          controller: scrollResultAttributController,
+          scrollDirection: Axis.vertical,
+          child: Container())); // const Steps());
+
+      return WidgetTab(
+          heightTab: 40,
+          onController: (TabController a) {
+            controllerTabResult = a;
+          },
+          listTab: listTab,
+          listTabCont: listTabCont);
+    });
   }
 
   Widget getTabProperties() {
@@ -92,13 +145,13 @@ class DesignerEditor extends StatelessWidget {
     final List<Widget> listTabCont = <Widget>[];
 
     listTabCont.add(SingleChildScrollView(
-        key: const PageStorageKey<String>('pageProp'),
+        //key: const PageStorageKey<String>('pageProp'),
         controller: scrollPropertiesController,
         scrollDirection: Axis.vertical,
         child: DesignerProp(key: CoreDesigner.of().propKey)));
 
     listTabCont.add(SingleChildScrollView(
-        key: const PageStorageKey<String>('pageWidget'),
+        //key: const PageStorageKey<String>('pageWidget'),
         controller: scrollComponentController,
         scrollDirection: Axis.vertical,
         child: Column(
@@ -115,6 +168,7 @@ class DesignerEditor extends StatelessWidget {
   }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // ignore: must_be_immutable
 class DesignerView extends StatefulWidget {
   DesignerView({super.key});

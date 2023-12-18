@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import 'cw_list.dart';
@@ -17,19 +19,20 @@ class CWText extends CWWidgetMap {
             'CWText', (CWWidgetCtx ctx) => CWText(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.text)
         .addAttr('textColor', CDAttributType.one, tname: 'color')
-        .addAttr('providerName', CDAttributType.text)
-        .addAttr('bind', CDAttributType.text);
+        .addAttr('icon', CDAttributType.one, tname: 'icon')
+        .addAttr(iDProviderName, CDAttributType.text)
+        .addAttr(iDBind, CDAttributType.text);
   }
 
   @override
   State<CWText> createState() => _CWTextState();
 
   @override
-  String getLabel() {
-    if (ctx.designEntity?.getString('bind') != null) {
+  String getLabel(String def) {
+    if (ctx.designEntity?.getString(iDBind) != null) {
       return getMapString();
     } else {
-      return super.getLabel();
+      return super.getLabel(def);
     }
   }
 
@@ -48,13 +51,56 @@ class _CWTextState extends StateCW<CWText> {
 
   @override
   Widget build(BuildContext context) {
+    SlotConfig? slotConfig =
+        widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
+    String type = slotConfig?.slot?.type ?? '';
+
+    Map<String, dynamic>? v = widget.getIcon();
+    bool isTab = type == 'tab';
+
+    Widget? icon;
+    if (v != null) {
+      IconData? ic = deserializeIcon(v);
+      icon = Icon(ic);
+    }
+
+    var label = widget.getLabel(icon!=null?'':'[empty]');
+    Widget? text;
+
+    if (label != '' || icon == null) {
+      text = Text(
+        softWrap: false,
+        overflow: TextOverflow.fade,
+        label,
+        style: TextStyle(color: widget.getColor('textColor')),
+      );
+    }
+
+    var mode = isTab ? 'col' : 'row';
+    if (icon != null && mode == 'row' && text != null) {
+      text = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon,
+          const SizedBox(width: 8),
+          text,
+        ],
+      );
+    } else if (icon != null && mode == 'col' && text != null) {
+      text = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          icon,
+          text,
+        ],
+      );
+    } else if (text == null && icon != null) {
+      text = icon;
+    }
+
     if (row != null) widget.setDisplayRow(row);
-    return getMinDesignBox(Text(
-      softWrap: false,
-      overflow: TextOverflow.fade,
-      widget.getLabel(),
-      style: TextStyle(color: widget.getColor('textColor')),
-    ));
+
+    return getMinDesignBox(text!);
   }
 
   Widget getMinDesignBox(Widget child) {

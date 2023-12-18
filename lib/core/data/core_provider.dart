@@ -20,6 +20,9 @@ enum CWProviderAction {
   onTapHeader
 }
 
+const String iDProviderName = '_providerName_';
+const String iDBind = '_bind_';
+
 class CWProviderData {
   CWProviderData(this.dataloader);
 
@@ -66,34 +69,37 @@ class CWProviderCtx extends CWWidgetVirtual {
 
   @override
   void init() {
-    var providerName = ctx.designEntity!.value['providerName'];
+    var providerName = ctx.designEntity!.value[iDProviderName];
     if (ctx.loader.factory.mapProvider[providerName] == null) {
-      CWProvider provider =
-          createFromTable(ctx.designEntity!.value['type'], ctx);
+      CWProvider provider = createFromTable(
+          ctx.designEntity!.value['type'], ctx,
+          idProvider: providerName);
+      provider.id = providerName;
       String filterID = ctx.designEntity!.value['filter'] ?? 'none';
       provider.setFilter(CWApplication.of().mapFilters[filterID]);
       log.fine(
-          'init appli provider <${provider.name}> [${provider.type}] hash = ${provider.getData().hashCode}');
-      ctx.loader.factory.mapProvider[provider.name] = provider;
+          'init appli provider <${provider.id}> [${provider.type}] hash = ${provider.getData().hashCode}');
+      ctx.loader.factory.mapProvider[provider.id] = provider;
     }
   }
 
-  static CWProvider createFromTable(String id, CWWidgetCtx ctx,
-      {CoreDataFilter? filter}) {
+  static CWProvider createFromTable(String idModel, CWWidgetCtx ctx,
+      {String? idProvider, CoreDataFilter? filter}) {
     var app = CWApplication.of();
-    var tableEntity = app.getTableModelByID(id);
+    var tableEntity = app.getTableModelByID(idModel);
     app.initDataModelWithAttr(ctx.loader, tableEntity);
-    CWProvider provider =
-        app.getDesignDataProvider(ctx.loader, tableEntity, filter: filter);
+    CWProvider provider = app.getDesignDataProvider(
+        ctx.loader, tableEntity, idProvider,
+        filter: filter);
     return provider;
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
 class CWProvider {
-  CWProvider(this.name, this.type, this.dataSelector);
+  CWProvider(this.id, this.type, this.dataSelector);
 
-  String name;
+  String id;
   CoreDataEntity? header;
   String type;
 
@@ -101,9 +107,21 @@ class CWProvider {
 
   String getProviderCacheID({CoreDataFilter? aFilter}) {
     if (aFilter != null) {
-      return '$name#id=$type;fl=${aFilter.getQueryKey()}';
+      return '$id#id=$type;fl=${aFilter.getQueryKey()}';
     }
-    return '$name#id=$type;fl=${getFilter()?.getQueryKey() ?? 'null'}';
+    return '$id#id=$type;fl=${getFilter()?.getQueryKey() ?? 'null'}';
+  }
+
+  String getName() {
+    var app = CWApplication.of();
+
+    var filter = dataSelector.finalData.dataloader?.getFilter();
+    if (filter?.isFilter() == true) {
+      return 'filter ${filter!.dataFilter.value['name']}';
+    } else {
+      var tableEntity = app.getTableModelByID(type);
+      return 'all ${tableEntity.value['name']}';
+    }
   }
 
   CWProviderData getData() {
@@ -210,7 +228,7 @@ class CWProvider {
 
   static CWProvider? of(CWWidgetCtx ctx) {
     CWProvider? provider =
-        ctx.factory.mapProvider[ctx.designEntity?.getString('providerName')];
+        ctx.factory.mapProvider[ctx.designEntity?.getString(iDProviderName)];
     return provider;
   }
 

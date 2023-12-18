@@ -10,11 +10,13 @@ class ComponentDesc {
         ComponentDesc('Label', Icons.format_quote, 'CWText'),
         ComponentDesc('Column', Icons.table_rows_rounded, 'CWColumn'),
         ComponentDesc('Row', Icons.view_week, 'CWRow'),
-        ComponentDesc('Tab', Icons.tab, 'CWTab')
+        ComponentDesc('Tab', Icons.tab, 'CWTab'),
+        ComponentDesc('Card', Icons.border_style, 'CWDecorator')
       ]),
-      CardComponents('Array & Form', [
+      CardComponents('Array, Form & List', [
         ComponentDesc('Array', Icons.table_chart, 'CWArray'),
         ComponentDesc('Form', Icons.feed, 'CWForm'),
+        ComponentDesc('List', Icons.view_list, 'CWList'),
       ]),
       CardComponents('Actions', [
         ComponentDesc('Button', Icons.smart_button_sharp, 'CWActionLink'),

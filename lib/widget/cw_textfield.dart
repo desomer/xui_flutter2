@@ -7,6 +7,7 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:xui_flutter/widget/cw_array_row.dart';
 import 'package:xui_flutter/widget/cw_cell.dart';
 import '../core/data/core_data.dart';
+import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import 'cw_list.dart';
@@ -30,15 +31,15 @@ class CWTextfield extends CWWidgetMap {
         .addAttr('label', CDAttributType.text)
         .addAttr('withLabel', CDAttributType.bool)
         .withAction(AttrActionDefault(true))
-        .addAttr('bind', CDAttributType.text)
-        .addAttr('providerName', CDAttributType.text)
+        .addAttr(iDBind, CDAttributType.text)
+        .addAttr(iDProviderName, CDAttributType.text)
         .addAttr('type', CDAttributType.text)
         .addAttr('mask', CDAttributType.text);
   }
 
   String? getLabelNull() {
     return (ctx.designEntity?.getBool('withLabel', true) ?? true)
-        ? super.getLabel()
+        ? super.getLabel('[empty]')
         : null;
   }
 

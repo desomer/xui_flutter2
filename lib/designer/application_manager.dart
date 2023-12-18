@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nanoid/nanoid.dart';
+import 'package:xui_flutter/designer/designer_model_list.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_data_filter.dart';
@@ -21,23 +23,27 @@ class CWApplication {
 
   CoreDataCollection collection = CoreDataCollection();
 
-  CWAppLoaderCtx loaderDesigner = CWAppLoaderCtx();
-  CWAppLoaderCtx loaderModel = CWAppLoaderCtx();
-  CWAppLoaderCtx loaderData = CWAppLoaderCtx();
+  CWAppLoaderCtx loaderDesigner = CWAppLoaderCtx(); // pour le design
+  CWAppLoaderCtx loaderModel = CWAppLoaderCtx(); // pour les models de data
+  CWAppLoaderCtx loaderData = CWAppLoaderCtx(); // pour les data
 
   CWProvider dataModelProvider = CWProvider(
       'DataModelProvider', 'DataModel', CWProviderDataSelector.noLoader());
+  
   late CWProvider dataAttributProvider;
   late CWProvider dataProvider;
 
   CWProvider pagesProvider = CWProvider(
       'PagesProvider', 'DataModel', CWProviderDataSelector.noLoader());
 
+  CWProvider listAttrProvider = CWProvider(
+      'listAttrProvider', 'ModelAttributs', CWProviderDataSelector.noLoader());      
+
   Map<String, CoreDataEntity> cacheMapData = {};
   Map<String, CoreDataEntity> cacheMapModel = {};
   Map<String, CoreDataFilter> mapFilters = {};
 
-  void initDesigner() {
+  void initWidgetLoader() {
     loaderDesigner.collectionWidget = CWWidgetCollectionBuilder().collection;
 
     loaderDesigner.entityCWFactory =
@@ -47,22 +53,6 @@ class CWApplication {
 
     loaderModel.collectionWidget = loaderDesigner.collectionWidget;
     loaderModel.createFactory();
-
-    Future deleteModel(CWWidgetEvent e) async {
-      var selectedEntity = dataModelProvider.getSelectedEntity();
-      selectedEntity!.operation = CDAction.delete;
-      await CoreGlobalCache.saveCache(dataModelProvider);
-      dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
-          repaintXid: 'rootModelCol0');
-      // supprime les datas
-      CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
-      dataLoader.setCacheViewID('AllData_${selectedEntity.value['_id_']}',
-          onTable: selectedEntity.value['_id_']); // choix de la map a afficher
-      dataLoader.deleteAll();
-    }
-
-    dataModelProvider.addUserAction(
-        'delete', CoreDataActionFunction(deleteModel));
 
     // ajouter l'action de delete
     var c = loaderModel.collectionWidget;
@@ -79,10 +69,9 @@ class CWApplication {
             }));
 
     // custom du loader
-    var setProdiverName =
-        c.createEntityByJson('CWLoader', {'providerName': 'DataModelProvider'});
-
-    loaderModel.setProp('rootAttr', setProdiverName, null);
+    var propAttr =
+        c.createEntityByJson('CWLoader', {iDProviderName: 'DataModelProvider'});
+    loaderModel.setProp('rootAttr', propAttr, null);
 
     loaderData.collectionWidget = loaderDesigner.collectionWidget;
     loaderData.createFactory();
@@ -160,11 +149,29 @@ class CWApplication {
     _initProvider();
   }
 
-  CWBindWidget bindFilter = CWBindWidget(ModeBindWidget.selected);
-  CWBindWidget bindData = CWBindWidget(ModeBindWidget.selected);
-  CWBindWidget bindDataQuery = CWBindWidget(ModeBindWidget.selected);
+  CWBindWidget bindModel2Filter = CWBindWidget('bindModel2Filter', ModeBindWidget.selected);
+  CWBindWidget bindModel2Data = CWBindWidget('bindModel2Data', ModeBindWidget.selected);
+  CWBindWidget bindFilter2Data = CWBindWidget('bindFilter2Data', ModeBindWidget.selected);
+  CWBindWidget bindModel2Attr = CWBindWidget('bindModel2Attr', ModeBindWidget.selected);
+  CWBindWidget bindProvider2Attr = CWBindWidget('bindProvider2Attr', ModeBindWidget.selected);
 
   void _initProvider() {
+    Future deleteModel(CWWidgetEvent e) async {
+      var selectedEntity = dataModelProvider.getSelectedEntity();
+      selectedEntity!.operation = CDAction.delete;
+      await CoreGlobalCache.saveCache(dataModelProvider);
+      dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
+          repaintXid: 'rootModelCol0');
+      // supprime les datas
+      CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
+      dataLoader.setCacheViewID('AllData_${selectedEntity.value['_id_']}',
+          onTable: selectedEntity.value['_id_']); // choix de la map a afficher
+      dataLoader.deleteAll();
+    }
+
+    dataModelProvider.addUserAction(
+        'delete', CoreDataActionFunction(deleteModel));
+
     dataModelProvider.header =
         collection.createEntityByJson('DataHeader', {'label': 'Entity'});
 
@@ -181,6 +188,7 @@ class CWApplication {
 
     loaderModel.addProvider(dataModelProvider);
     //----------------------------------------------
+    // loader de type nested
     dataAttributProvider = CWProvider(
         'DataAttrProvider',
         'ModelAttributs',
@@ -196,6 +204,10 @@ class CWApplication {
         CWProviderAction.onStateNone, OnAddAttr(dataAttributProvider));
     dataAttributProvider.addAction(
         CWProviderAction.onRowSelected, OnSelectAttribut());
+
+    //-------------------------------------------------------
+    listAttrProvider.header =
+        collection.createEntityByJson('DataHeader', {'label': '?'});  
 
     //-------------------------------------------------------
     dataProvider = CWProvider(
@@ -294,7 +306,7 @@ class CWApplication {
   }
 
   CWProvider getDesignDataProvider(
-      CWAppLoaderCtx loader, CoreDataEntity tableEntity,
+      CWAppLoaderCtx loader, CoreDataEntity tableEntity, String? idProvider,
       {CoreDataFilter? filter}) {
     //var label = tableEntity.value["name"];
     var type = tableEntity.value['_id_'];
@@ -305,7 +317,10 @@ class CWApplication {
     //pas de data en design
     CWProviderData dataLoaderDesign = CWProviderData(null);
 
-    CWProvider designData = CWProvider(tableEntity.value['name'], type,
+    String id = idProvider ??
+        customAlphabet('1234567890abcdef', 10); //tableEntity.value['name'];
+
+    CWProvider designData = CWProvider(id, type,
         CWProviderDataSelector(dataLoaderFinal, dataLoaderDesign, loader));
 
     var aFilter = (filter?.isFilter() ?? false) ? filter : null;

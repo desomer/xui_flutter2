@@ -7,7 +7,9 @@ import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
+import '../designer/builder/array_builder.dart';
 import '../designer/cw_factory.dart';
+import '../designer/designer.dart';
 import '../designer/designer_selector_query.dart';
 import 'cw_array_row.dart';
 import 'cw_toolkit.dart';
@@ -29,7 +31,7 @@ class CWList extends CWWidgetMap {
         .addWidget(
             'CWList', (CWWidgetCtx ctx) => CWList(key: ctx.getKey(), ctx: ctx))
         .addAttr('reorder', CDAttributType.bool)
-        .addAttr('providerName', CDAttributType.text);
+        .addAttr(iDProviderName, CDAttributType.text);
   }
 
   bool getReorder() {
@@ -112,10 +114,11 @@ class _CwListState extends StateCW<CWList> {
       return true;
     }, onAccept: (item) async {
       debugPrint('accept list');
-
       // FormBuilder().createForm(widget, item.query);
-
       /// ArrayBuilder().createArray(widget, item.query);
+      await ArrayBuilder(loaderCtx: widget.ctx.loader)
+          .initDesignArrayFromQuery(widget, item.query, 'None');
+      CoreDesigner.of().providerKey.currentState!.setState(() {});
     });
   }
 
@@ -274,7 +277,7 @@ class InheritedStateContainer extends InheritedWidget {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onRowSelected.toString();
     CWProvider? provider = CWProvider.of(arrayState.widget.ctx);
-    print('selected row $index');
+    //print('selected row $index');
     if (provider != null) {
       ctxWE.provider = provider;
       ctxWE.payload = index;
@@ -347,5 +350,45 @@ class SlotListAction extends SlotAction {
   @override
   bool moveTop(CWWidgetCtx ctx) {
     return true;
+  }
+
+  @override
+  bool addLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool addRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canAddRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveLeft() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool canMoveRight() {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool moveLeft(CWWidgetCtx ctx) {
+    throw UnimplementedError();
+  }
+
+  @override
+  bool moveRight(CWWidgetCtx ctx) {
+    throw UnimplementedError();
   }
 }
