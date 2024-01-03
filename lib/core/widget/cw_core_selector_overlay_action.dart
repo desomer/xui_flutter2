@@ -21,6 +21,8 @@ class SelectorActionWidget extends StatefulWidget {
   static final GlobalKey scaleKeyMax = GlobalKey(debugLabel: 'scaleKeyMax');
   // static final GlobalKey rootKey = GlobalKey(debugLabel: "rootKey");
 
+  static String? pathLock;
+
   @override
   State<SelectorActionWidget> createState() => SelectorActionWidgetState();
 
@@ -92,7 +94,19 @@ class ZoneDesc {
   List<Widget> actions = [];
 }
 
-enum DesignAction { delete, size, addTop, addBottom, moveBottom, moveTop,  addRight, addLeft, moveRight, moveLeft, none }
+enum DesignAction {
+  delete,
+  size,
+  addTop,
+  addBottom,
+  moveBottom,
+  moveTop,
+  addRight,
+  addLeft,
+  moveRight,
+  moveLeft,
+  none
+}
 
 class SelectorActionWidgetState extends State<SelectorActionWidget> {
   double gBottom = 10;
@@ -401,31 +415,23 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   void doAction(DesignAction action) {
     if (action == DesignAction.delete) {
       DesignActionManager().doDelete();
-    }
-    else if (action == DesignAction.addBottom) {
+    } else if (action == DesignAction.addBottom) {
       DesignActionManager().addBottom();
-    }
-    else if (action == DesignAction.addTop) {
+    } else if (action == DesignAction.addTop) {
       DesignActionManager().addTop();
-    }
-    else if (action == DesignAction.moveBottom) {
+    } else if (action == DesignAction.moveBottom) {
       DesignActionManager().moveBottom();
-    }   
-    else if (action == DesignAction.moveTop) {
+    } else if (action == DesignAction.moveTop) {
       DesignActionManager().moveTop();
-    } 
-    else if (action == DesignAction.addRight) {
+    } else if (action == DesignAction.addRight) {
       DesignActionManager().addRight();
-    }
-    else if (action == DesignAction.addLeft) {
+    } else if (action == DesignAction.addLeft) {
       DesignActionManager().addLeft();
-    }
-    else if (action == DesignAction.moveRight) {
+    } else if (action == DesignAction.moveRight) {
       DesignActionManager().moveRight();
-    }   
-    else if (action == DesignAction.moveLeft) {
+    } else if (action == DesignAction.moveLeft) {
       DesignActionManager().moveLeft();
-    }         
+    }
   }
 }
 

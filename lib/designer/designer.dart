@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:event_listener/event_listener.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
@@ -101,6 +102,7 @@ class CoreDesigner extends StatefulWidget {
   final GlobalKey providerKey = GlobalKey(debugLabel: 'designerProviderKey');
 
   final GlobalKey dataFilterKey = GlobalKey(debugLabel: 'dataFilterKey');
+  final GlobalKey navCmpKey = GlobalKey(debugLabel: 'navCmpKey');
 
   final _eventListener = EventListener();
   final editor = DesignerEditor();
@@ -108,10 +110,6 @@ class CoreDesigner extends StatefulWidget {
 
   @override
   State<CoreDesigner> createState() => _CoreDesignerState();
-}
-
-class RouteTest extends Route {
-  RouteTest({super.settings});
 }
 
 class _CoreDesignerState extends State<CoreDesigner>
@@ -157,12 +155,6 @@ class _CoreDesignerState extends State<CoreDesigner>
       getTestPan()
     ];
 
-    List<Route> currentRouteStack = [];
-    currentRouteStack
-        .add(RouteTest(settings: const RouteSettings(name: 'Root')));
-    currentRouteStack
-        .add(RouteTest(settings: const RouteSettings(name: 'Text')));
-
     return MaterialApp(
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
@@ -181,101 +173,107 @@ class _CoreDesignerState extends State<CoreDesigner>
             brightness: Brightness.dark,
           ),
         ),
-        home: Scaffold(
-          appBar: AppBar(
-            title: Row(children: [
-              BreadCrumbNavigator(currentRouteStack),
-              const Spacer(),
-              const WidgetPreview(),
-              InkWell(
-                child: const Icon(size: 25, Icons.save),
-                onTap: () {
-                  CoreDesigner.emit(CDDesignEvent.save, null);
+        home: CallbackShortcuts(
+            bindings: <ShortcutActivator, VoidCallback>{
+              LogicalKeySet(LogicalKeyboardKey.control): () {
+                print("ctrl");
+              },
+            },
+            child: Scaffold(
+              appBar: AppBar(
+                title: Row(children: [
+                  BreadCrumbNavigator(key: widget.navCmpKey),
+                  const Spacer(),
+                  const WidgetPreview(),
+                  InkWell(
+                    child: const Icon(size: 25, Icons.save),
+                    onTap: () {
+                      CoreDesigner.emit(CDDesignEvent.save, null);
+                    },
+                  ),
+                  const SizedBox(width: 20),
+                  const Text('ElisView v0.4.4'),
+                  const SizedBox(width: 5),
+                  IconButton(
+                    iconSize: 30,
+                    icon: const Icon(Icons.apps),
+                    onPressed: () {},
+                  )
+                ]),
+              ),
+              body: nav, // PageStorage(bucket: _bucket, child: nav),
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.miniCenterDocked,
+              floatingActionButton: FloatingActionButton(
+                elevation: 4,
+                backgroundColor: Colors.deepOrange.shade400,
+                mini: true,
+                child: const Icon(Icons.add, color: Colors.white),
+                onPressed: () {
+                  widget.editor.controllerTabRight.index = 1;
                 },
               ),
-              const SizedBox(width: 20),
-              const Text('ElisView v0.4.4'),
-              const SizedBox(width: 5),
-              IconButton(
-                iconSize: 30,
-                icon: const Icon(Icons.apps),
-                onPressed: () {},
-              )
-            ]),
-          ),
-          body: nav, // PageStorage(bucket: _bucket, child: nav),
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.miniCenterDocked,
-          floatingActionButton: FloatingActionButton(
-            elevation: 4,
-            backgroundColor: Colors.deepOrange.shade400,
-            mini: true,
-            child: const Icon(Icons.add, color: Colors.white),
-            onPressed: () {
-              widget.editor.controllerTabRight.index = 1;
-            },
-          ),
-          bottomNavigationBar: BottomAppBar(
-              height: 40,
-              shape: const CircularNotchedRectangle(),
-              notchMargin: 8.0,
-              padding: EdgeInsets.zero,
-              child: Row(
-                // mainAxisSize: MainAxisSize.max,
-                //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Row(children: [
-                    IconButton(
-                      icon: const Icon(Icons.undo),
-                      onPressed: () {},
+              bottomNavigationBar: BottomAppBar(
+                  height: 40,
+                  shape: const CircularNotchedRectangle(),
+                  notchMargin: 8.0,
+                  padding: EdgeInsets.zero,
+                  child: Row(
+                    // mainAxisSize: MainAxisSize.max,
+                    //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Row(children: [
+                        IconButton(
+                          icon: const Icon(Icons.undo),
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.redo),
+                          onPressed: () {},
+                        ),
+                        Tooltip(
+                            message: 'Clear all',
+                            child: IconButton(
+                              icon: const Icon(Icons.clear_all),
+                              onPressed: () {
+                                CoreDesigner.emit(CDDesignEvent.clear, null);
+                              },
+                            )),
+                      ]),
+                      const Spacer(),
+                      const Text('Desomer G.  24/12/23'),
+                      IconButton(
+                        icon: const Icon(Icons.help),
+                        onPressed: () {},
+                      ),
+                    ],
+                  )),
+              drawer: Drawer(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    const DrawerHeader(
+                      // decoration: BoxDecoration(
+                      //   color: Colors.blue,
+                      // ),
+                      child: Text('Entete du Drawer'),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.redo),
-                      onPressed: () {},
+                    ListTile(
+                      title: const Text('Item 1'),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
                     ),
-                    Tooltip(
-                        message: 'Clear all',
-                        child: IconButton(
-                          icon: const Icon(Icons.clear_all),
-                          onPressed: () {
-                            CoreDesigner.emit(CDDesignEvent.clear, null);
-                          },
-                        )),
-                  ]),
-                  const Spacer(),
-                  const Text('Desomer G.  09/12/23'),
-                  IconButton(
-                    icon: const Icon(Icons.help),
-                    onPressed: () {},
-                  ),
-                ],
-              )),
-          drawer: Drawer(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                const DrawerHeader(
-                  // decoration: BoxDecoration(
-                  //   color: Colors.blue,
-                  // ),
-                  child: Text('Entete du Drawer'),
+                    ListTile(
+                      title: const Text('Item 2'),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
                 ),
-                ListTile(
-                  title: const Text('Item 1'),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-                ListTile(
-                  title: const Text('Item 2'),
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ));
+              ),
+            )));
   }
 
   Widget getDataPan() {
@@ -344,7 +342,8 @@ class _CoreDesignerState extends State<CoreDesigner>
         .collectionWidget
         .createEntityByJson('CWArray', {iDProviderName: 'DataModelProvider'});
 
-    CWBindWidget bindFilter = CWBindWidget('bindFilter', ModeBindWidget.selected);
+    CWBindWidget bindFilter =
+        CWBindWidget('bindFilter', ModeBindWidget.selected);
 
     return Row(
       children: [

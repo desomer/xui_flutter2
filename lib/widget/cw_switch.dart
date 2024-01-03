@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/widget/cw_core_widget.dart';
 
-class CWSwitch extends CWWidgetMap {
+class CWSwitch extends CWWidgetMapValue {
   const CWSwitch({
     super.key,
     required super.ctx,
@@ -29,7 +29,7 @@ class _CWSwitchState extends StateCW<CWSwitch> {
     return SwitchListTile(
         contentPadding: const EdgeInsets.fromLTRB(5, 1, 5, 0),
         dense: true,
-        title: Text(widget.getLabel('[empty]')),
+        title: Text(widget.getLabel('[label]')),
         // This bool value toggles the switch.
         value: val,
         // activeColor: Colors.red,

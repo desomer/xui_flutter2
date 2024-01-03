@@ -13,7 +13,7 @@ import '../designer/designer_selector_query.dart';
 import '../designer/widget_crud.dart';
 import 'cw_array_row.dart';
 
-class CWArray extends CWWidgetMap {
+class CWArray extends CWWidgetMapProvider {
   const CWArray({super.key, required super.ctx});
 
   @override
@@ -35,8 +35,8 @@ class CWArray extends CWWidgetMap {
     c
         .addWidget('CWArray',
             (CWWidgetCtx ctx) => CWArray(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.int)
-        .addAttr(iDProviderName, CDAttributType.text);
+        .addAttr(iDCount, CDAttributType.int)
+        .addAttr(iDProviderName, CDAttributType.text, tname: 'provider');
 
     c.collection
         .addObject('CWColArrayConstraint')
@@ -74,7 +74,7 @@ class _CwArrayState extends StateCW<CWArray> {
       final widthCol = (w - 24 - 9) / nbCol;
 
       List<Widget> listHeader =
-          getListWidgetHeader(nbCol, widthCol, heightHeader);
+          _getListWidgetHeader(nbCol, widthCol, heightHeader);
 
       Widget getContent(int ok) {
         widget.setProviderDataOK(provider, ok);
@@ -82,7 +82,7 @@ class _CwArrayState extends StateCW<CWArray> {
         if (widget.ctx.loader.mode == ModeRendering.design) ok = 1;
 
         return getArray(w, constraint.maxHeight, nbCol,
-            Row(children: listHeader), getListView(nbCol, widthCol, ok));
+            Row(children: listHeader), _getListView(nbCol, widthCol, ok));
       }
 
       if (futureData is Future) {
@@ -94,10 +94,10 @@ class _CwArrayState extends StateCW<CWArray> {
     });
   }
 
-  List<Widget> getListWidgetHeader(int nbCol, double maxWidth, double height) {
+  List<Widget> _getListWidgetHeader(int nbCol, double maxWidth, double height) {
     final List<Widget> listHeader = [];
     for (var i = 0; i < nbCol; i++) {
-      listHeader.add(getHeader(i, maxWidth, height));
+      listHeader.add(_getHeader(i, maxWidth, height));
     }
     // header delete
     listHeader.add(const SizedBox(
@@ -106,7 +106,7 @@ class _CwArrayState extends StateCW<CWArray> {
     return listHeader;
   }
 
-  Widget getDropZone(Widget child) {
+  Widget _getDroppable(Widget child) {
     return DragTarget<DragQueryCtx>(
         builder: (context, candidateItems, rejectedItems) {
       return AnimatedScale(
@@ -125,7 +125,7 @@ class _CwArrayState extends StateCW<CWArray> {
   static const double heightBorder = 1;
   static const double borderDrag = 10;
 
-  Widget getArray(double w, double h, int nbCol, Row header, ListView content) {
+  Widget getArray(double w, double h, int nbCol, Row header, Widget content) {
     Widget sizedContent = content;
     if (nbCol == 0) {
       sizedContent = ListView(
@@ -174,7 +174,7 @@ class _CwArrayState extends StateCW<CWArray> {
   }
 
   Widget getDropQuery(double h) {
-    return getDropZone(Container(
+    return _getDroppable(Container(
         margin:
             const EdgeInsets.fromLTRB(borderDrag, borderDrag, borderDrag, 0),
         height: h != double.infinity
@@ -187,12 +187,12 @@ class _CwArrayState extends StateCW<CWArray> {
             child: const Center(
                 child: IntrinsicWidth(
                     child: Row(children: [
-              Text('Drag query here'),
+              Text('Drag query or result here'),
               Icon(Icons.filter_alt)
             ]))))));
   }
 
-  ListView getListView(int nbCol, double maxWidth, nbRow) {
+  Widget _getListView(int nbCol, double maxWidth, nbRow) {
     if (nbRow < 0) nbRow = 0;
 
     var listView = ListView.builder(
@@ -203,7 +203,7 @@ class _CwArrayState extends StateCW<CWArray> {
         itemCount: nbRow,
         itemBuilder: (context, index) {
           List<Widget> getARowBuilder(CWArrayRowState rowState) {
-            return getRowBuilder(rowState, nbCol, index, maxWidth);
+            return _getRowBuilder(rowState, nbCol, index, maxWidth);
           }
 
           // CwRow? row = cache['$index'];
@@ -226,35 +226,39 @@ class _CwArrayState extends StateCW<CWArray> {
   }
 
   CWProvider? provider;
-  List<Widget> getRowBuilder(
+  List<Widget> _getRowBuilder(
       CWArrayRowState rowState, int nbCol, int idxRow, double maxWidth) {
     final List<Widget> listConts = [];
     provider = CWProvider.of(widget.ctx);
+
     for (var i = 0; i < nbCol; i++) {
-      dynamic content = '';
+      dynamic contentForKey = '';
       // recupére le slot du design
       var createInArrayCtx =
           widget.createInArrayCtx(widget.ctx, 'RowCont$i', null);
       var w = createInArrayCtx.getWidgetInSlot();
-      if (w is CWWidgetMap) {
+
+      if (w is CWWidgetMapValue) {
         if (provider != null) {
           provider!.getData().idxDisplayed = idxRow;
-          content = w.getMapString();
+          var bind = w.ctx.designEntity
+              ?.getOne(w is CWWidgetMapLabel ? '@label' : '@bind');
+          contentForKey = w.getMapString(provInfo: bind);
         }
       }
-      // duplique les slot par ligne de tableau
-      listConts.add(getCell(
+      // duplique les slot par ligne de tableau pour une Key par cellule
+      listConts.add(_getCell(
           CWSlot(
             type: 'datacell',
             key: widget.ctx.getSlotKey(
                 idxRow == 0 ? 'RowCont{$i}' : 'RowCont{$i}_$idxRow',
-                content.toString()),
+                contentForKey.toString()),
             ctx: createInArrayCtx,
             slotAction: ColumnAction(),
           ),
           i,
           maxWidth,
-          CWArrayRow.heightRow));
+          CWArrayRow.getHeightRow(widget)));
     }
 
     // delete
@@ -267,7 +271,7 @@ class _CwArrayState extends StateCW<CWArray> {
     return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy - 5);
   }
 
-  Widget getDrag(int i, Widget child) {
+  Widget _getDraggable(int i, Widget child) {
     return Draggable<DragColCtx>(
         dragAnchorStrategy: dragAnchorStrategy,
         onDragStarted: () {
@@ -282,10 +286,10 @@ class _CwArrayState extends StateCW<CWArray> {
         child: child);
   }
 
-  Widget getHeader(int i, double maxWidth, double h) {
-    return getDrag(
+  Widget _getHeader(int i, double maxWidth, double h) {
+    return _getDraggable(
         i,
-        getCell(
+        _getCell(
             CWSlot(
               type: 'dataHeader',
               key: widget.ctx.getSlotKey('Header$i', ''),
@@ -297,7 +301,7 @@ class _CwArrayState extends StateCW<CWArray> {
             h));
   }
 
-  Widget getCell(Widget cell, int numCol, double max, double? height) {
+  Widget _getCell(Widget cell, int numCol, double max, double? height) {
     return SizedBox(
         width: max.clamp(minWidth, 500),
         height: height,
@@ -416,7 +420,7 @@ class CwRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell (
         // la row
         onTap: () {
           aCWRow.selected(aCWRow.stateArray.widget.ctx);

@@ -99,6 +99,7 @@ class CWAppLoaderCtx {
   late WidgetFactoryEventHandler factory;
   late CoreDataEntity entityCWFactory;
   late ModeRendering _mode;
+  bool modeDesktop = true;
 
   ModeRendering get mode {
     return _mode;
@@ -187,8 +188,13 @@ class DesignCtx {
   String? pathCreate;
   bool isSlot = false;
   CoreDataEntity? designEntity;
+  CWWidgetCtx? ctxVirtualSlot;
 
-  DesignCtx forDesignByPath(CWWidgetCtx ctx, String path) {
+  CWWidgetCtx getCWCtx() {
+    return widget?.ctx ?? ctxVirtualSlot!;
+  }
+
+  DesignCtx forDesignByPath(CWWidgetCtx ctx, String path, SlotConfig? sc) {
     pathWidget = path;
     xid = ctx.factory.mapXidByPath[path];
     widget = ctx.factory.mapWidgetByXid[xid];
@@ -198,6 +204,11 @@ class DesignCtx {
       designEntity = widget!.ctx.designEntity;
     } else {
       isSlot = true;
+      if (sc != null) {
+        xid = sc.ctxVirtualSlot!.xid;
+        ctxVirtualSlot = sc.ctxVirtualSlot;
+        designEntity = ctx.factory.mapConstraintByXid[xid]?.designEntity;
+      }
     }
 
     return this;

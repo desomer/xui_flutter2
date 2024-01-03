@@ -184,8 +184,20 @@ class CoreDataEntity {
   CoreDataEntity setAttr(CWAppLoaderCtx loader, String attrName, dynamic v) {
     final CoreDataAttribut? attr = getAttrByName(loader, attrName);
     if (attr != null) {
-      // ignore: avoid_dynamic_calls
-      value[attrName] = v;
+      if (v == null) {
+        value.remove(attrName);
+      } else {
+        value[attrName] = v;
+      }
+    } else if (attrName.startsWith('@')) {
+      if (v == null) {
+        value.remove(attrName);
+      } else {
+        value[attrName] = v;
+      }
+    } else {
+      // ignore: avoid_print
+      print('not exist attr $attrName on $type');
     }
     patchRedo = null;
     return this;
@@ -231,7 +243,7 @@ class CoreDataEntity {
     return this;
   }
 
-  CoreDataEntity getOne(
+  CoreDataEntity getOneByType(
       CoreDataCollection collection, String attrName, String typeName) {
     final CoreDataObjectBuilder builder = collection.getClass(typeName)!;
     final CoreDataEntity val = builder.getEntityModel();
@@ -251,6 +263,15 @@ class CoreDataEntity {
     final CoreDataEntity val = builder.getEntityModel();
     val.value = v;
     return val;
+  }
+
+  Map<String, dynamic>? getOne(String attrName) {
+    if (value[attrName] == null) {
+      return null;
+    }
+
+    final Map<String, dynamic> v = value[attrName] as Map<String, dynamic>;
+    return v;
   }
 
   // CoreDataEntity? getManyEntity(CoreDataCollection collection, String attrName) {
@@ -593,7 +614,7 @@ class CoreDataPath {
     if (attr is CoreDataAttributItemIdx) {
       String nameArray = attr.name.substring(0, attr.name.lastIndexOf('['));
       var arr = entity.value[nameArray] as List;
-      if (!onlyLast || arr.length-1==attr.idxInArray) {
+      if (!onlyLast || arr.length - 1 == attr.idxInArray) {
         arr.removeAt(attr.idxInArray);
       }
     } else {

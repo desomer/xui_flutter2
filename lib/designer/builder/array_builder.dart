@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:xui_flutter/core/data/core_data_filter.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../../core/data/core_data.dart';
@@ -36,13 +35,9 @@ class ArrayBuilder {
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);
 
-    var aFilter = CoreDataFilter()..setFilterData(query);
+    CWProvider provider = app.getProviderFromQuery(query, widget);
 
-    provider = CWProviderCtx.createFromTable(
-        aFilter.getModelID(), widget.ctx,
-        filter: aFilter);
-
-    _createDesign(provider!, type, widget.ctx.xid, widget.ctx.pathWidget, false);
+    _createDesign(provider, type, widget.ctx.xid, widget.ctx.pathWidget, false);
 
     CoreDesigner.ofView().rebuild();
     // ignore: invalid_use_of_protected_member
@@ -190,19 +185,18 @@ class AttrArrayLoader extends ColRowLoader {
 
     if (ctxWE.retAction != 'None') {
       if (ctxWE.ret != null) {
-        CoreDataEntity widget = ctxWE.ret;
-        widget.value.addAll(<String, dynamic>{
-          iDBind: attribut.name,
-          iDProviderName: provider.id
+        CoreDataEntity widgetDesign = ctxWE.ret;
+        widgetDesign.value.addAll(<String, dynamic>{
+          '@bind': {iDBind: attribut.name, iDProviderName: provider.id}
         });
+        // ajoute uniquement les parameters de bind
         addChildProp('$xid${tag}RowCont$nbAttr', '${xid}Cell$nbAttr',
-            widget.type, widget);
+            widgetDesign.type, widgetDesign);
       } else {
         // type text par defaut
         addWidget('$xid${tag}RowCont$nbAttr', '${xid}Cell$nbAttr',
             'CWText', <String, dynamic>{
-          iDBind: attribut.name,
-          iDProviderName: provider.id
+          '@label': {iDBind: attribut.name, iDProviderName: provider.id}
         });
       }
 
@@ -222,13 +216,13 @@ class AttrArrayLoader extends ColRowLoader {
       setProp(
           xid,
           ctxLoader.collectionWidget.createEntityByJson('CWArray',
-              <String, dynamic>{iDProviderName: provider.id, 'count': nbAttr}));
+              <String, dynamic>{iDProviderName: provider.id, iDCount: nbAttr}));
     } else {
       // array avec header expandable
       setProp(
           xid,
           ctxLoader.collectionWidget.createEntityByJson(
-              'CWExpandPanel', <String, dynamic>{'count': 1}));
+              'CWExpandPanel', <String, dynamic>{iDCount: 1}));
 
       // le titre
       addWidget('${xid}Title0', '${xid}Title0', 'CWText', <String, dynamic>{
@@ -237,7 +231,7 @@ class AttrArrayLoader extends ColRowLoader {
 
       // la colonne d'attribut
       addWidget('${xid}Body0', '${xid}Col0', 'CWArray',
-          <String, dynamic>{iDProviderName: provider.id, 'count': nbAttr});
+          <String, dynamic>{iDProviderName: provider.id, iDCount: nbAttr});
     }
     return cwFactory;
   }
@@ -277,8 +271,7 @@ class AttrListLoader extends ColRowLoader {
         // type text par defaut
         addWidget('${xid}RowCont$nbAttr', '${xid}Info$nbAttr',
             'CWText', <String, dynamic>{
-          iDBind: attribut.name,
-          iDProviderName: provider.id
+          '@label': {iDBind: attribut.name, iDProviderName: provider.id}
         });
       }
       nbAttr++;
@@ -289,14 +282,14 @@ class AttrListLoader extends ColRowLoader {
   void addRow() {
     // la colonne d'attribut
     addWidget('${xid}Col0Cont', '${xid}Row', 'CWRow',
-        <String, dynamic>{'count': nbAttr});
+        <String, dynamic>{iDCount: nbAttr});
   }
 
   @override
   CoreDataEntity initCWFactory() {
     // le expandPanel
     addWidget('${xid}Cont', '${xid}Exp', 'CWExpandPanel',
-        <String, dynamic>{'count': 1});
+        <String, dynamic>{iDCount: 1});
 
     // le titre
     addWidget('${xid}ExpTitle0', '${xid}Title0', 'CWText', <String, dynamic>{

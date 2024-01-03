@@ -3,6 +3,7 @@ import 'package:nanoid/nanoid.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 
+import '../../designer/application_manager.dart';
 import '../../designer/cw_factory.dart';
 import '../../designer/designer.dart';
 import '../../designer/selector_manager.dart';
@@ -13,11 +14,16 @@ import '../data/core_provider.dart';
 
 enum ModeRendering { design, view }
 
+const String iDCount = '_count_';
+
 class SlotConfig {
-  SlotConfig(this.xid, {this.constraintEntity});
+  SlotConfig(this.xid,
+      {this.constraintEntity, this.ctxVirtualSlot, this.pathNested});
   String xid;
   String? constraintEntity;
   CWSlot? slot;
+  CWWidgetCtx? ctxVirtualSlot;
+  String? pathNested;
 }
 
 abstract class CWWidgetVirtual {
@@ -62,6 +68,10 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
     }
   }
 
+  CWProvider? getProvider() {
+    return CWProvider.of(ctx);
+  }
+
   void repaint() {
     ctx.state.repaint();
   }
@@ -70,6 +80,7 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
     CoreDesigner.emit(CDDesignEvent.select, ctx.getSlot()!.ctx);
   }
 
+  //--------------------------------------------------------
   int? getInt(String id, int? def) {
     return ctx.designEntity?.getInt(id, def);
   }
@@ -80,11 +91,54 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
   }
 
   String getLabel(String def) {
-    return ctx.designEntity?.getString('label') ?? def;
+    var bind = ctx.designEntity?.getOne('@label');
+    if (bind != null) {
+      return getMapString(provInfo: bind);
+    }
+    var mode = CWApplication.of().loaderDesigner.mode;
+    return ctx.designEntity?.getString('label') ??
+        (mode == ModeRendering.design ? def : '');
   }
 
   Map<String, dynamic>? getIcon() {
     return ctx.designEntity?.value['icon'];
+  }
+
+  //--------------------------------------------------------
+
+  String getMapString({Map<String, dynamic>? provInfo}) {
+    if (provInfo != null) {
+      var mode = ctx.loader.mode;
+      //  CWApplication.of().loaderDesigner.mode;
+      CWProvider? provider = CWProvider.of(ctx, id: provInfo[iDProviderName]);
+      var val = (provider?.displayRenderingMode == DisplayRenderingMode.selected
+              ? provider?.getSelectedEntity()
+              : provider?.getDisplayedEntity())
+          ?.value[provInfo[iDBind]];
+      if (val == null && provider != null) {
+        if (mode == ModeRendering.design) {
+          var nameAttr = provider.getAttrName(provInfo[iDBind]);
+          return '[@$nameAttr]';
+        } else {
+          return '';
+        }
+      } else {
+        return val!.toString();
+      }
+    } else {
+      CWProvider? provider = CWProvider.of(ctx);
+      return provider?.getStringValueOf(ctx, iDBind) ?? 'no map';
+    }
+  }
+
+  bool getMapBool() {
+    CWProvider? provider = CWProvider.of(ctx);
+    return provider?.getBoolValueOf(ctx, iDBind) ?? false;
+  }
+
+  Map<String, dynamic>? getMapOne() {
+    CWProvider? provider = CWProvider.of(ctx);
+    return provider?.getMapValueOf(ctx, iDBind);
   }
 }
 
@@ -156,17 +210,30 @@ mixin class CWWidgetProvider {
   }
 }
 
-abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
-  const CWWidgetMap({super.key, required super.ctx});
+abstract class CWWidgetChild extends CWWidget {
+  const CWWidgetChild({super.key, required super.ctx});
+  int getDefChild(String id);
 
-  void setDisplayRow(InheritedStateContainer? row) {
-    CWProvider? provider = CWProvider.of(ctx);
-    if (provider != null) {
-      if (row != null) {
-        //print("row.index = ${row.index}");
-        provider.getData().idxDisplayed = row.index!;
-      }
+  int getNbChild(String id, int def) {
+    return ctx.designEntity?.getInt(id, def) ?? def;
+  }
+}
+
+abstract class CWWidgetMapLabel extends CWWidgetMapValue {
+  const CWWidgetMapLabel({super.key, required super.ctx});
+}
+
+abstract class CWWidgetMapValue extends CWWidget with CWWidgetProvider {
+  const CWWidgetMapValue({super.key, required super.ctx});
+
+  @override
+  CWProvider? getProvider() {
+    var bind =
+        ctx.designEntity?.getOne(this is CWWidgetMapLabel ? '@label' : '@bind');
+    if (bind != null) {
+      return CWProvider.of(ctx, id: bind[iDProviderName]);
     }
+    return CWProvider.of(ctx);
   }
 
   InheritedStateContainer? getRowState(BuildContext context) {
@@ -175,32 +242,44 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
     return row;
   }
 
-  String getMapString() {
-    CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getStringValueOf(ctx, iDBind) ?? 'no map';
-  }
-
-  bool getMapBool() {
-    CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getBoolValueOf(ctx, iDBind) ?? false;
-  }
-
-  Map<String, dynamic>? getMapOne() {
-    CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getMapValueOf(ctx, iDBind);
-  }
-
-  void setValue(dynamic val) {
-    CWProvider? provider = CWProvider.of(ctx);
+  void setDisplayRow(InheritedStateContainer? row) {
+    CWProvider? provider = getProvider();
     if (provider != null) {
-      CWWidgetEvent ctxWE = CWWidgetEvent();
-      ctxWE.action = CWProviderAction.onValueChanged.toString();
-      ctxWE.provider = provider;
-      ctxWE.payload = null;
-      ctxWE.loader = ctx.loader;
-      provider.setValueOf(ctx, ctxWE, iDBind, val);
+      if (row != null) {
+        //print("row.index = ${row.index}");
+        provider.displayRenderingMode = DisplayRenderingMode.displayed;
+        provider.getData().idxDisplayed = row.index!;
+      }
     }
   }
+
+  void setValue(dynamic val, {Map<String, dynamic>? provInfo}) {
+    if (provInfo != null) {
+      CWProvider? provider = CWProvider.of(ctx, id: provInfo[iDProviderName]);
+      if (provider != null) {
+        CWWidgetEvent ctxWE = CWWidgetEvent();
+        ctxWE.action = CWProviderAction.onValueChanged.toString();
+        ctxWE.provider = provider;
+        ctxWE.payload = null;
+        ctxWE.loader = ctx.loader;
+        provider.setValueOf(ctx, ctxWE, provInfo[iDBind], val);
+      }
+    } else {
+      CWProvider? provider = CWProvider.of(ctx);
+      if (provider != null) {
+        CWWidgetEvent ctxWE = CWWidgetEvent();
+        ctxWE.action = CWProviderAction.onValueChanged.toString();
+        ctxWE.provider = provider;
+        ctxWE.payload = null;
+        ctxWE.loader = ctx.loader;
+        provider.setValuePropOf(ctx, ctxWE, iDBind, val);
+      }
+    }
+  }
+}
+
+abstract class CWWidgetMapProvider extends CWWidget with CWWidgetProvider {
+  const CWWidgetMapProvider({super.key, required super.ctx});
 
   void setIdx(int idx) {
     CWProvider? provider = CWProvider.of(ctx);
@@ -210,7 +289,7 @@ abstract class CWWidgetMap extends CWWidget with CWWidgetProvider {
   }
 
   int getCountChildren() {
-    return ctx.designEntity?.getInt('count', 0) ?? 0;
+    return ctx.designEntity?.getInt(iDCount, 0) ?? 0;
   }
 }
 

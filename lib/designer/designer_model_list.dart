@@ -72,6 +72,16 @@ class OnSelectAttribut extends CoreDataAction {
   }
 }
 
+class ActionRepaint extends CoreDataAction {
+  ActionRepaint(this.ctxRepaint);
+  CWWidgetCtx ctxRepaint;
+
+  @override
+  void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    ctxRepaint.getCWWidget()?.repaint();
+  }
+}
+
 class OnSelectModel extends CoreDataAction {
   OnSelectModel();
 

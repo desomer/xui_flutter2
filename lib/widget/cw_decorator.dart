@@ -28,13 +28,13 @@ class _CWDecoratorState extends StateCW<CWDecorator> {
   @override
   Widget build(BuildContext context) {
     return Card(
-        margin: EdgeInsets.all(5),
+        margin: const EdgeInsets.all(5),
         elevation: widget.getInt('elevation', null)?.toDouble(),
         child: InkWell(
             borderRadius: BorderRadius.circular(12.0),
             onTap: () {},
             child: Padding(
-                padding: EdgeInsets.all(5.0),
+                padding: const EdgeInsets.all(5.0),
                 child: CWSlot(
                     type: 'body',
                     key: widget.ctx.getSlotKey('Cont', ''),

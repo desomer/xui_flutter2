@@ -2,13 +2,12 @@ import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 
-import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer_selector_query.dart';
 
-class DesignerProvider extends CWWidgetMap {
+class DesignerProvider extends CWWidgetMapProvider {
   const DesignerProvider({super.key, required super.ctx, this.bindWidget});
   final CWBindWidget? bindWidget;
 
@@ -22,12 +21,12 @@ class DesignerProvider extends CWWidgetMap {
 class _DesignerProviderState extends State<DesignerProvider> {
   TreeViewController? _controller;
   late IndexedTreeNode<CWProvider> nodesRemovedIndexedTree;
- // late CWProvider provider;
+  // late CWProvider provider;
 
   @override
   void initState() {
     super.initState();
-   // provider = CWProvider.of(widget.ctx)!;
+    // provider = CWProvider.of(widget.ctx)!;
   }
 
   @override
@@ -56,10 +55,20 @@ class _DesignerProviderState extends State<DesignerProvider> {
           _controller!.expandAllChildren(nodesRemovedIndexedTree);
         },
         onItemTap: (item) {
-          var app = CWApplication.of(); 
-          var itemProvider = app.collection.createEntityByJson('DataHeader', {'name': item.data?.getName()??'', 'type': item.data!.type});
-          widget.bindWidget?.onSelect(itemProvider);
-          
+          // var app = CWApplication.of();
+
+          // var tableModel = item.data!.getTableModel();
+          // String name =
+          //     '${item.data!.getQueryName()} (${tableModel.value['name']})';
+
+          // var itemProvider = app.collection.createEntityByJson('DataHeader', {
+          //   'name': name,
+          //   'type': item.data!.type,
+          //   'tableModel': tableModel,
+          //   'idProvider': item.data!.id
+          // });
+          widget.bindWidget?.onSelect(item.data!.getCoreDataEntity());
+
           // ScaffoldMessenger.of(context).showSnackBar(
           //   SnackBar(
           //     content: Text("Item tapped: ${item.key}"),
@@ -80,7 +89,7 @@ class _DesignerProviderState extends State<DesignerProvider> {
         onDragStarted: () {
           // GlobalSnackBar.show(context, 'Drag started');
         },
-        data: DragQueryCtx(CoreDataEntity('none')),
+        data: DragQueryCtx(node.data!.getCoreDataEntity()),
         feedback: Container(
             height: 30,
             width: 100,
@@ -94,7 +103,7 @@ class _DesignerProviderState extends State<DesignerProvider> {
     if (node.level == 0) {
       cell = const Text('Result');
     } else {
-      cell = getDrag(node, Text(node.data!.getName()));
+      cell = getDrag(node, Text(node.data!.getQueryName()));
     }
 
     return Container(

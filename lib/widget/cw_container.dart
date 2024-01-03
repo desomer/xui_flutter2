@@ -10,16 +10,12 @@ import '../core/widget/cw_core_widget.dart';
 import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
 import '../designer/designer.dart';
+import '../designer/designer_model_list.dart';
 import '../designer/designer_selector_query.dart';
 
-abstract class CWContainer extends CWWidget {
+abstract class CWContainer extends CWWidgetChild {
   const CWContainer({super.key, required super.ctx});
 
-  int getDefChild();
-
-  int getNbChild(int def) {
-    return ctx.designEntity?.getInt('count', def) ?? def;
-  }
 
   bool isFill(bool def) {
     return ctx.designEntity?.getBool('fill', def) ?? def;
@@ -77,7 +73,7 @@ class CWColumn extends CWContainer {
 
   @override
   void initSlot(String path) {
-    final nb = getNbChild(getDefChild());
+    final nb = getNbChild(iDCount, getDefChild(iDCount));
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
           SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWColConstraint'));
@@ -88,7 +84,7 @@ class CWColumn extends CWContainer {
     c
         .addWidget('CWColumn',
             (CWWidgetCtx ctx) => CWColumn(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.int)
+        .addAttr(iDCount, CDAttributType.int)
         .withAction(AttrActionDefault(2))
         .addAttr('fill', CDAttributType.bool)
         .withAction(AttrActionDefault(true));
@@ -105,7 +101,7 @@ class CWColumn extends CWContainer {
   }
 
   @override
-  int getDefChild() {
+  int getDefChild(String id) {
     return isForm ? 0 : 2;
   }
 }
@@ -127,7 +123,7 @@ class CWColumnState extends StateCW<CWColumn>
       final List<Widget> listStack = [];
       final List<Widget> listSlot = [];
 
-      final nb = widget.getNbChild(widget.getDefChild());
+      final nb = widget.getNbChild(iDCount, widget.getDefChild(iDCount));
       for (var i = 0; i < nb; i++) {
         listSlot.add(widget.getCell(i, true,
             canHeight: true,
@@ -163,8 +159,10 @@ class CWColumnState extends StateCW<CWColumn>
     var futureData = initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
 
     dynamic getContent(int ok) {
-      var provider = CWProvider.of(widget.ctx);
+      CWProvider? provider = CWProvider.of(widget.ctx);
       setProviderDataOK(provider, ok);
+      provider?.addAction(
+        CWProviderAction.onRowSelected, ActionRepaint(widget.ctx));
       return getWidget();
     }
 
@@ -199,7 +197,7 @@ class CWRow extends CWContainer {
     c
         .addWidget(
             'CWRow', (CWWidgetCtx ctx) => CWRow(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.int)
+        .addAttr(iDCount, CDAttributType.int)
         .withAction(AttrActionDefault(3))
         .addAttr('fill', CDAttributType.bool)
         .withAction(AttrActionDefault(true));
@@ -210,7 +208,7 @@ class CWRow extends CWContainer {
 
   @override
   void initSlot(String path) {
-    final nb = getNbChild(getDefChild());
+    final nb = getNbChild(iDCount, getDefChild(iDCount));
     for (int i = 0; i < nb; i++) {
       addSlotPath('$path.Cont$i',
           SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWRowConstraint'));
@@ -218,7 +216,7 @@ class CWRow extends CWContainer {
   }
 
   @override
-  int getDefChild() {
+  int getDefChild(String id) {
     return 2;
   }
 }
@@ -227,7 +225,7 @@ class CWRowState extends StateCW<CWRow> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> listSlot = [];
-    final nb = widget.getNbChild(widget.getDefChild());
+    final nb = widget.getNbChild(iDCount, widget.getDefChild(iDCount));
     for (var i = 0; i < nb; i++) {
       listSlot.add(widget.getCell(i, true,
           canFill: true, canWidth: true, type: 'CWRow'));
@@ -273,7 +271,7 @@ mixin CWDroppable {
             child: const Center(
                 child: IntrinsicWidth(
                     child: Row(children: [
-              Text('Drag query here'),
+              Text('Drag query or result or param here'),
               Icon(Icons.filter_alt)
             ]))))));
   }
@@ -301,7 +299,7 @@ class SlotContainerAction extends SlotAction {
 
   @override
   bool doDelete(CWWidgetCtx ctx) {
-    return DesignActionManager().doDeleteSlot(ctx);
+    return DesignActionManager().doDeleteSlot(ctx, 'Cont', iDCount);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -309,7 +307,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addBottom(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().addBeforeOrAfter(ctx, false);
+      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont0');
       return true;
@@ -319,7 +317,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addTop(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().addBeforeOrAfter(ctx, true);
+      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', true, iDCount);
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont1');
       return true;
@@ -334,7 +332,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveBottom(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, false);
+      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       return false;
     }
@@ -343,7 +341,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveTop(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, true);
+      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
     } else {
       return false;
     }
@@ -357,7 +355,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addLeft(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().addBeforeOrAfter(ctx, true);
+      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', true, iDCount);
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont1');
       return true;
@@ -367,7 +365,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addRight(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().addBeforeOrAfter(ctx, false);
+      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont0');
       return true;
@@ -397,7 +395,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveLeft(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, true);
+      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
     } else {
       return false;
     }
@@ -406,7 +404,7 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveRight(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, false);
+      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       return false;
     }

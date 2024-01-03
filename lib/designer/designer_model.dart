@@ -19,7 +19,7 @@ class DesignerModel extends StatelessWidget {
   Widget build(BuildContext context) {
     //print('bind id ${bindWidget.id}');
 
-    var app=CWApplication.of();
+    var app = CWApplication.of();
 
     if (bindWidget.id == 'bindModel2Attr') {
       bindWidget.fctBindNested = (selected) {
@@ -35,14 +35,16 @@ class DesignerModel extends StatelessWidget {
         if (selectedEntity != null) {
           var name = selectedEntity.value['name'] ?? '?';
           app.listAttrProvider.header!.value['label'] = name;
-          app.loaderModel.findByXid('rootAttr2Title0')!.changeProp('label', name);
+          app.loaderModel
+              .findByXid('rootAttr2Title0')!
+              .changeProp('label', name);
+          CoreDataEntity tableModel = selectedEntity.value['tableModel'];
+          app.listAttrProvider.content.length = 0;
+          app.listAttrProvider.addAll(app.loaderModel, tableModel.value['listAttr']);
         }
 
-        bindWidget.nestedWidgetState = 
-            app.loaderModel
-            .findWidgetByXid('rootAttr2Exp')
-            ?.ctx
-            .state;
+        bindWidget.nestedWidgetState =
+            app.loaderModel.findWidgetByXid('rootAttr2Exp')?.ctx.state;
       };
     }
 
@@ -153,6 +155,25 @@ class OnBuildEdit extends CoreDataAction {
             'CWTextfield', {'withLabel': false, 'type': infoAttr['type']});
         return;
       }
+    }
+  }
+}
+
+class OnIsVisible extends CoreDataAction {
+  OnIsVisible(this.editName, this.displayPrivate);
+  List<String> editName;
+  bool displayPrivate;
+
+  @override
+  void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    CoreDataAttribut attr = event!.payload['attr'];
+    //Map<String, dynamic> infoAttr = event.payload['infoAttr'];
+
+    if (attr.name.startsWith('_')) {
+      if (!displayPrivate) {
+        event.retAction = 'None';
+      }
+      return;
     }
   }
 }

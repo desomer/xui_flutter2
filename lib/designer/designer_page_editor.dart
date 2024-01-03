@@ -61,7 +61,7 @@ class DesignerEditor extends StatelessWidget {
     // ctxQuery.designEntity = CWApplication.of()
     //     .loaderModel
     //     .collectionWidget
-    //     .createEntityByJson('CWArray', {iDProviderName: 'ResultProvider'});        
+    //     .createEntityByJson('CWArray', {iDProviderName: 'ResultProvider'});
 
     CWWidgetCtx ctxPages = CWWidgetCtx('', CWApplication.of().loaderModel, '');
     ctxPages.designEntity = CWApplication.of()
@@ -111,7 +111,8 @@ class DesignerEditor extends StatelessWidget {
       listTabCont.add(SingleChildScrollView(
           controller: scrollResultController,
           scrollDirection: Axis.vertical,
-          child: SizedBox( height: constraints.maxHeight-45,
+          child: SizedBox(
+              height: constraints.maxHeight - 45,
               child: DesignerProvider(
                   key: CoreDesigner.of().providerKey, ctx: ctxResult))));
 
@@ -232,6 +233,9 @@ class DesignerView extends StatefulWidget {
         log.fine('set mode rendering ${loader?.ctxLoader.mode}');
         rebuild();
         repaintAll();
+        Future.delayed(const Duration(milliseconds: 100), () {
+           CoreDesigner.emit(CDDesignEvent.reselect, 'redisplayProp');
+        });
       });
     }
 

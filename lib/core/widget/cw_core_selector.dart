@@ -88,25 +88,37 @@ class SelectorWidgetState extends State<SelectorWidget> {
     // ne creer pas de key sinon perte de focus
     captureKey ??= GlobalKey(debugLabel: 'captureKey ${widget.ctx.xid}');
 
+    var mouseRegion = MouseRegion(
+        onHover: onHover,
+        onExit: onExit,
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: onPointerDown,
+          child: RepaintBoundary(
+              key: captureKey, child: getSelectorWithChild(context)),
+        ));
+
+    if (SelectorActionWidget.pathLock != null) {
+      if (isLock()) {
+        return mouseRegion;
+      }
+    }
+
     return Draggable<DragCtx>(
       dragAnchorStrategy: dragAnchorStrategy,
       data: DragCtx(null, widget.ctx),
       feedback: Container(
-        // height: 200.0,
-        // width: 200.0,
         color: Colors.white,
         child: const Material(elevation: 10, child: CwImage()),
       ),
-      child: MouseRegion(
-          onHover: onHover,
-          onExit: onExit,
-          child: Listener(
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: onPointerDown,
-            child: RepaintBoundary(
-                key: captureKey, child: getSelectorWithChild(context)),
-          )),
+      child: mouseRegion,
     );
+  }
+
+  bool isLock() {
+    return SelectorActionWidget.pathLock != null &&
+        widget.ctx.pathWidget.startsWith(SelectorActionWidget.pathLock!) &&
+        widget.ctx.pathWidget != SelectorActionWidget.pathLock;
   }
 
   void onPointerDown(PointerDownEvent d) {
@@ -114,8 +126,17 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
     widget.ctx.lastEvent = d;
 
-    if (isHover) {
+    if (isLock()) {
+      setState(() {});
+      return;
+    }
+
+    if (isHover || widget.ctx.pathWidget == SelectorActionWidget.pathLock) {
       bool isSelectionChange = !widget.ctx.isSelected();
+
+      if (SelectorActionWidget.pathLock != null) {
+        SelectorActionWidget.pathLock = null;
+      }
 
       if (isSelectionChange) {
         CoreDesigner.emit(CDDesignEvent.select, widget.ctx);
@@ -133,8 +154,8 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
   void doRightSelection(PointerDownEvent d) {
     // ignore: unused_local_variable
-    final Offset position =
-        CwToolkit.getPosition(captureKey!, SelectorActionWidget.designerKey);
+    final Offset position = CwToolkit.getPosition(captureKey!,
+        SelectorActionWidget.designerKey);
 
     menuIsOpen = true;
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -146,7 +167,6 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
     debugPrint('$position');
 
-    // _showPopupMenu(Offset(position.dx + 10, position.dy + 10));
   }
 
   void onExit(PointerExitEvent e) {

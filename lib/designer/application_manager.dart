@@ -29,7 +29,7 @@ class CWApplication {
 
   CWProvider dataModelProvider = CWProvider(
       'DataModelProvider', 'DataModel', CWProviderDataSelector.noLoader());
-  
+
   late CWProvider dataAttributProvider;
   late CWProvider dataProvider;
 
@@ -37,13 +37,15 @@ class CWApplication {
       'PagesProvider', 'DataModel', CWProviderDataSelector.noLoader());
 
   CWProvider listAttrProvider = CWProvider(
-      'listAttrProvider', 'ModelAttributs', CWProviderDataSelector.noLoader());      
+      'listAttrProvider', 'ModelAttributs', CWProviderDataSelector.noLoader());
 
   Map<String, CoreDataEntity> cacheMapData = {};
   Map<String, CoreDataEntity> cacheMapModel = {};
   Map<String, CoreDataFilter> mapFilters = {};
 
   void initWidgetLoader() {
+    loaderDesigner.modeDesktop = false;
+
     loaderDesigner.collectionWidget = CWWidgetCollectionBuilder().collection;
 
     loaderDesigner.entityCWFactory =
@@ -124,6 +126,14 @@ class CWApplication {
 
     ///////////////////////////////////////////////////////////
     collection
+        .addObject('DataProvider')
+        .addAttr('name', CDAttributType.text)
+        .addAttr('type', CDAttributType.text)
+        .addAttr('tableModel', CDAttributType.text)
+        .addAttr('idProvider', CDAttributType.text);
+
+    ///////////////////////////////////////////////////////////
+    collection
         .addObject('DataFilter')
         .addAttr('_id_', CDAttributType.text)
         .withAction(AttrActionDefaultUUID())
@@ -149,11 +159,16 @@ class CWApplication {
     _initProvider();
   }
 
-  CWBindWidget bindModel2Filter = CWBindWidget('bindModel2Filter', ModeBindWidget.selected);
-  CWBindWidget bindModel2Data = CWBindWidget('bindModel2Data', ModeBindWidget.selected);
-  CWBindWidget bindFilter2Data = CWBindWidget('bindFilter2Data', ModeBindWidget.selected);
-  CWBindWidget bindModel2Attr = CWBindWidget('bindModel2Attr', ModeBindWidget.selected);
-  CWBindWidget bindProvider2Attr = CWBindWidget('bindProvider2Attr', ModeBindWidget.selected);
+  CWBindWidget bindModel2Filter =
+      CWBindWidget('bindModel2Filter', ModeBindWidget.selected);
+  CWBindWidget bindModel2Data =
+      CWBindWidget('bindModel2Data', ModeBindWidget.selected);
+  CWBindWidget bindFilter2Data =
+      CWBindWidget('bindFilter2Data', ModeBindWidget.selected);
+  CWBindWidget bindModel2Attr =
+      CWBindWidget('bindModel2Attr', ModeBindWidget.selected);
+  CWBindWidget bindProvider2Attr =
+      CWBindWidget('bindProvider2Attr', ModeBindWidget.selected);
 
   void _initProvider() {
     Future deleteModel(CWWidgetEvent e) async {
@@ -207,7 +222,9 @@ class CWApplication {
 
     //-------------------------------------------------------
     listAttrProvider.header =
-        collection.createEntityByJson('DataHeader', {'label': '?'});  
+        collection.createEntityByJson('DataHeader', {'label': '?'});
+    listAttrProvider.addAction(
+        CWProviderAction.onMapWidget, OnIsVisible(['*'], false));
 
     //-------------------------------------------------------
     dataProvider = CWProvider(
@@ -233,6 +250,26 @@ class CWApplication {
   }
 
   //////////////////////////////////////////////////////////////////////////
+
+  CWProvider getProviderFromQuery(CoreDataEntity query, CWWidget widget) {
+    CWProvider provider;
+    switch (query.type) {
+      case 'DataProvider':
+        provider = loaderDesigner.getProvider(query.value['idProvider'])!;
+        break;
+      case 'DataFilter':
+        var aFilter = CoreDataFilter()..setFilterData(query);
+        provider = CWProviderCtx.createFromTable(
+            query.value['model'], widget.ctx,
+            filter: aFilter);
+        break;
+      case 'DataModel':
+      default:
+        provider =
+            CWProviderCtx.createFromTable(query.value['_id_'], widget.ctx);
+    }
+    return provider;
+  }
 
   CoreDataEntity getTableModelByID(String id) {
     List<CoreDataEntity> listTableEntity = dataModelProvider.content;

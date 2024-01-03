@@ -2,60 +2,113 @@ import 'dart:async';
 
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/widget/cw_core_selector_overlay_action.dart';
 import 'package:xui_flutter/designer/action_manager.dart';
 
 import '../core/data/core_data.dart';
+import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../designer/builder/prop_builder.dart';
 import '../designer/cw_factory.dart';
 import '../designer/designer.dart';
 import 'cw_router.dart';
 
-final log = Logger('CWFrameDesktop');
+final log = Logger('CWApp');
+
+const String iDnbBtnBottomNavBar = '_nbBtnBottomNavBar_';
+
+class CWAppInfo {
+  double lastHeight = -1;
+  double lastWidth = -1;
+
+  void onChangePhysicalSize(CWApp widget) {
+    if (widget.ctx.loader.mode == ModeRendering.design) {
+      // double refresh car animation de resize par le composant Preview
+      Future.delayed(const Duration(milliseconds: 100), () {
+        CoreDesigner.emit(CDDesignEvent.reselect, null);
+      });
+      Future.delayed(const Duration(milliseconds: 500), () {
+        CoreDesigner.emit(CDDesignEvent.reselect, null);
+      });
+    }
+  }
+
+  void onChangeLogicalSize(CWApp widget) {
+    if (widget.ctx.loader.mode == ModeRendering.design) {
+      // double refresh car animation de resize par le composant Preview
+      Future.delayed(const Duration(milliseconds: 50), () {
+        CoreDesigner.emit(CDDesignEvent.reselect, null);
+      });
+      Future.delayed(const Duration(milliseconds: 300), () {
+        CoreDesigner.emit(CDDesignEvent.reselect, null);
+      });
+    }
+  }
+}
 
 // ignore: must_be_immutable
-class CWFrameDesktop extends CWWidget {
-  CWFrameDesktop({super.key, required super.ctx});
+class CWApp extends CWWidgetChild {
+  CWApp({super.key, required super.ctx});
+
+  static final CWAppInfo appInfo = CWAppInfo();
 
   final keySlotMain = GlobalKey(debugLabel: 'slot main');
   final rootMainKey = GlobalKey(debugLabel: 'rootMain');
 
   @override
-  State<CWFrameDesktop> createState() => _CWFrameDesktop();
+  State<CWApp> createState() => _CWAppState();
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     c
-        .addWidget('CWFrameDesktop',
-            (CWWidgetCtx ctx) => CWFrameDesktop(key: ctx.getKey(), ctx: ctx))
+        .addWidget(
+            'CWApp', (CWWidgetCtx ctx) => CWApp(key: ctx.getKey(), ctx: ctx))
         .addAttr('fill', CDAttributType.bool)
         .addAttr('color', CDAttributType.one, tname: 'color')
         .addAttr('dark', CDAttributType.bool)
-        //.addAttr('bgcolor', CDAttributType.one, tname: 'color')
-        .addAttr('nbBtnBottomNavBar', CDAttributType.int)
+        .addAttr('withBottomBar', CDAttributType.bool)
+        .addAttr(iDnbBtnBottomNavBar, CDAttributType.int)
         .withAction(AttrActionDefault(0));
 
-    // c.collection
-    //     .addObject('CWRouteConstraint')
-    //     .addAttr('title', CDAttributType.text);
+    c.collection
+        .addObject('CWPageConstraint')
+        .addAttr('nbAction', CDAttributType.int)
+        .withAction(AttrActionDefault(0));
   }
 
   @override
   void initSlot(String path) {
     addSlotPath('root', SlotConfig('root'));
+
     var nb = nbBtnBottomNavBar();
     if (nb == 0) nb = 1;
     for (var i = 0; i < nb; i++) {
+      addSlotPath('$path.Body$i',
+          SlotConfig('${ctx.xid}Body$i', pathNested: '$path.AppBarAct$i'));
+      addSlotPath('$path.Nav$i', SlotConfig('${ctx.xid}Nav$i'));
+      addSlotPath('$path.AppBar$i',
+          SlotConfig('${ctx.xid}AppBar$i', pathNested: '$path.AppBarAct$i'));
+
+      var virtualCtx = createChildCtx(ctx, 'AppBarAct$i', null);
       addSlotPath(
-          '$path.Body$i',
-          SlotConfig(
-            '${ctx.xid}Body$i',
-            //constraintEntity: 'CWRouteConstraint'
-          ));
-      addSlotPath('$path.Btn$i', SlotConfig('${ctx.xid}Btn$i'));
-      addSlotPath('$path.AppBar$i', SlotConfig('${ctx.xid}AppBar$i'));
+          virtualCtx.pathWidget,
+          SlotConfig(virtualCtx.xid,
+              constraintEntity: 'CWPageConstraint',
+              ctxVirtualSlot: virtualCtx));
+
+      CWWidgetCtx? constraint =
+          ctx.factory.mapConstraintByXid['${ctx.xid}AppBarAct$i'];
+      int nb = constraint?.designEntity?.value['nbAction'] ?? 0;
+
+      for (var j = 0; j < nb; j++) {
+        addSlotPath(
+            '$path.AppBarAct$i#$j',
+            SlotConfig('${ctx.xid}AppBarAct$i#$j',
+                pathNested: '$path.AppBarAct$i'));
+      }
     }
   }
 
@@ -68,17 +121,34 @@ class CWFrameDesktop extends CWWidget {
   }
 
   int nbBtnBottomNavBar() {
-    return ctx.designEntity!.getInt('nbBtnBottomNavBar', 0)!;
+    bool withBottom = ctx.designEntity!.getBool('withBottomBar', false);
+    if (withBottom && ctx.designEntity!.value[iDnbBtnBottomNavBar] < 2) {
+      CoreDataEntity prop =
+          PropBuilder.preparePropChange(ctx.loader, DesignCtx().forDesign(ctx));
+      prop.value[iDnbBtnBottomNavBar] = 2;
+    } else if (!withBottom &&
+        ctx.designEntity!.value[iDnbBtnBottomNavBar] > 0) {
+      CoreDataEntity prop =
+          PropBuilder.preparePropChange(ctx.loader, DesignCtx().forDesign(ctx));
+      prop.value[iDnbBtnBottomNavBar] = 0;
+    }
+
+    return ctx.designEntity!.getInt(iDnbBtnBottomNavBar, 0)!;
   }
 
   final listRoute = <StatefulShellBranch>[];
   final listAction = <ActionLink>[];
   // todo A mettre dans le CWAppli
   static GoRouter? router;
+
+  @override
+  int getDefChild(String id) {
+    if (id == iDnbBtnBottomNavBar) return 0;
+    return 1;
+  }
 }
 
-class _CWFrameDesktop extends StateCW<CWFrameDesktop>
-    with WidgetsBindingObserver {
+class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
   //////////////////////////////////////////////////////////////////////////
   Widget? routerWidgetCache;
 
@@ -129,12 +199,18 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
       for (var i = 0; i < nb; i++) {
         var aRoute = getSubRoute(i == 0 ? '/' : '/route$i', (state) {
           return ScaffoldResponsiveDrawer(
-              appBar: AppBar(elevation: 0, title: getTitle(i)),
+              appBar: AppBar(
+                elevation: 0,
+                title: getTitle(i),
+                actions: getActions(i),
+              ),
               body: ClipRRect(
                   borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20)),
-                  child: Container(color: backgroundColor, child: getBody(i))));
+                  child: Container(
+                      color: backgroundColor,
+                      child: Material(child: getBody(i)))));
         });
         widget.listRoute.add(aRoute);
       }
@@ -150,17 +226,17 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
     //*******************************************************************/
 
     if (routerWidgetCache == null ||
-        CWFrameDesktop.router == null ||
+        CWApp.router == null ||
         widget.listAction.length != nb ||
         mustRepaint) {
       String r = '/';
-      if (CWFrameDesktop.router != null) {
-        var l = CWFrameDesktop.router!.routerDelegate.currentConfiguration.uri;
+      if (CWApp.router != null) {
+        var l = CWApp.router!.routerDelegate.currentConfiguration.uri;
         r = l.path;
       }
       final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
       log.fine('create GoRouter instance');
-      CWFrameDesktop.router = GoRouter(
+      CWApp.router = GoRouter(
           navigatorKey: rootNavigatorKey,
           initialLocation: r,
           routes: <RouteBase>[
@@ -181,16 +257,23 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
           ]);
 
       routerWidgetCache = MaterialApp.router(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        //showPerformanceOverlay: true,
+
         key: widget.rootMainKey,
         title: 'ElisView',
-        routerConfig: CWFrameDesktop.router,
+        routerConfig: CWApp.router,
         theme: ThemeData(
             scaffoldBackgroundColor: mainColor,
             appBarTheme: AppBarTheme(
               foregroundColor: barForegorundColor,
               backgroundColor: mainColor,
             ),
-            useMaterial3: true,
+            //useMaterial3: true,
             colorScheme: colorScheme2),
         debugShowCheckedModeBanner: false,
         builder: DevicePreview.appBuilder,
@@ -216,39 +299,26 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
 
   @override
   void didChangeMetrics() {
-    //debugPrint('physical Size ${View.of(context).physicalSize}');
+    debugPrint('physical Size ${View.of(context).physicalSize}');
 
-    if (widget.ctx.loader.mode == ModeRendering.design) {
-      // double refresh car animation de resize par le composant Preview
-      Future.delayed(const Duration(milliseconds: 50), () {
-        CoreDesigner.emit(CDDesignEvent.reselect, null);
-      });
-      Future.delayed(const Duration(milliseconds: 300), () {
-        CoreDesigner.emit(CDDesignEvent.reselect, null);
-      });
-    }
+    // changemnt de la taille physical
+    CWApp.appInfo.onChangePhysicalSize(widget);
   }
-
-  double lastHeight = -1;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      if (lastHeight == -1) {
-        lastHeight = constraints.maxHeight;
+      if (CWApp.appInfo.lastHeight == -1) {
+        CWApp.appInfo.lastHeight = constraints.maxHeight;
+        CWApp.appInfo.lastWidth = constraints.maxWidth;
       }
+
       /*   controle d'ajustement de la taille */
-      if (lastHeight != constraints.maxHeight) {
-        if (widget.ctx.loader.mode == ModeRendering.design) {
-          // double refresh car animation de resize par le composant Preview
-          Future.delayed(const Duration(milliseconds: 50), () {
-            CoreDesigner.emit(CDDesignEvent.reselect, null);
-          });
-          Future.delayed(const Duration(milliseconds: 300), () {
-            CoreDesigner.emit(CDDesignEvent.reselect, null);
-          });
-        }
-        lastHeight = constraints.maxHeight;
+      if (CWApp.appInfo.lastHeight != constraints.maxHeight ||
+          CWApp.appInfo.lastWidth != constraints.maxWidth) {
+        CWApp.appInfo.onChangeLogicalSize(widget);
+        CWApp.appInfo.lastHeight = constraints.maxHeight;
+        CWApp.appInfo.lastWidth = constraints.maxWidth;
       }
 
       Widget aFrame = getRouterWithCache(context);
@@ -269,6 +339,34 @@ class _CWFrameDesktop extends StateCW<CWFrameDesktop>
         type: 'appbar',
         key: GlobalKey(debugLabel: 'slot appbar'),
         ctx: widget.createChildCtx(widget.ctx, 'AppBar$idx', null));
+  }
+
+  List<Widget> getActions(int idx) {
+    var createChildCtx =
+        widget.createChildCtx(widget.ctx, 'AppBarAct$idx', null);
+
+    CWWidgetCtx? constraint =
+        widget.ctx.factory.mapConstraintByXid[createChildCtx.xid];
+    int nb = constraint?.designEntity?.value['nbAction'] ?? 0;
+
+    List<Widget> ret = [];
+
+    for (var i = 0; i < nb; i++) {
+      ret.add(CWSlot(
+          type: 'appbar',
+          key: GlobalKey(debugLabel: 'slot appbar action'),
+          ctx: widget.createChildCtx(widget.ctx, 'AppBarAct$idx#$i', null)));
+    }
+
+    // if (nb==0)
+    // {
+    //   ret.add(CWSlot(
+    //       type: 'appbar',
+    //       key: GlobalKey(debugLabel: 'slot appbar action'),
+    //       ctx: widget.createChildCtx(widget.ctx, 'AppBarAct$idx', null)));
+    // }
+
+    return ret;
   }
 
   Widget getBody(int idx) {

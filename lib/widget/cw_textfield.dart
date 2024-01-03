@@ -1,18 +1,18 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/intl_standalone.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:xui_flutter/widget/cw_array_row.dart';
-import 'package:xui_flutter/widget/cw_cell.dart';
+import 'package:xui_flutter/widget/cw_array_cell.dart';
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
+import 'cw_container_form.dart';
 import 'cw_list.dart';
 
-class CWTextfield extends CWWidgetMap {
+class CWTextfield extends CWWidgetMapValue {
   const CWTextfield({
     super.key,
     required super.ctx,
@@ -28,18 +28,16 @@ class CWTextfield extends CWWidgetMap {
     c
         .addWidget('CWTextfield',
             (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
-        .addAttr('label', CDAttributType.text)
+        .addAttr('bind', CDAttributType.one, tname: 'info')
         .addAttr('withLabel', CDAttributType.bool)
         .withAction(AttrActionDefault(true))
-        .addAttr(iDBind, CDAttributType.text)
-        .addAttr(iDProviderName, CDAttributType.text)
-        .addAttr('type', CDAttributType.text)
-        .addAttr('mask', CDAttributType.text);
+        .addAttr('label', CDAttributType.text)
+        .addAttr('type', CDAttributType.text);
   }
 
   String? getLabelNull() {
     return (ctx.designEntity?.getBool('withLabel', true) ?? true)
-        ? super.getLabel('[empty]')
+        ? super.getLabel('[label]')
         : null;
   }
 
@@ -95,9 +93,10 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     _focus = findFocusNode();
     if (row != null) widget.setDisplayRow(row);
 
-    // map la valeur
-    mapValue = widget.getMapString();
-    _controller.text = mapValue!;
+    // // map la valeur
+    // var bind = widget.ctx.designEntity?.getOne('@bind');
+    // mapValue = widget.getMapString(provInfo: bind);
+    // _controller.text = mapValue!;
 
     _controller.addListener(_onTextChange);
     _focus.addListener(_onFocusChange);
@@ -107,6 +106,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     if (_controller.text != mapValue) {
       if (row != null) widget.setDisplayRow(row);
       bool valid = true;
+
       if (mask?.validator != null) {
         String? msg = mask?.validator!(_controller.text);
         valid = msg == null;
@@ -121,9 +121,11 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
           }
         }
       }
-      if (valid) {
+      var mode = widget.ctx.loader.mode;
+      if (valid && mode == ModeRendering.view) {
         // map la valeur
-        widget.setValue(_controller.text);
+        var bind = widget.ctx.designEntity?.getOne('@bind');
+        widget.setValue(_controller.text, provInfo: bind);
         mapValue = _controller.text;
       }
     }
@@ -159,86 +161,118 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   }
 
   MaskConfig? mask;
+  static MaskTextInputFormatter maskDate = MaskTextInputFormatter(
+      mask: '##/##/####',
+      filter: {'#': RegExp(r'[0-9]')},
+      type: MaskAutoCompletionType.eager);
 
   @override
   Widget build(BuildContext context) {
     if (row != null) widget.setDisplayRow(row);
+
     String? label = widget.getLabelNull();
     String type = widget.getType();
 
-    if (type == 'INTEGER') {
-      mask = MaskConfig(
-          controller: _controller,
-          focus: _focus,
-          label: label,
-          formatter: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
-          textInputType: TextInputType.number);
-    } else if (type == 'DOUBLE') {
-      mask = MaskConfig(
-          controller: _controller,
-          focus: _focus,
-          formatter: [
-            FilteringTextInputFormatter.allow(RegExp(r'(^-?\d*\.?\d*)'))
-          ],
-          textInputType: TextInputType.number);
-    } else if (type == 'DATE') {
-      var maskFormatter = MaskTextInputFormatter(
-          mask: '##/##/####',
-          filter: {'#': RegExp(r'[0-9]')},
-          type: MaskAutoCompletionType.lazy);
+    var bind = widget.ctx.designEntity?.getOne('@bind');
+    mapValue = widget.getMapString(provInfo: bind); 
+    _controller.text = mapValue!;
+    bool inArray = row != null;
 
-      mask = MaskConfig(
-          controller: _controller,
-          focus: _focus,
-          label: label,
-          formatter: [maskFormatter],
-          hint: '__/__/____',
-          textInputType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return null;
-            }
-            final components = value.split('/');
-            if (components.length == 3) {
-              final day = int.tryParse(components[0]);
-              final month = int.tryParse(components[1]);
-              final year = int.tryParse(components[2]);
-              if (day != null && month != null && year != null && year > 1900) {
-                var date = DateTime(year, month, day);
-                var bool =
-                    date.year == year && date.month == month && date.day == day;
-                if (bool) {
-                  return null;
+    if (mask == null || mask?.type != type || mask?.label != label) {
+      if (type == 'INTEGER' || type == 'INT') {
+        mask = MaskConfig(
+            inArray: inArray,
+            ctx: widget.ctx,
+            type: type,
+            controller: _controller,
+            focus: _focus,
+            label: label,
+            formatter: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
+            textInputType: TextInputType.number);
+      } else if (type == 'DOUBLE') {
+        mask = MaskConfig(
+            inArray: inArray,
+            ctx: widget.ctx,
+            type: type,
+            controller: _controller,
+            focus: _focus,
+            label: label,
+            formatter: [
+              FilteringTextInputFormatter.allow(RegExp(r'(^-?\d*\.?\d*)'))
+            ],
+            textInputType: TextInputType.number);
+      } else if (type == 'DATE') {
+        mask = MaskConfig(
+            inArray: inArray,
+            ctx: widget.ctx,
+            type: type,
+            controller: _controller,
+            focus: _focus,
+            label: label,
+            formatter: [maskDate],
+            hint: '__/__/____',
+            textInputType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return null;
+              }
+              final components = value.split('/');
+              if (components.length == 3) {
+                final day = int.tryParse(components[0]);
+                final month = int.tryParse(components[1]);
+                final year = int.tryParse(components[2]);
+                if (day != null &&
+                    month != null &&
+                    year != null &&
+                    year > 1900) {
+                  var date = DateTime(year, month, day);
+                  var bool = date.year == year &&
+                      date.month == month &&
+                      date.day == day;
+                  if (bool) {
+                    return null;
+                  }
                 }
               }
-            }
-            return 'wrong date';
-          });
-    } else {
-      mask = MaskConfig(controller: _controller, focus: _focus, label: label);
+              return 'wrong date';
+            });
+      } else {
+        // TEXT
+        mask = MaskConfig(
+            inArray: inArray,
+            ctx: widget.ctx,
+            type: type,
+            controller: _controller,
+            focus: _focus,
+            label: label);
+      }
     }
 
     return Container(
-        height: label == null ? CWArrayRow.heightRow : 34,
-        decoration: label == null
+        height: inArray ? CWArrayRow.getHeightRow(widget) : CWForm.getHeightRow(widget),
+        decoration: inArray
             ? null
-            : BoxDecoration(  // dans un formulaire
+            : BoxDecoration(
+                // dans un formulaire
                 border: Border(
                     bottom: BorderSide(
                         width: 0.5, color: Theme.of(context).dividerColor))),
-        child: getCell(type, mask!.getTextfield()));
+        child: getCell(type));
   }
 
-  Widget getCell(String type, Widget content) {
+  Widget getCell(String type) {
+    Widget content;
     if (type == 'DATE') {
-      content = getDatePicker(content);
+      content = getDatePicker(mask!.getTextfield());
+    } else {
+      content = mask!.getTextfield();
     }
 
     if (row == null) {
       return content;
     } else {
       cellIndicatorKey ??= GlobalKey();
-
+      // un indicateur à la fin
       return LayoutBuilder(
         builder: (context, constraints) {
           return Row(children: [
@@ -253,34 +287,49 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     }
   }
 
+  int pressCount = 0;
+
   Widget getDatePicker(Widget content) {
-    return GestureDetector(
-        onDoubleTap: () async {
-          if (kIsWeb) {}
-          String l = await findSystemLocale();
-          List lsp = l.split('_');
-          // ignore: use_build_context_synchronously
-          DateTime? pickedDate = await showDatePicker(
-              helpText: '',
-              context: context,
-              locale: Locale(lsp[0], lsp[1]),
-              initialDate: _controller.text == ''
-                  ? DateTime.now()
-                  : DateFormat('dd/MM/yyyy').parse(_controller.text),
-              firstDate: DateTime(1900),
-              lastDate: DateTime(2101));
-
-          if (pickedDate != null) {
-            String formattedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
-
-            setState(() {
-              _controller.text = formattedDate;
-            });
+    return Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: (p) async {
+          pressCount++;
+          if (pressCount >= 2) {
+            await openCalendar();
+            pressCount = 0;
           } else {
-            debugPrint('Date is not selected');
+            Timer(const Duration(milliseconds: 200), () {
+              pressCount = 0;
+            });
           }
         },
         child: content);
+  }
+
+  Future<void> openCalendar() async {
+    String l = await findSystemLocale();
+    List lsp = l.split('_');
+    // ignore: use_build_context_synchronously
+    DateTime? pickedDate = await showDatePicker(
+        helpText: '',
+        context: context,
+        locale: Locale(lsp[0], lsp[1]),
+        initialDate: _controller.text == ''
+            ? DateTime.now()
+            : DateFormat('dd/MM/yyyy').parse(_controller.text),
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2101));
+
+    if (pickedDate != null) {
+      String formattedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
+
+      setState(() {
+        _controller.text = formattedDate;
+        row?.repaintRow(widget.ctx);
+      });
+    } else {
+      debugPrint('Date is not selected');
+    }
   }
 }
 
@@ -291,26 +340,38 @@ class MaskConfig {
   final TextInputType? textInputType;
   String? error;
   String? label;
+  CWWidgetCtx? ctx;
 
   FocusNode focus;
   TextEditingController controller;
+  String type;
+  bool inArray;
 
   MaskConfig(
       {required this.controller,
+      this.ctx,
+      required this.inArray,
       required this.focus,
       this.formatter,
       this.validator,
       this.hint,
       this.label,
-      this.textInputType});
+      this.textInputType,
+      required this.type});
 
   TextField getTextfield() {
+    var enable = (ctx?.loader.mode ?? ModeRendering.view) == ModeRendering.view;
+
+    double topMargin = label == null ? (inArray ? 5 : 15) : 0;
+
     return TextField(
-      onTap: controller.selectAll,
+      //onTap: controller.selectAll,
       focusNode: focus,
       controller: controller,
       // style: const TextStyle(/*color: Colors.red,*/ fontSize: 14),
       keyboardType: textInputType,
+      readOnly: !enable,
+      enableInteractiveSelection: enable,
       // scrollPadding: const EdgeInsets.all(0),
       inputFormatters: formatter ?? [],
       autocorrect: false,
@@ -321,7 +382,7 @@ class MaskConfig {
           isDense: true,
           labelText: label,
           // labelStyle: const TextStyle(color: Colors.white70),
-          contentPadding: EdgeInsets.fromLTRB(5, label == null ? 5 : 0, 5, 0)),
+          contentPadding: EdgeInsets.fromLTRB(5, topMargin , 5, 0)),
       //autofocus: true,
     );
   }

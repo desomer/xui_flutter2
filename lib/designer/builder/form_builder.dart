@@ -50,10 +50,9 @@ class FormBuilder {
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);
 
-    CWProvider provider =
-        CWProviderCtx.createFromTable(query.value['_id_'], widget.ctx);
+    CWProvider provider = app.getProviderFromQuery(query, widget);
 
-    provider.getData().idxSelected = 0;
+    //provider.getData().idxSelected = 0;
     provider.getData().idxDisplayed = 0;
 
     _createDesign(widget.ctx.loader, provider, widget.ctx.xid,
@@ -141,7 +140,7 @@ class AttrFormLoader extends CWWidgetLoader {
   String xid;
 
   void addAttr(CoreDataAttribut attribut, Map<String, dynamic> attrDesc) {
-    if (!isRoot && attrDesc['name'].toString().startsWith('_')) {
+    if (/*!isRoot && */attrDesc['name'].toString().startsWith('_')) {
       return;
     }
 
@@ -149,16 +148,18 @@ class AttrFormLoader extends CWWidgetLoader {
     if (isRoot) {
       addWidget(
           '$xid$tagCol$nbAttr', '${xid}row$nbAttr', 'CWRow', <String, dynamic>{
-        'count': 2,
+        iDCount: 2,
       });
 
       String inSlotBind = '${xid}row${nbAttr}Cont0';
 
+      // le button de binding
       addWidget(
-          inSlotBind, '${xid}bind$nbAttr', 'CWActionLink', <String, dynamic>{
+          inSlotBind, '${xid}bind$nbAttr', 'CWSelector', <String, dynamic>{
         '_idAction_': 'onTapLink@properProvider',
-        'label': '',
-        '_attr_': attribut
+        'type': 'Bind',
+        iDBind: '@${attribut.name}',
+        iDProviderName: provider.id
       });
 
       var constraint =
@@ -177,27 +178,24 @@ class AttrFormLoader extends CWWidgetLoader {
         iDProviderName: provider.id
       });
     } else if (attribut.type == CDAttributType.one) {
-      if (attribut.typeName == 'icon') {
-        addWidget(inSlot, '${xid}attr$nbAttr', 'CWSelector', <String, dynamic>{
-          'label': attrDesc['name'],
-          'type': 'icon',
-          iDBind: attribut.name,
-          iDProviderName: provider.id
-        });
-      }
-      if (attribut.typeName == 'color') {
-        addWidget(inSlot, '${xid}attr$nbAttr', 'CWSelector', <String, dynamic>{
-          'label': attrDesc['name'],
-          'type': 'color',
-          iDBind: attribut.name,
-          iDProviderName: provider.id
-        });
-      }
+      addWidget(inSlot, '${xid}attr$nbAttr', 'CWSelector', <String, dynamic>{
+        'label': attrDesc['name'],
+        'type': attribut.typeName,
+        iDBind: attribut.name,
+        iDProviderName: provider.id
+      });
+    } else if (attribut.typeName!=null) {
+      addWidget(inSlot, '${xid}attr$nbAttr', 'CWSelector', <String, dynamic>{
+        'label': attrDesc['name'],
+        'type': attribut.typeName,
+        iDBind: attribut.name,
+        iDProviderName: provider.id
+      });
     } else {
       addWidget(inSlot, '${xid}attr$nbAttr', 'CWTextfield', <String, dynamic>{
         'label': attrDesc['name'],
-        iDBind: attribut.name,
-        iDProviderName: provider.id
+        'type': attrDesc['type'] ?? attribut.type.name.toUpperCase(),
+        '@bind': {iDBind: attribut.name, iDProviderName: provider.id}
       });
     }
     nbAttr++;
@@ -209,7 +207,7 @@ class AttrFormLoader extends CWWidgetLoader {
       setProp(
           'root',
           ctxLoader.collectionWidget.createEntityByJson(
-              'CWExpandPanel', <String, dynamic>{'count': 1}));
+              'CWExpandPanel', <String, dynamic>{iDCount: 1}));
 
       // le titre
       addWidget('rootTitle0', 'title0', 'CWActionLink', <String, dynamic>{
@@ -219,13 +217,13 @@ class AttrFormLoader extends CWWidgetLoader {
 
       // la colonne d'attribut
       addWidget(xid, '${xid}Col0', 'CWColumn',
-          <String, dynamic>{'count': nbAttr, 'fill': false});
+          <String, dynamic>{iDCount: nbAttr, 'fill': false});
     } else {
       setProp(
           xid,
           ctxLoader.collectionWidget.createEntityByJson(
               'CWForm', <String, dynamic>{
-            'count': nbAttr,
+            iDCount: nbAttr,
             'fill': false,
             iDProviderName: provider.id
           }));

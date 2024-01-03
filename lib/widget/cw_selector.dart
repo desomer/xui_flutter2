@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
+import 'package:xui_flutter/widget/cw_container_form.dart';
 
 import '../core/data/core_data.dart';
+import '../core/data/core_provider.dart';
 import '../designer/cw_factory.dart';
+import 'cw_action.dart';
 
-class CWSelector extends CWWidgetMap {
+class CWSelector extends CWWidgetMapValue with CWActionManager {
   const CWSelector({super.key, required super.ctx});
 
   @override
@@ -20,7 +24,8 @@ class CWSelector extends CWWidgetMap {
         .addWidget('CWSelector',
             (CWWidgetCtx ctx) => CWSelector(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.text)
-        .addAttr('type', CDAttributType.text);
+        .addAttr('type', CDAttributType.text)
+        .addAttr('_idAction_', CDAttributType.text);
   }
 }
 
@@ -47,23 +52,69 @@ class _CWSelectorState extends StateCW<CWSelector> {
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic>? oneValue = widget.getMapOne();
+    String type = widget.ctx.designEntity!.value['type'];
+    if (type == 'Bind') {
+      return getBindBtn(context);
+    }
 
     return Container(
-        padding: const EdgeInsets.all(5),
+        padding: EdgeInsets.fromLTRB(5, type=='provider'?0:5, 5, 5),
         decoration: BoxDecoration(
             border: Border(
                 bottom: BorderSide(
                     width: 0.5, color: Theme.of(context).dividerColor))),
-        child: Row(children: getTypeContent(oneValue)));
+        child: Row(children: getTypeContent(type)));
   }
 
-  List<Widget> getTypeContent(Map<String, dynamic>? oneValue) {
-    switch (widget.ctx.designEntity!.value['type']) {
+  Tooltip getBindBtn(BuildContext context) {
+    String nameAttr = '';
+    var provider = CWProvider.of(widget.ctx);
+    var e = provider?.getDisplayedEntity();
+    var v = e?.value[widget.ctx.designEntity!.value[iDBind]];
+    if (v != null) {
+      var provBind =
+          CWApplication.of().loaderDesigner.getProvider(v[iDProviderName]);
+      var attrName = provBind?.getAttrName(v[iDBind]);
+      if (attrName != null) {
+        nameAttr = '$attrName @ ${provBind!.getQueryName()}';
+      }
+    }
+    return Tooltip(
+        message: nameAttr,
+        padding: const EdgeInsets.all(8.0),
+        preferBelow: false,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.all(0),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              )),
+          onPressed: () {
+            widget.doAction(context, widget, widget.ctx.designEntity?.value);
+          },
+          child: Text(nameAttr.isNotEmpty ? '@' : ''),
+        ));
+  }
+
+  List<Widget> getTypeContent(String type) {
+    switch (type) {
+      case 'provider':
+        return getProviderContent();
       case 'color':
+        Map<String, dynamic>? oneValue = widget.getMapOne();
         return getColorContent(oneValue);
-      default:
+      case 'icon':
+        Map<String, dynamic>? oneValue = widget.getMapOne();
         return getIconContent(oneValue);
+      case 'info':
+        return [
+          SizedBox(
+              height: CWForm.getHeightRow(widget) - 10,
+              child: Text(widget.getLabel('[label]')))
+        ];
+      default:
+        return [Container()];
     }
   }
 
@@ -77,7 +128,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
       edit.text = '';
     }
     return [
-      Text(widget.getLabel('[empty]')),
+      Text(widget.getLabel('[label]')),
       const SizedBox(width: 20),
       SizedBox(
           width: 100,
@@ -149,7 +200,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
       _icon = Icon(ic);
     }
     return [
-      Text(widget.getLabel('[empty]')),
+      Text(widget.getLabel('[label]')),
       const SizedBox(width: 20),
       _icon ?? Container(),
       const Spacer(),
@@ -176,5 +227,27 @@ class _CWSelectorState extends StateCW<CWSelector> {
     } else {
       widget.setValue(null);
     }
+  }
+
+  List<Widget> getProviderContent() {
+    String provID = widget.getMapString();
+
+    CWProvider? provider =
+        CWApplication.of().loaderDesigner.factory.mapProvider[provID];
+
+    var data = provider?.getQueryName() ?? 'no provider';
+    return [
+      SizedBox(
+          height: CWForm.getHeightRow(widget)-5,
+          width: 200,
+          child: TextFormField(
+              readOnly: true,
+              initialValue: data,
+              decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  isDense: true,
+                  labelText: 'Provider',
+                  contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 0))))
+    ];
   }
 }

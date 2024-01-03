@@ -8,7 +8,6 @@ import 'package:xui_flutter/designer/selector_manager.dart';
 import 'package:xui_flutter/designer/designer_selector_component.dart';
 
 import '../core/widget/cw_core_loader.dart';
-import '../widget/cw_container.dart';
 import 'builder/prop_builder.dart';
 
 class DragCtx {
@@ -28,6 +27,8 @@ class DesignActionManager {
       SlotAction? slotAction = ctx?.inSlot?.slotAction;
       if (slotAction != null) {
         slotAction.doDelete(ctx!);
+      } else {
+        print('no delete strategy');
       }
     }
   }
@@ -323,21 +324,21 @@ class DesignActionManager {
   }
 
   ////////////////////////////////////////////////////////////////////////
-  bool doDeleteSlot(CWWidgetCtx ctx) {
-    int i = ctx.pathWidget.lastIndexOf('.Cont');
-    int idxChild = int.parse(ctx.pathWidget.substring(i + 5));
-    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
-    int nbChild = parent.getNbChild(parent.getDefChild());
+  bool doDeleteSlot(CWWidgetCtx ctx, String tag, String countTag) {
+    int i = ctx.pathWidget.lastIndexOf('.$tag');
+    int idxChild = int.parse(ctx.pathWidget.substring(i + tag.length + 1));
+    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+    int nbChild = parent.getNbChild(countTag, parent.getDefChild(countTag));
 
     CoreDataEntity prop = PropBuilder.preparePropChange(
         ctx.loader, DesignCtx().forDesign(parent.ctx));
-    prop.value['count'] = nbChild - 1;
+    prop.value[countTag] = nbChild - 1;
 
     if (idxChild < nbChild - 1) {
       for (var i = idxChild + 1; i < nbChild; i++) {
         debugPrint('move $i');
-        String path = '${parent.ctx.pathWidget}.Cont$i';
-        String pathTo = '${parent.ctx.pathWidget}.Cont${i - 1}';
+        String path = '${parent.ctx.pathWidget}.$tag$i';
+        String pathTo = '${parent.ctx.pathWidget}.$tag${i - 1}';
         var v = ctx.findWidgetByPath(path);
         var v2 = ctx.findSlotByPath(pathTo);
         if (v != null) {
@@ -351,15 +352,16 @@ class DesignActionManager {
     return true;
   }
 
-  bool addBeforeOrAfter(CWWidgetCtx ctx, bool before) {
-    int ic = ctx.pathWidget.lastIndexOf('.Cont');
-    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
-    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
-    int nbChild = parent.getNbChild(parent.getDefChild());
+  bool addBeforeOrAfter(
+      CWWidgetCtx ctx, String tag, bool before, String countTag) {
+    int ic = ctx.pathWidget.lastIndexOf('.$tag');
+    int idxChild = int.parse(ctx.pathWidget.substring(ic + tag.length + 1));
+    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+    int nbChild = parent.getNbChild(countTag, parent.getDefChild(countTag));
 
     CoreDataEntity prop = PropBuilder.preparePropChange(
         ctx.loader, DesignCtx().forDesign(parent.ctx));
-    prop.value['count'] = nbChild + 1;
+    prop.value[countTag] = nbChild + 1;
     parent
       ..repaint()
       ..select();
@@ -369,8 +371,8 @@ class DesignActionManager {
       if (idxChild < nbChild - 1 + (before ? 1 : 0)) {
         for (var i = nbChild - 1; i > (idxChild - (before ? 1 : 0)); i--) {
           debugPrint('move $i');
-          String path = '${parent.ctx.pathWidget}.Cont$i';
-          String pathTo = '${parent.ctx.pathWidget}.Cont${i + 1}';
+          String path = '${parent.ctx.pathWidget}.$tag$i';
+          String pathTo = '${parent.ctx.pathWidget}.$tag${i + 1}';
           var v = ctx.findWidgetByPath(path);
           var v2 = ctx.findSlotByPath(pathTo);
           if (v != null) {
@@ -383,20 +385,21 @@ class DesignActionManager {
     return true;
   }
 
-  bool moveBeforeOrAfter(CWWidgetCtx ctx, bool before) {
-    int ic = ctx.pathWidget.lastIndexOf('.Cont');
-    int idxChild = int.parse(ctx.pathWidget.substring(ic + 5));
-    CWContainer parent = ctx.getParentCWWidget() as CWContainer;
-    int nbChild = parent.getNbChild(parent.getDefChild());
+  bool moveBeforeOrAfter(
+      CWWidgetCtx ctx, String tag, bool before, String countTag) {
+    int ic = ctx.pathWidget.lastIndexOf('.$tag');
+    int idxChild = int.parse(ctx.pathWidget.substring(ic + tag.length + 1));
+    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+    int nbChild = parent.getNbChild(countTag, parent.getDefChild(countTag));
 
     var boolBottom = before == false && (idxChild < nbChild - 1);
     var boolTop = before == true && (idxChild > 0);
 
     if (boolBottom || boolTop) {
       debugPrint('move $idxChild');
-      String path = '${parent.ctx.pathWidget}.Cont$idxChild';
+      String path = '${parent.ctx.pathWidget}.$tag$idxChild';
       String pathTo =
-          '${parent.ctx.pathWidget}.Cont${idxChild + 1 + (before ? -2 : 0)}';
+          '${parent.ctx.pathWidget}.$tag${idxChild + 1 + (before ? -2 : 0)}';
       var v = ctx.findWidgetByPath(path);
       var v2 = ctx.findSlotByPath(pathTo);
       if (v != null) {

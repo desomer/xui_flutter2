@@ -20,8 +20,8 @@ enum CWProviderAction {
   onTapHeader
 }
 
-const String iDProviderName = '_providerName_';
-const String iDBind = '_bind_';
+const String iDProviderName = 'providerName';
+const String iDBind = 'bindAttr';
 
 class CWProviderData {
   CWProviderData(this.dataloader);
@@ -96,14 +96,32 @@ class CWProviderCtx extends CWWidgetVirtual {
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
+enum DisplayRenderingMode { selected, displayed }
+
 class CWProvider {
   CWProvider(this.id, this.type, this.dataSelector);
 
   String id;
   CoreDataEntity? header;
   String type;
+  DisplayRenderingMode displayRenderingMode = DisplayRenderingMode.displayed;
 
   late CWProviderDataSelector dataSelector;
+
+  CoreDataEntity getCoreDataEntity() {
+    var tableModel = getTableModel();
+    String name = '${getQueryName()} (${tableModel.value['name']})';
+
+    var app = CWApplication.of();
+    var itemProvider = app.collection.createEntityByJson('DataProvider', {
+      'name': name,
+      'type': type,
+      //'_id_':type,
+      'tableModel': tableModel,
+      'idProvider': id
+    });
+    return itemProvider;
+  }
 
   String getProviderCacheID({CoreDataFilter? aFilter}) {
     if (aFilter != null) {
@@ -112,7 +130,7 @@ class CWProvider {
     return '$id#id=$type;fl=${getFilter()?.getQueryKey() ?? 'null'}';
   }
 
-  String getName() {
+  String getQueryName() {
     var app = CWApplication.of();
 
     var filter = dataSelector.finalData.dataloader?.getFilter();
@@ -122,6 +140,10 @@ class CWProvider {
       var tableEntity = app.getTableModelByID(type);
       return 'all ${tableEntity.value['name']}';
     }
+  }
+
+  CoreDataEntity getTableModel() {
+    return CWApplication.of().getTableModelByID(type);
   }
 
   CWProviderData getData() {
@@ -163,6 +185,16 @@ class CWProvider {
     addContent(newRow);
 
     CoreGlobalCache.notifNewRow(this);
+  }
+
+  void addAll(CWAppLoaderCtx loaderCtx, List<dynamic>? list) {
+    if (list != null) {
+      for (Map<String, dynamic> element in list) {
+        var ent = loaderCtx.collectionDataModel.createEntity(element[r'$type']);
+        ent.value = element;
+        addContent(ent);
+      }
+    }
   }
 
   CoreDataEntity getEntityByIdx(idx) {
@@ -226,12 +258,18 @@ class CWProvider {
     return this;
   }
 
-  static CWProvider? of(CWWidgetCtx ctx) {
-    CWProvider? provider =
-        ctx.factory.mapProvider[ctx.designEntity?.getString(iDProviderName)];
+  static CWProvider? of(CWWidgetCtx ctx, {String? id}) {
+    CWProvider? provider = ctx
+        .factory.mapProvider[id ?? ctx.designEntity?.getString(iDProviderName)];
     return provider;
   }
 
+  String? getAttrName(String idAttr) {
+    var app = CWApplication.of();
+    return app.getAttributValueById(getTableModel(), idAttr)?['name'];
+  }
+
+  /////////////////////////////////////////////////////////////////////////
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
     var val =
         getDisplayedEntity()?.value[ctx.designEntity?.getString(propName)];
@@ -251,28 +289,33 @@ class CWProvider {
   }
 
   void setValueOf(
-      CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
+      CWWidgetCtx ctx, CWWidgetEvent? event, String attrName, dynamic val) {
     dynamic v = val;
-    CoreDataAttribut? attr = getDisplayedEntity()!
-        .getAttrByName(ctx.loader, ctx.designEntity!.getString(propName)!);
+
+    var displayedEntity = getDisplayedEntity();
+
+    CoreDataAttribut? attr =
+        displayedEntity!.getAttrByName(ctx.loader, attrName);
     if (attr?.type == CDAttributType.int) {
       v = int.tryParse(val);
     } else if (attr?.type == CDAttributType.dec) {
       v = double.tryParse(val);
     }
 
-    getDisplayedEntity()!
-        .setAttr(ctx.loader, ctx.designEntity!.getString(propName)!, v);
+    displayedEntity.setAttr(ctx.loader, attrName, v);
 
-    var displayedEntity = getDisplayedEntity();
-
-    var rowOperation = displayedEntity!.operation;
+    var rowOperation = displayedEntity.operation;
     if (rowOperation == CDAction.none) {
       doAction(ctx, event, CWProviderAction.onStateNone2Create);
     }
     doAction(ctx, event, CWProviderAction.onValueChanged);
 
     getData().dataloader?.changed(this, displayedEntity);
+  }
+
+  void setValuePropOf(
+      CWWidgetCtx ctx, CWWidgetEvent? event, String propName, dynamic val) {
+    return setValueOf(ctx, event, ctx.designEntity!.getString(propName)!, val);
   }
 
   Future<int> getItemsCount(CWWidgetCtx ctx) async {

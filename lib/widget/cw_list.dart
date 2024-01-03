@@ -15,7 +15,7 @@ import 'cw_array_row.dart';
 import 'cw_toolkit.dart';
 
 // ignore: must_be_immutable
-class CWList extends CWWidgetMap {
+class CWList extends CWWidgetMapProvider {
   CWList({super.key, required super.ctx});
 
   @override
@@ -31,7 +31,7 @@ class CWList extends CWWidgetMap {
         .addWidget(
             'CWList', (CWWidgetCtx ctx) => CWList(key: ctx.getKey(), ctx: ctx))
         .addAttr('reorder', CDAttributType.bool)
-        .addAttr(iDProviderName, CDAttributType.text);
+        .addAttr(iDProviderName, CDAttributType.text, tname: 'provider');
   }
 
   bool getReorder() {
@@ -136,7 +136,7 @@ class _CwListState extends StateCW<CWList> {
             child: const Center(
                 child: IntrinsicWidth(
                     child: Row(children: [
-              Text('Drag query here'),
+              Text('Drag query or result here'),
               Icon(Icons.filter_alt)
             ]))))));
   }
@@ -254,7 +254,7 @@ class _CWListSelectorState extends State<CWListSelector> {
 //---------------------------------------------------------------
 class InheritedStateContainer extends InheritedWidget {
   // Data is your entire state.
-  final StateCW<CWWidgetMap> arrayState;
+  final StateCW<CWWidgetMapProvider> arrayState;
   final CWArrayRowState? rowState;
   final int? index;
 

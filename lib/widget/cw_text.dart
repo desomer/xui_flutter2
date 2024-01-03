@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import 'cw_list.dart';
 
-class CWText extends CWWidgetMap {
+class CWText extends CWWidgetMapLabel {
   const CWText({
     super.key,
     required super.ctx,
@@ -20,21 +19,11 @@ class CWText extends CWWidgetMap {
         .addAttr('label', CDAttributType.text)
         .addAttr('textColor', CDAttributType.one, tname: 'color')
         .addAttr('icon', CDAttributType.one, tname: 'icon')
-        .addAttr(iDProviderName, CDAttributType.text)
-        .addAttr(iDBind, CDAttributType.text);
+        ;
   }
 
   @override
   State<CWText> createState() => _CWTextState();
-
-  @override
-  String getLabel(String def) {
-    if (ctx.designEntity?.getString(iDBind) != null) {
-      return getMapString();
-    } else {
-      return super.getLabel(def);
-    }
-  }
 
   @override
   void initSlot(String path) {}
@@ -64,7 +53,7 @@ class _CWTextState extends StateCW<CWText> {
       icon = Icon(ic);
     }
 
-    var label = widget.getLabel(icon!=null?'':'[empty]');
+    var label = widget.getLabel(icon!=null?'':'[label]');
     Widget? text;
 
     if (label != '' || icon == null) {

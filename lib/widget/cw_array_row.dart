@@ -10,8 +10,9 @@ import 'cw_list.dart';
 final log = Logger('CWArrayRow');
 
 class CWArrayRow extends StatefulWidget {
-
-  static double heightRow = 26;
+  static double getHeightRow(CWWidget widget) {
+    return widget.ctx.loader.modeDesktop ? 26 : 40;
+  }
 
   const CWArrayRow(
       {required this.rowIdx,
@@ -31,13 +32,14 @@ class CWArrayRow extends StatefulWidget {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWProviderAction.onRowSelected.toString();
     CWProvider? provider = CWProvider.of(stateArray.widget.ctx);
-    //print('selected row $rowIdx');
+    log.fine('selected row $rowIdx');
     if (provider != null) {
       ctxWE.provider = provider;
       ctxWE.payload = rowIdx;
       ctxWE.loader = stateArray.widget.ctx.loader;
       if (provider.getData().idxSelected != rowIdx) {
         provider.getData().idxSelected = rowIdx;
+        provider.displayRenderingMode = DisplayRenderingMode.selected;
         provider.doAction(ctx, ctxWE, CWProviderAction.onRowSelected);
       }
     }

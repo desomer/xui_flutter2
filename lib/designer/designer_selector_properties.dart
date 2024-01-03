@@ -6,6 +6,7 @@ import 'package:xui_flutter/widget/cw_textfield.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_loader.dart';
+import '../core/widget/cw_core_selector_overlay_action.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
 import 'builder/prop_builder.dart';
@@ -44,12 +45,12 @@ class OnMount extends CoreDataAction {
 }
 
 class OnWidgetSelect extends CoreDataAction {
-  OnWidgetSelect(this.aCtx, this.path);
+  OnWidgetSelect(this.aCtx);
   DesignCtx aCtx;
-  String path;
 
   @override
   void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    SelectorActionWidget.pathLock = aCtx.widget!.ctx.pathWidget;
     CoreDesigner.emit(CDDesignEvent.select, aCtx.widget!.ctx.getSlot()!.ctx);
   }
 }
@@ -61,12 +62,12 @@ class OnLinkSelect extends CoreDataAction {
 
   @override
   void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    print('link');
-    //CoreDataAttribut attr = ctx!.designEntity?.value['_attr_'];
-    selectAttr(event!.buildContext!);
+    //print('link');
+    selectAttr(ctx!, event, event!.buildContext!);
   }
 
-  Future<void> selectAttr(BuildContext context) {
+  Future<void> selectAttr(
+      CWWidgetCtx ctxRow, CWWidgetEvent? event, BuildContext context) {
     CWWidgetCtx ctxQuery = CWWidgetCtx('', CWApplication.of().loaderModel, '');
     ctxQuery.designEntity = CWApplication.of()
         .loaderModel
@@ -91,7 +92,8 @@ class OnLinkSelect extends CoreDataAction {
               decoration: BoxDecoration(border: Border.all()),
               height: 500,
               width: 500,
-              child: DesignerModel(bindWidget: CWApplication.of().bindProvider2Attr),
+              child: DesignerModel(
+                  bindWidget: CWApplication.of().bindProvider2Attr),
             ),
           ]),
           actions: <Widget>[
@@ -108,8 +110,34 @@ class OnLinkSelect extends CoreDataAction {
               style: TextButton.styleFrom(
                 textStyle: Theme.of(context).textTheme.labelLarge,
               ),
+              child: const Text('Unbind'),
+              onPressed: () {
+                var provider = CWProvider.of(ctxRow);
+                provider?.setValuePropOf(ctxRow, event, iDBind, null);
+                Navigator.of(context).pop();
+                ctxRow.getCWWidget()?.repaint();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
               child: const Text('Bind'),
-              onPressed: () async {},
+              onPressed: () {
+                var provider = CWProvider.of(ctxRow);
+                CoreDataEntity infoProv =
+                    CWApplication.of().bindProvider2Attr.currentEntity!;
+                CoreDataEntity? infoAttr =
+                    CWApplication.of().listAttrProvider.getSelectedEntity();
+                if (infoAttr != null) {
+                  provider?.setValuePropOf(ctxRow, event, iDBind, {
+                    iDBind: infoAttr.value['_id_'],
+                    iDProviderName: infoProv.value['idProvider']
+                  });
+                }
+                Navigator.of(context).pop();
+                ctxRow.getCWWidget()?.repaint();
+              },
             ),
           ],
         );

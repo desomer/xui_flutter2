@@ -7,23 +7,22 @@ import '../core/data/core_provider.dart';
 import '../designer/cw_factory.dart';
 
 mixin CWActionManager {
-  void doAction(BuildContext context, CWWidget widget, Map<String, dynamic> properties) {
+  void doAction(
+      BuildContext context, CWWidget widget, Map<String, dynamic>? properties) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
+    if (properties == null) return;
     String? actionId = properties['_idAction_'];
     if (actionId == null) return;
 
     var p = actionId.split('@');
     ctxWE.action = p[0];
     String dest = p[1];
-    if (dest.startsWith('#event#')) {
-    } else {
-      CWProvider? provider = widget.ctx.loader.factory.mapProvider[dest];
-      if (provider != null) {
-        ctxWE.provider = provider;
-        ctxWE.loader = widget.ctx.loader;
-        ctxWE.buildContext = context;
-        provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
-      }
+    CWProvider? provider = widget.ctx.loader.factory.mapProvider[dest];
+    if (provider != null) {
+      ctxWE.provider = provider;
+      ctxWE.loader = widget.ctx.loader;
+      ctxWE.buildContext = context;
+      provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
     }
   }
 }
@@ -53,39 +52,55 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     String type = slotConfig?.slot?.type ?? '';
-
-    if (type == 'navigation') {
+    if (type == 'appbar') {
+      return getIconBtn();
+    } else if (type == 'navigation') {
       return getNavBtn();
-    }
-
-    if (type == 'title') {
+    } else if (type == 'title') {
       return InkWell(
           onTap: () {
             widget.doAction(context, widget, widget.ctx.designEntity!.value);
           },
-          child: Text(widget.getLabel('[empty]')));
-    }
+          child: Text(widget.getLabel('[label]')));
+    } else {
+      Widget? icon = getIcon();
 
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5),
-      )),
+      if (icon != null) {
+        return ElevatedButton.icon(
+            onPressed: () {
+              widget.doAction(context, widget, widget.ctx.designEntity?.value);
+            },
+            icon: icon,
+            label: Text(widget.getLabel('[label]')));
+      } else {
+        return ElevatedButton(
+          onPressed: () {
+            widget.doAction(context, widget, widget.ctx.designEntity?.value);
+          },
+          child: Text(widget.getLabel('[label]')),
+        );
+      }
+    }
+  }
+
+  Widget getIconBtn() {
+    Widget? icon = getIcon();
+    return IconButton(
+      icon: icon ?? const Icon(Icons.abc),
       onPressed: () {
-        widget.doAction(context, widget, widget.ctx.designEntity!.value);
+        widget.doAction(context, widget, widget.ctx.designEntity?.value);
       },
-      child: Text(widget.getLabel('[empty]')),
     );
   }
 
   Widget getNavBtn() {
-    Widget icon = getIcon();
+    Widget? icon = getIcon();
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        icon, // <-- Icon
-        Text(widget.getLabel('[empty]'),
+        icon ?? Container(), // <-- Icon
+        Text(widget.getLabel('[label]'),
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: IconTheme.of(context).color,
                 )), // <-- Text
@@ -93,9 +108,9 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
     );
   }
 
-  Widget getIcon() {
+  Widget? getIcon() {
     Map<String, dynamic>? v = widget.getIcon();
-    Widget icon = Container();
+    Widget? icon;
     if (v != null) {
       IconData? ic = deserializeIcon(v);
       icon = Icon(ic);

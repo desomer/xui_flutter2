@@ -488,7 +488,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
 
   Widget getValueSimple() {
     MaskConfig mask =
-        MaskConfig(controller: _controller, focus: aFocus, label: null);
+        MaskConfig( type: 'TEXT', inArray: true,  controller: _controller, focus: aFocus, label: null);
 
     return Padding(
         padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),

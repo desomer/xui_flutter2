@@ -3,12 +3,11 @@ import 'package:go_router/go_router.dart';
 // ignore: depend_on_referenced_packages
 import 'package:collection/collection.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/designer/action_manager.dart';
 
 import '../core/widget/cw_core_slot.dart';
+import 'cw_app.dart';
 
-// void main() {
-//   runApp(CwRouter());
-// }
 
 class ActionLink {
   ActionLink(this.name, this.icon, this.ctx);
@@ -17,175 +16,9 @@ class ActionLink {
   CWWidgetCtx ctx;
 }
 
-// // ignore: must_be_immutable
-// class CwRouter extends StatefulWidget {
-//   CwRouter({Key? key, required this.body}) : super(key: key);
-
-//   var listRoute = <StatefulShellBranch>[];
-//   var listAction = <ActionLink>[];
-//   final Widget body;
-
-//   @override
-//   State<CwRouter> createState() => _CwRouterState();
-
-//   // CustomTransitionPage buildPageWithDefaultTransition<T>({
-//   //   required BuildContext context,
-//   //   required GoRouterState state,
-//   //   required Widget child,
-//   // }) {
-//   //   return CustomTransitionPage<T>(
-//   //     key: state.pageKey,
-//   //     child: child,
-//   //     transitionDuration: const Duration(seconds: 2),
-//   //     transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-//   //         FadeTransition(opacity: animation, child: child),
-//   //   );
-//   // }
-
-//   // Page<dynamic> Function(BuildContext, GoRouterState) animPageBuilder<T>(
-//   //         Function(GoRouterState) fct) =>
-//   //     (BuildContext context, GoRouterState state) {
-//   //       return buildPageWithDefaultTransition<T>(
-//   //         context: context,
-//   //         state: state,
-//   //         child: fct(state),
-//   //       );
-//   //     };
-
-//   // StatefulShellBranch getRouteBranch(path) {
-//   //   return StatefulShellBranch(routes: <RouteBase>[
-//   //     GoRoute(
-//   //       // The screen to display as the root in the first tab of the
-//   //       // bottom navigation bar.
-//   //       path: '/a',
-//   //       builder: (BuildContext context, GoRouterState state) =>
-//   //           const Center(child: Text("ok")),
-//   //     )
-//   //   ]);
-//   // }
-// }
-
-// class _CwRouterState extends State<CwRouter> {
-//   StatefulShellBranch getSubRoute(String path, Function(GoRouterState) fct) {
-//     return StatefulShellBranch(routes: <RouteBase>[
-//       GoRoute(
-//         path: path,
-//         //pageBuilder : animPageBuilder(fct)
-//         builder: (context, state) {
-//           return fct(state);
-//         },
-//       )
-//     ]);
-//   }
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     // Future.delayed(const Duration(seconds: 5), () {
-//     //   setState(() {
-//     //     //FocusScope.of(context).unfocus();
-//     //     FocusScope.of(context).requestFocus(FocusNode());
-
-//     //     var r3 = getSubRoute('/c', (state) {
-//     //       return const Center(child: Text('test dyn'));
-//     //     });
-
-//     //     widget.listRoute.add(r3);
-//     //     widget.listAction.add(ActionLink('super 3', Icons.add_link));
-//     //   });
-//     // });
-
-//     // Future.delayed(const Duration(seconds: 10), () {
-//     //   setState(() {
-//     //     //FocusScope.of(context).unfocus();
-//     //     FocusScope.of(context).requestFocus(FocusNode());
-
-//     //     var r3 = getSubRoute('/d', (state) {
-//     //       return Scaffold(
-//     //           appBar: AppBar(title: const Text('AppBar 2')),
-//     //           body: const Center(child: Text('super bar')));
-//     //     });
-
-//     //     widget.listRoute.add(r3);
-//     //     widget.listAction.add(ActionLink('super 4', Icons.album));
-//     //   });
-//     // });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (widget.listRoute.isEmpty) {
-//       var r1 = getSubRoute('/', (state) {
-//         return ScaffoldDrawer(
-//             appBar: AppBar(elevation: 0, title: const Text('AppBar')),
-//             body: ClipRRect(
-//                 borderRadius: const BorderRadius.only(
-//                     topLeft: Radius.circular(20),
-//                     topRight: Radius.circular(20)),
-//                 child: Container(color: Colors.white, child: widget.body)));
-//       });
-
-//       var r2 = getSubRoute('/b', (state) {
-//         return const Center(child: Text('test ok'));
-//       });
-
-//       widget.listRoute.add(r1);
-//       widget.listRoute.add(r2);
-//       widget.listAction.add(ActionLink('super 1', Icons.ac_unit));
-//       widget.listAction.add(ActionLink('super 2', Icons.access_alarm));
-//     }
-//     //*******************************************************************/
-//     final GlobalKey<NavigatorState> rootNavigatorKey =
-//         GlobalKey<NavigatorState>(debugLabel: 'root');
-
-//     final GoRouter router = GoRouter(
-//         navigatorKey: rootNavigatorKey,
-//         initialLocation: '/',
-//         routes: <RouteBase>[
-//           StatefulShellRoute(
-//               builder: (BuildContext context, GoRouterState state,
-//                   StatefulNavigationShell navigationShell) {
-//                 // This nested StatefulShellRoute demonstrates the use of a
-//                 // custom container for the branch Navigators. In this implementation,
-//                 // no customization is done in the builder function (navigationShell
-//                 // itself is simply used as the Widget for the route). Instead, the
-//                 // navigatorContainerBuilder function below is provided to
-//                 // customize the container for the branch Navigators.
-//                 return navigationShell;
-//               },
-//               navigatorContainerBuilder: (BuildContext context,
-//                   StatefulNavigationShell navigationShell,
-//                   List<Widget> children) {
-//                 // Returning a customized container for the branch
-//                 // Navigators (i.e. the `List<Widget> children` argument).
-//                 //
-//                 // See ScaffoldWithNavBar for more details on how the children
-//                 // are managed (using AnimatedBranchContainer).
-//                 return ScaffoldWithNestedNavigation(
-//                     //key: GlobalKey(),
-//                     listAction: widget.listAction,
-//                     navigationShell: navigationShell,
-//                     children: children);
-//               },
-//               branches: widget.listRoute)
-//         ]);
-
-//     return MaterialApp.router(
-//       title: 'Flutter Demo',
-//       routerConfig: router,
-//       theme: ThemeData().copyWith(scaffoldBackgroundColor: Colors.blue),
-//       debugShowCheckedModeBanner: false,
-//       builder: DevicePreview.appBuilder,
-//       locale: DevicePreview.locale(context),
-//     );
-//   }
-// }
-
 class ScaffoldResponsiveDrawer extends StatelessWidget {
   ScaffoldResponsiveDrawer(
       {super.key, required this.appBar, required this.body});
-
 
   final AppBar appBar;
   final Widget body;
@@ -251,7 +84,7 @@ class ScaffoldResponsiveDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       if (constraints.maxWidth < 800) {
-        return Scaffold(
+        return  Scaffold(
           key: scaffoldKey,
           drawer: getDrawer(),
           appBar: appBar,
@@ -346,8 +179,8 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
     for (var element in listAction) {
       var slot = CWSlot(
         type: 'navigation',
-        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Btn$i'),
-        ctx: createChildCtx(element.ctx, 'Btn', i),
+        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Nav$i'),
+        ctx: createChildCtx(element.ctx, 'Nav', i),
         slotAction: SlotNavAction(),
       );
 
@@ -402,8 +235,8 @@ class ScaffoldWithNavigationRail extends StatelessWidget with CWSlotManager {
     for (var element in listAction) {
       var slot = CWSlot(
         type: 'navigation',
-        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Btn$i'),
-        ctx: createChildCtx(element.ctx, 'Btn', i),
+        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Nav$i'),
+        ctx: createChildCtx(element.ctx, 'Nav', i),
         slotAction: SlotNavAction(),
       );
 
@@ -480,86 +313,90 @@ class SlotNavAction extends SlotAction {
 
   @override
   bool doDelete(CWWidgetCtx ctx) {
-    return true;
+    return DesignActionManager().doDeleteSlot(ctx, 'Nav', iDnbBtnBottomNavBar);
   }
 
   @override
   bool addBottom(CWWidgetCtx ctx) {
-    return true;
+    return false;
   }
 
   @override
   bool canAddBottom() {
-    return true;
+    return false;
   }
 
   @override
   bool addTop(CWWidgetCtx ctx) {
-    return true;
+    return false;
   }
 
   @override
   bool canAddTop() {
-    return true;
+    return false;
   }
 
   @override
   bool canMoveBottom() {
-    return true;
+    return false;
   }
 
   @override
   bool moveBottom(CWWidgetCtx ctx) {
-    return true;
+    return false;
   }
 
   @override
   bool canMoveTop() {
-    return true;
+    return false;
   }
 
   @override
   bool moveTop(CWWidgetCtx ctx) {
-    return true;
+    return false;
   }
-  
+
   @override
   bool addLeft(CWWidgetCtx ctx) {
-    throw UnimplementedError();
+    return DesignActionManager()
+        .addBeforeOrAfter(ctx, 'Nav', true, iDnbBtnBottomNavBar);
   }
-  
+
   @override
   bool addRight(CWWidgetCtx ctx) {
-    throw UnimplementedError();
+    return DesignActionManager()
+        .addBeforeOrAfter(ctx, 'Nav', false, iDnbBtnBottomNavBar);
   }
-  
+
   @override
   bool canAddLeft() {
-    throw UnimplementedError();
+    return true;
   }
-  
+
   @override
   bool canAddRight() {
-    throw UnimplementedError();
+    return true;
   }
-  
+
   @override
   bool canMoveLeft() {
-    throw UnimplementedError();
+    return true;
   }
-  
+
   @override
   bool canMoveRight() {
-    throw UnimplementedError();
+    return true;
   }
-  
+
   @override
   bool moveLeft(CWWidgetCtx ctx) {
-    throw UnimplementedError();
+    return DesignActionManager()
+        .moveBeforeOrAfter(ctx, 'Nav', true, iDnbBtnBottomNavBar);
   }
-  
+
   @override
   bool moveRight(CWWidgetCtx ctx) {
-    throw UnimplementedError();
+    return DesignActionManager()
+        .moveBeforeOrAfter(ctx, 'Nav', false, iDnbBtnBottomNavBar);
   }
 }

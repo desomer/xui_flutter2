@@ -12,7 +12,7 @@ import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
 import 'widget_filter_builder.dart';
 
-class DesignerQuery extends CWWidgetMap {
+class DesignerQuery extends CWWidgetMapProvider {
   const DesignerQuery(
       {required this.mode, super.key, required super.ctx, this.listBindWidget});
 

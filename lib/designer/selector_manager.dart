@@ -27,38 +27,45 @@ class CoreDesignerSelector {
       ctx.refreshContext();
       log.finest('selection <${ctx.xid}> path=${ctx.pathWidget}');
       SelectorActionWidget.showActionWidget(ctx.inSlot!.key as GlobalKey);
-    });
 
-    CoreDesigner.on(CDDesignEvent.reselect, (arg) {
-      if (arg is GlobalKey) {
-        SelectorActionWidget.showActionWidget(arg);
-      }
-    });
-
-    CoreDesigner.on(CDDesignEvent.select, (arg) {
-      CWWidgetCtx ctx = arg as CWWidgetCtx;
       propBuilder.buildWidgetProperties(ctx, 1);
       unselect();
       _lastSelectedPath = ctx.pathWidget;
       CoreDesigner.of().editor.controllerTabRight.index = 0;
 
-      // Future<RichClipboardData?> data = RichClipboard.getData();
-      // data.then((clipboardData) {
-      //   if (clipboardData?.html != null) {
-      //     print("RichClipboardData html ${clipboardData?.html}");
-      //   }
-      //   if (clipboardData?.text != null) {
-      //     print("RichClipboardData text ${clipboardData?.text}");
-      //   }
-      // });
+      // ignore: invalid_use_of_protected_member
+      CoreDesigner.of().navCmpKey.currentState?.setState(() {});
     });
 
+    // CoreDesigner.on(CDDesignEvent.reselect, (arg) {
+
+    // });
+
+    // CoreDesigner.on(CDDesignEvent.select, (arg) {
+    //  // CWWidgetCtx ctx = arg as CWWidgetCtx;
+
+    //   // Future<RichClipboardData?> data = RichClipboard.getData();
+    //   // data.then((clipboardData) {
+    //   //   if (clipboardData?.html != null) {
+    //   //     print("RichClipboardData html ${clipboardData?.html}");
+    //   //   }
+    //   //   if (clipboardData?.text != null) {
+    //   //     print("RichClipboardData text ${clipboardData?.text}");
+    //   //   }
+    //   // });
+    // });
+
     CoreDesigner.on(CDDesignEvent.reselect, (arg) {
-      if (arg == null) {
+      if (arg is GlobalKey) {
+        SelectorActionWidget.showActionWidget(arg);
+      } else if (arg == null || arg == 'redisplayProp') {
         SlotConfig? config =
             CoreDesigner.ofFactory().mapSlotConstraintByPath[_lastSelectedPath];
 
         if (config != null && config.slot != null) {
+          if (arg == 'redisplayProp') {
+            propBuilder.buildWidgetProperties(config.slot!.ctx, 1);
+          }
           CoreDesigner.emit(
               CDDesignEvent.reselect, config.slot!.key as GlobalKey);
         }
@@ -87,7 +94,8 @@ class CoreDesignerSelector {
 
     SlotConfig? config = CoreDesigner.ofFactory().mapSlotConstraintByPath[old];
     if (config != null) {
-      log.finest('deselection <${config.xid}> path=${config.slot?.ctx.pathWidget}');
+      log.finest(
+          'deselection <${config.xid}> path=${config.slot?.ctx.pathWidget}');
       // Future.delayed(const Duration(milliseconds: 1000), () {
       config.slot?.repaint();
       // });

@@ -1,13 +1,31 @@
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:flutter/material.dart';
 
-class BreadCrumbNavigator extends StatelessWidget {
-  final List<Route> currentRouteStack;
+import '../core/widget/cw_core_loader.dart';
+import '../designer/designer_selector_properties.dart';
+import '../designer/selector_manager.dart';
 
-  const BreadCrumbNavigator(this.currentRouteStack, {super.key});
+class BreadCrumbNavigator extends StatefulWidget {
+  const BreadCrumbNavigator({super.key});
 
   @override
+  State<StatefulWidget> createState() {
+    return _BreadCrumbNavigatorState();
+  }
+}
+
+class _BreadCrumbNavigatorState extends State {
+  @override
   Widget build(BuildContext context) {
+    List<Route> currentRouteStack = [];
+
+    List<DesignCtx> listPath = CoreDesignerSelector.of().propBuilder.listPath;
+    for (var element in listPath) {
+      currentRouteStack.add(RouteTest(
+          settings:
+              RouteSettings(name: element.designEntity?.type.substring(2))));
+    }
+
     return RowSuper(
       mainAxisSize: MainAxisSize.min,
       innerDistance: -16,
@@ -18,19 +36,24 @@ class BreadCrumbNavigator extends StatelessWidget {
                 index,
                 GestureDetector(
                     onTap: () {
-                      debugPrint('RowSuper $index');
+                      OnWidgetSelect(listPath[index]).execute(null, null);
+                      //debugPrint('RowSuper $index');
                       // Navigator.popUntil(context,
                       //     (route) => route == currentRouteStack[index]);
                     },
                     child: _BreadButton(
                         index == 0
-                            ? 'Root'
+                            ? 'Page'
                             : currentRouteStack[index].settings.name!,
                         index == 0))),
           )
           .values),
     );
   }
+}
+
+class RouteTest extends Route {
+  RouteTest({super.settings});
 }
 
 class _BreadButton extends StatelessWidget {
@@ -73,9 +96,9 @@ class _TriangleClipper extends CustomClipper<Path> {
     } else {
       path.lineTo(0, size.height);
     }
-    path.lineTo(size.width-20, size.height);
+    path.lineTo(size.width - 20, size.height);
     path.lineTo(size.width, size.height / 2);
-    path.lineTo(size.width-20, 0);
+    path.lineTo(size.width - 20, 0);
     return path;
   }
 

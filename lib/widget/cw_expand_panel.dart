@@ -29,14 +29,14 @@ class CWExpandPanel extends CWWidget {
     c
         .addWidget('CWExpandPanel',
             (CWWidgetCtx ctx) => CWExpandPanel(key: ctx.getKey(), ctx: ctx))
-        .addAttr('count', CDAttributType.int);
+        .addAttr(iDCount, CDAttributType.int);
   }
 
   @override
   State<CWExpandPanel> createState() => CWExpandPanelState();
 
   int getNb() {
-    return ctx.designEntity?.getInt('count', 1) ?? 1;
+    return ctx.designEntity?.getInt(iDCount, 1) ?? 1;
   }
 
   @override

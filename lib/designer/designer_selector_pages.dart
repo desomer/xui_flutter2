@@ -6,7 +6,7 @@ import '../core/data/core_provider.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 
-class DesignerPages extends CWWidgetMap {
+class DesignerPages extends CWWidgetMapProvider {
   const DesignerPages({super.key, required super.ctx});
 
   @override
@@ -49,7 +49,7 @@ class _DesignerPagesState extends State<DesignerPages> {
     }
   }
 
- Widget getTree() {
+  Widget getTree() {
     return TreeView.indexTyped<CoreDataEntity, IndexedTreeNode<CoreDataEntity>>(
         builder: (context, node) {
           return getCell(node);
@@ -122,7 +122,6 @@ class _DesignerPagesState extends State<DesignerPages> {
 
     return nodesRemovedIndexedTree;
   }
-
 }
 
 class DragPagesCtx {

@@ -13,7 +13,7 @@ import '../widget/cw_expand_panel.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_event.dart';
 import '../widget/cw_container_form.dart';
-import '../widget/cw_frame_desktop.dart';
+import '../widget/cw_app.dart';
 import '../widget/cw_list.dart';
 import '../widget/cw_tab.dart';
 import '../core/data/core_provider.dart';
@@ -29,7 +29,7 @@ class CWWidgetCollectionBuilder {
 
   /////////////////////////////////////////////////////////////////////////
   void _initWidget() {
-    CWFrameDesktop.initFactory(this);
+    CWApp.initFactory(this);
     CWTab.initFactory(this);
     CWTextfield.initFactory(this);
 
