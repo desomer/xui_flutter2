@@ -69,7 +69,7 @@ class ArrayBuilder {
         break;
     }
 
-    loader.ctxLoader.factory.mapProvider[provider.id] = provider;
+    loader.ctxLoader.addProvider(provider);
     loader.addWidget(
         'root', 'provider_${provider.id}', 'CWProvider', <String, dynamic>{
       'type': provider.type,

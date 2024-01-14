@@ -72,14 +72,18 @@ class SelectorWidgetState extends State<SelectorWidget> {
       }
     });
 
+    var w = widget.child;
+
     if (isHover) {
-      return _getBorderOver(widget.child, Colors.grey, 2);
+      return _getBorderOver(w, Colors.grey, 2);
     } else if (widget.ctx.isSelected()) {
-      return _getBorderOver(widget.child, Colors.deepOrange, 4);
+      return _getBorderOver(w, Colors.deepOrange, 4);
     } else {
-      return widget.child;
+      return w;
     }
   }
+
+
 
   GlobalKey? captureKey;
 
@@ -154,8 +158,8 @@ class SelectorWidgetState extends State<SelectorWidget> {
 
   void doRightSelection(PointerDownEvent d) {
     // ignore: unused_local_variable
-    final Offset position = CwToolkit.getPosition(captureKey!,
-        SelectorActionWidget.designerKey);
+    final Offset position =
+        CwToolkit.getPosition(captureKey!, SelectorActionWidget.designerKey);
 
     menuIsOpen = true;
     Future.delayed(const Duration(milliseconds: 200), () {
@@ -166,7 +170,6 @@ class SelectorWidgetState extends State<SelectorWidget> {
         position.dy + d.localPosition.dy + 10));
 
     debugPrint('$position');
-
   }
 
   void onExit(PointerExitEvent e) {

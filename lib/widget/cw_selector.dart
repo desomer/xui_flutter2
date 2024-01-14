@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
@@ -8,7 +10,19 @@ import 'package:xui_flutter/widget/cw_container_form.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
 import '../designer/cw_factory.dart';
+import '../designer/designer_selector_behaviour.dart';
 import 'cw_action.dart';
+
+enum CWSelectorType {
+  provider,
+  bind,
+  color,
+  icon,
+  info,
+  behaviour,
+  style,
+  slider
+}
 
 class CWSelector extends CWWidgetMapValue with CWActionManager {
   const CWSelector({super.key, required super.ctx});
@@ -32,33 +46,46 @@ class CWSelector extends CWWidgetMapValue with CWActionManager {
 class _CWSelectorState extends StateCW<CWSelector> {
   Icon? _icon;
   Color? _color;
+  double? doubleValue;
   TextEditingController edit = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    edit.addListener(() {
-      Map<String, dynamic>? oneValue = widget.getMapOne();
-      if (oneValue?['color'] != edit.text) {
-        if (edit.text.length == 8) {
-          oneValue?['color'] = edit.text;
-          widget.setValue(oneValue);
-        } else if (edit.text.isEmpty) {
-          widget.setValue(null);
+    String type = widget.ctx.designEntity!.value['type'];
+    if (type == CWSelectorType.color.name) {
+      edit.addListener(() {
+        Map<String, dynamic>? oneValue = widget.getMapOne(iDBind);
+        if (oneValue?['color'] != edit.text) {
+          if (edit.text.length == 8) {
+            oneValue?['color'] = edit.text;
+            widget.setValue(oneValue);
+          } else if (edit.text.isEmpty) {
+            widget.setValue(null);
+          }
         }
-      }
-    });
+      });
+    } else if (type == CWSelectorType.slider.name) {
+      edit.addListener(() {
+        double? d = widget.getMapDouble();
+        if ((d?.toInt().toString() ?? '') != edit.text) {
+          widget.setValue(edit.text);
+          setState(() {});
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     String type = widget.ctx.designEntity!.value['type'];
-    if (type == 'Bind') {
+    if (type == 'bind') {
       return getBindBtn(context);
     }
 
     return Container(
-        padding: EdgeInsets.fromLTRB(5, type=='provider'?0:5, 5, 5),
+        padding: EdgeInsets.fromLTRB(
+            5, type == CWSelectorType.provider.name ? 0 : 5, 5, 5),
         decoration: BoxDecoration(
             border: Border(
                 bottom: BorderSide(
@@ -93,7 +120,10 @@ class _CWSelectorState extends StateCW<CWSelector> {
           onPressed: () {
             widget.doAction(context, widget, widget.ctx.designEntity?.value);
           },
-          child: Text(nameAttr.isNotEmpty ? '@' : ''),
+          child: nameAttr.isNotEmpty
+              ? const Text('@')
+              : Icon(Icons.functions_rounded,
+                  size: 15, color: Theme.of(context).disabledColor),
         ));
   }
 
@@ -101,17 +131,40 @@ class _CWSelectorState extends StateCW<CWSelector> {
     switch (type) {
       case 'provider':
         return getProviderContent();
+      case 'slider':
+        return getSliderContent();
       case 'color':
-        Map<String, dynamic>? oneValue = widget.getMapOne();
+        Map<String, dynamic>? oneValue = widget.getMapOne(iDBind);
         return getColorContent(oneValue);
       case 'icon':
-        Map<String, dynamic>? oneValue = widget.getMapOne();
+        Map<String, dynamic>? oneValue = widget.getMapOne(iDBind);
         return getIconContent(oneValue);
       case 'info':
         return [
           SizedBox(
               height: CWForm.getHeightRow(widget) - 10,
               child: Text(widget.getLabel('[label]')))
+        ];
+      case 'behaviour':
+        return [
+          SizedBox(
+              height: CWForm.getHeightRow(widget) - 10,
+              child: Text(widget.getLabel('[label]'))),
+          const Spacer(),
+          InkWell(
+            onTap: _pickBehaviour,
+            child: const Icon(Icons.video_settings_rounded),
+          )
+        ];
+      case 'style':
+        return [
+          SizedBox(
+              height: CWForm.getHeightRow(widget) - 10,
+              child: Text(widget.getLabel('[label]'))),
+          const Spacer(),
+          const InkWell(
+            child: Icon(Icons.style_outlined),
+          )
         ];
       default:
         return [Container()];
@@ -127,24 +180,67 @@ class _CWSelectorState extends StateCW<CWSelector> {
       _color = null;
       edit.text = '';
     }
-    return [
+
+    IconData? icon = widget.ctx.designEntity?.value['customValue']?['icon'];
+    List<Widget> ret = [];
+    if (icon != null) ret.addAll([Icon(icon), const SizedBox(width: 5)]);
+
+    ret.addAll([
       Text(widget.getLabel('[label]')),
       const SizedBox(width: 20),
-      SizedBox(
-          width: 100,
-          child: TextField(
-              decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 0)),
-              controller: edit)),
+      getText(100, false),
       Container(width: 20, height: 20, color: _color),
       const Spacer(),
       InkWell(
         onTap: _pickColor,
         child: const Icon(Icons.color_lens),
       )
-    ];
+    ]);
+
+    return ret;
+  }
+
+  SizedBox getText(double width, bool border) {
+    return SizedBox(
+        width: width,
+        child: TextField(
+            decoration: InputDecoration(
+                border: border ? const OutlineInputBorder() : InputBorder.none,
+                isDense: true,
+                contentPadding: border
+                    ? const EdgeInsets.fromLTRB(5, 5, 5, 5)
+                    : const EdgeInsets.fromLTRB(5, 0, 5, 0)),
+            controller: edit));
+  }
+
+  void _pickBehaviour() async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: const DesignerSelectorBehaviour(),
+            actions: <Widget>[
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge,
+                ),
+                child: const Text('Cancel'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  textStyle: Theme.of(context).textTheme.labelLarge,
+                ),
+                child: const Text('Ok'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        });
   }
 
   void _pickColor() async {
@@ -238,7 +334,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
     var data = provider?.getQueryName() ?? 'no provider';
     return [
       SizedBox(
-          height: CWForm.getHeightRow(widget)-5,
+          height: CWForm.getHeightRow(widget) - 5,
           width: 200,
           child: TextFormField(
               readOnly: true,
@@ -249,5 +345,36 @@ class _CWSelectorState extends StateCW<CWSelector> {
                   labelText: 'Provider',
                   contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 0))))
     ];
+  }
+
+  List<Widget> getSliderContent() {
+    doubleValue = widget.getMapDouble();
+    edit.text = doubleValue?.toInt().toString() ?? '';
+
+    var slider = SizedBox(
+        height: 10,
+        width: 140,
+        child: Slider(
+          min: 0.0,
+          max: 30.0,
+          value: min(doubleValue ?? 0, 30),
+          onChanged: (value) {
+            setState(() {
+              doubleValue = value;
+              edit.text = value.toInt().toString();
+            });
+          },
+        ));
+
+    IconData? icon = widget.ctx.designEntity?.value['customValue']?['icon'];
+    List<Widget> ret = [];
+    if (icon != null) ret.addAll([Icon(icon), const SizedBox(width: 5)]);
+    ret.addAll([
+      Text(widget.getLabel('[label]')),
+      const Spacer(),
+      slider,
+      getText(40, true)
+    ]);
+    return ret;
   }
 }

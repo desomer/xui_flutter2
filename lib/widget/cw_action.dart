@@ -52,6 +52,10 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     String type = slotConfig?.slot?.type ?? '';
+    return styledBox.getStyledBox(getBtn(type, context));
+  }
+
+  Widget getBtn(String type, BuildContext context) {
     if (type == 'appbar') {
       return getIconBtn();
     } else if (type == 'navigation') {
@@ -65,8 +69,35 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
     } else {
       Widget? icon = getIcon();
 
+      ButtonStyle? style;
+      BorderSide? side;
+      OutlinedBorder? border;
+
+      if (styledBox.styleExist(['bSize', 'bColor'])) {
+        side = BorderSide(
+            width: styledBox.getStyleDouble('bSize', 1),
+            color: styledBox.getColor('bColor') ?? Colors.transparent);
+      }
+      if (styledBox.styleExist(['bRadius'])) {
+        border = RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+                Radius.circular(styledBox.getStyleDouble('bRadius', 0))),
+            side: side ?? BorderSide.none);
+      } else if (side != null) {
+        border = StadiumBorder(side: side);
+      }
+
+      if (styledBox.styleExist(['elevation', 'bgColor'])) {
+        style = ElevatedButton.styleFrom(
+            shape: border,
+            elevation: styledBox.getElevation(),
+            backgroundColor: styledBox.getColor('bgColor'));
+      }
+
       if (icon != null) {
         return ElevatedButton.icon(
+            key: widget.ctx.getContentKey(false),
+            style: style,
             onPressed: () {
               widget.doAction(context, widget, widget.ctx.designEntity?.value);
             },
@@ -74,6 +105,8 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
             label: Text(widget.getLabel('[label]')));
       } else {
         return ElevatedButton(
+          key: widget.ctx.getContentKey(false),
+          style: style,
           onPressed: () {
             widget.doAction(context, widget, widget.ctx.designEntity?.value);
           },
@@ -103,7 +136,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
         Text(widget.getLabel('[label]'),
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: IconTheme.of(context).color,
-                )), // <-- Text
+                )),
       ],
     );
   }

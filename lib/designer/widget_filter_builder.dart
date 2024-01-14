@@ -91,12 +91,13 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
         child: Row(children: [
           Expanded(child: Column(key: GlobalKey(), children: listGroupWidget)),
           Visibility(
-              visible: (listGroupWidget.isNotEmpty && widget.mode == FilterBuilderMode.query),
+              visible: (listGroupWidget.isNotEmpty &&
+                  widget.mode == FilterBuilderMode.query),
               child: IconButton(
                   onPressed: () {
                     saveFilter(context);
                   },
-                  icon: const Icon(Icons.save))),          
+                  icon: const Icon(Icons.save))),
           Visibility(
               visible: listGroupWidget.isNotEmpty,
               child: IconButton(
@@ -112,20 +113,10 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
                         CWApplication.of().dataProvider);
                     await CoreGlobalCache.saveCache(
                         CWApplication.of().dataModelProvider);
-                    refreshData();
+                    CWApplication.of().refreshData();
                   },
                   icon: const Icon(Icons.search_rounded)))
         ]));
-  }
-
-  void refreshData() {
-    CWProvider provider = CWApplication.of().dataProvider;
-
-    String idCache = provider.getProviderCacheID();
-    CoreGlobalCache.cacheNbData.remove(idCache);
-    provider.loader!.reload();
-
-    CWApplication.of().loaderData.findWidgetByXid('rootData')!.repaint();
   }
 
   Future<void> saveFilter(BuildContext context) async {
@@ -177,7 +168,7 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
                 // recharge un filter vide
                 providerData.loader!.setFilter(providerData, null);
                 setState(() {});
-                refreshData();
+                CWApplication.of().refreshData();
               },
             ),
           ],
@@ -487,8 +478,12 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
   }
 
   Widget getValueSimple() {
-    MaskConfig mask =
-        MaskConfig( type: 'TEXT', inArray: true,  controller: _controller, focus: aFocus, label: null);
+    MaskConfig mask = MaskConfig(
+        type: 'TEXT',
+        inArray: true,
+        controller: _controller,
+        focus: aFocus,
+        label: null);
 
     return Padding(
         padding: const EdgeInsets.fromLTRB(5, 0, 0, 0),

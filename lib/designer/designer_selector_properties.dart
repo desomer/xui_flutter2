@@ -190,6 +190,25 @@ class MapDesign extends CoreDataAction {
   }
 }
 
+class MapDesignStyle extends CoreDataAction {
+  DesignCtx aCtx;
+  CoreDataEntity prop;
+  CoreDataEntity style;
+
+  MapDesignStyle(this.aCtx, this.prop, this.style);
+
+  @override
+  void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
+    if (prop.operation == CDAction.none) {
+      PropBuilder.setDesignOn(aCtx, prop);
+      prop.operation = CDAction.update;
+    }
+    prop.value['_style_'] = style.value;
+    style.operation = CDAction.update;
+    debugPrint('set style on ${aCtx.xid}');
+  }
+}
+
 class MapConstraint extends CoreDataAction {
   DesignCtx aCtx;
   CoreDataEntity prop;

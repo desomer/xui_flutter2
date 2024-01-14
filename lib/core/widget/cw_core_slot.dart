@@ -41,6 +41,7 @@ class _CWSlotState extends StateCW<CWSlot> {
     Widget? contentWidget = widget.childForced ?? widget.ctx.getWidgetInSlot();
 
     return LayoutBuilder(builder: (context, constraints) {
+
       return widget.ctx.loader.mode == ModeRendering.design
           ? getSelector(contentWidget, _SlotDesign(contentWidget, constraints))
           : contentWidget ?? Container();
@@ -68,6 +69,8 @@ class _CWSlotState extends StateCW<CWSlot> {
           widget.ctx.factory.mapConstraintByXid[slotConfig.xid]?.designEntity;
     }
   }
+
+
 
   /////////////////////////////////////////////////////////////////
   Widget getDropZone(Widget child) {
@@ -130,18 +133,18 @@ abstract class SlotAction {
   bool canAddBottom();
   bool addBottom(CWWidgetCtx ctx);
   bool canAddTop();
-  bool addTop(CWWidgetCtx ctx);  
+  bool addTop(CWWidgetCtx ctx);
   bool canMoveBottom();
-  bool moveBottom(CWWidgetCtx ctx);    
+  bool moveBottom(CWWidgetCtx ctx);
   bool canMoveTop();
-  bool moveTop(CWWidgetCtx ctx);   
+  bool moveTop(CWWidgetCtx ctx);
 
   bool canAddRight();
   bool addRight(CWWidgetCtx ctx);
   bool canAddLeft();
-  bool addLeft(CWWidgetCtx ctx);  
+  bool addLeft(CWWidgetCtx ctx);
   bool canMoveRight();
-  bool moveRight(CWWidgetCtx ctx);    
+  bool moveRight(CWWidgetCtx ctx);
   bool canMoveLeft();
-  bool moveLeft(CWWidgetCtx ctx);   
+  bool moveLeft(CWWidgetCtx ctx);
 }

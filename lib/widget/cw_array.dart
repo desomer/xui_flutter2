@@ -2,6 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/designer.dart';
+import 'package:xui_flutter/widget/cw_selector.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_provider.dart';
@@ -36,7 +37,8 @@ class CWArray extends CWWidgetMapProvider {
         .addWidget('CWArray',
             (CWWidgetCtx ctx) => CWArray(key: ctx.getKey(), ctx: ctx))
         .addAttr(iDCount, CDAttributType.int)
-        .addAttr(iDProviderName, CDAttributType.text, tname: 'provider');
+        .addAttr(iDProviderName, CDAttributType.text, tname: CWSelectorType.provider.name)
+        .addAttr('behaviour', CDAttributType.one, tname: CWSelectorType.behaviour.name);        
 
     c.collection
         .addObject('CWColArrayConstraint')

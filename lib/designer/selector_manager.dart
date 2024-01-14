@@ -5,13 +5,17 @@ import 'package:logging/logging.dart';
 
 import '../core/widget/cw_core_selector_overlay_action.dart';
 import '../core/widget/cw_core_widget.dart';
+import 'builder/style_builder.dart';
 import 'designer.dart';
 import 'builder/prop_builder.dart';
 
 final log = Logger('CoreDesignerSelector');
 
+const redisplayProp = 'redisplayProp';
+
 class CoreDesignerSelector {
   PropBuilder propBuilder = PropBuilder();
+  StyleBuilder styleBuilder = StyleBuilder();
   String _lastSelectedPath = '';
 
   static final CoreDesignerSelector _current = CoreDesignerSelector();
@@ -26,12 +30,13 @@ class CoreDesignerSelector {
       CWWidgetCtx ctx = arg as CWWidgetCtx;
       ctx.refreshContext();
       log.finest('selection <${ctx.xid}> path=${ctx.pathWidget}');
-      SelectorActionWidget.showActionWidget(ctx.inSlot!.key as GlobalKey);
+      SelectorActionWidget.showActionWidget(getInfoSelector(ctx));
 
       propBuilder.buildWidgetProperties(ctx, 1);
+      styleBuilder.buildWidgetProperties(ctx, 1);
       unselect();
       _lastSelectedPath = ctx.pathWidget;
-      CoreDesigner.of().editor.controllerTabRight.index = 0;
+      //CoreDesigner.of().editor.controllerTabRight.index = 0;
 
       // ignore: invalid_use_of_protected_member
       CoreDesigner.of().navCmpKey.currentState?.setState(() {});
@@ -56,21 +61,32 @@ class CoreDesignerSelector {
     // });
 
     CoreDesigner.on(CDDesignEvent.reselect, (arg) {
-      if (arg is GlobalKey) {
+      if (arg is CWWidgetInfoSelector) {
         SelectorActionWidget.showActionWidget(arg);
-      } else if (arg == null || arg == 'redisplayProp') {
+      } else if (arg == null || arg == redisplayProp) {
         SlotConfig? config =
             CoreDesigner.ofFactory().mapSlotConstraintByPath[_lastSelectedPath];
 
         if (config != null && config.slot != null) {
-          if (arg == 'redisplayProp') {
+          if (arg == redisplayProp) {
             propBuilder.buildWidgetProperties(config.slot!.ctx, 1);
+            styleBuilder.buildWidgetProperties(config.slot!.ctx, 1);
           }
           CoreDesigner.emit(
-              CDDesignEvent.reselect, config.slot!.key as GlobalKey);
+              CDDesignEvent.reselect, getInfoSelector(config.slot!.ctx));
         }
       }
     });
+  }
+
+  CWWidgetInfoSelector getInfoSelector(CWWidgetCtx ctx) {
+    GlobalKey k = ctx.inSlot!.key as GlobalKey;
+    CWWidgetInfoSelector? kc = ctx.getWidgetInSlot()?.ctx.infoSelector;
+    if (kc != null) {
+      kc.slotKey = k;
+      return kc;
+    }
+    return ctx.infoSelector..slotKey = k;
   }
 
   bool isSelectedWidget(CWWidgetCtx ctx) {

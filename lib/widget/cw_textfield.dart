@@ -11,6 +11,7 @@ import '../core/widget/cw_core_widget.dart';
 import '../designer/cw_factory.dart';
 import 'cw_container_form.dart';
 import 'cw_list.dart';
+import 'cw_selector.dart';
 
 class CWTextfield extends CWWidgetMapValue {
   const CWTextfield({
@@ -32,7 +33,9 @@ class CWTextfield extends CWWidgetMapValue {
         .addAttr('withLabel', CDAttributType.bool)
         .withAction(AttrActionDefault(true))
         .addAttr('label', CDAttributType.text)
-        .addAttr('type', CDAttributType.text);
+        .addCustomValue('bindEnable', true)
+        .addAttr('type', CDAttributType.text)
+        .addAttr('_style_', CDAttributType.one, tname: CWSelectorType.style.name);
   }
 
   String? getLabelNull() {
@@ -174,7 +177,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     String type = widget.getType();
 
     var bind = widget.ctx.designEntity?.getOne('@bind');
-    mapValue = widget.getMapString(provInfo: bind); 
+    mapValue = widget.getMapString(provInfo: bind);
     _controller.text = mapValue!;
     bool inArray = row != null;
 
@@ -249,7 +252,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     }
 
     return Container(
-        height: inArray ? CWArrayRow.getHeightRow(widget) : CWForm.getHeightRow(widget),
+        height: inArray
+            ? CWArrayRow.getHeightRow(widget)
+            : CWForm.getHeightRow(widget),
         decoration: inArray
             ? null
             : BoxDecoration(
@@ -382,7 +387,7 @@ class MaskConfig {
           isDense: true,
           labelText: label,
           // labelStyle: const TextStyle(color: Colors.white70),
-          contentPadding: EdgeInsets.fromLTRB(5, topMargin , 5, 0)),
+          contentPadding: EdgeInsets.fromLTRB(5, topMargin, 5, 0)),
       //autofocus: true,
     );
   }

@@ -79,7 +79,7 @@ class CWProviderCtx extends CWWidgetVirtual {
       provider.setFilter(CWApplication.of().mapFilters[filterID]);
       log.fine(
           'init appli provider <${provider.id}> [${provider.type}] hash = ${provider.getData().hashCode}');
-      ctx.loader.factory.mapProvider[provider.id] = provider;
+      ctx.loader.addProvider(provider);
     }
   }
 
@@ -116,7 +116,6 @@ class CWProvider {
     var itemProvider = app.collection.createEntityByJson('DataProvider', {
       'name': name,
       'type': type,
-      //'_id_':type,
       'tableModel': tableModel,
       'idProvider': id
     });
@@ -280,6 +279,12 @@ class CWProvider {
     var val =
         getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
     return val ?? false;
+  }
+
+  double? getDoubleValueOf(CWWidgetCtx ctx, String propName) {
+    var val =
+        getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    return val;
   }
 
   Map<String, dynamic>? getMapValueOf(CWWidgetCtx ctx, String propName) {

@@ -11,6 +11,7 @@ import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_expand_panel.dart';
+import '../widget/cw_selector.dart';
 import 'cw_factory.dart';
 import 'designer_model_data.dart';
 import 'designer_model.dart';
@@ -27,14 +28,15 @@ class CWApplication {
   CWAppLoaderCtx loaderModel = CWAppLoaderCtx(); // pour les models de data
   CWAppLoaderCtx loaderData = CWAppLoaderCtx(); // pour les data
 
+  // les models
   CWProvider dataModelProvider = CWProvider(
       'DataModelProvider', 'DataModel', CWProviderDataSelector.noLoader());
 
-  late CWProvider dataAttributProvider;
-  late CWProvider dataProvider;
+  late CWProvider dataAttributProvider; // les attribut
+  late CWProvider dataProvider; // les datas
 
   CWProvider pagesProvider = CWProvider(
-      'PagesProvider', 'DataModel', CWProviderDataSelector.noLoader());
+      'PagesProvider', 'PageModel', CWProviderDataSelector.noLoader());
 
   CWProvider listAttrProvider = CWProvider(
       'listAttrProvider', 'ModelAttributs', CWProviderDataSelector.noLoader());
@@ -42,6 +44,17 @@ class CWApplication {
   Map<String, CoreDataEntity> cacheMapData = {};
   Map<String, CoreDataEntity> cacheMapModel = {};
   Map<String, CoreDataFilter> mapFilters = {};
+
+  CWBindWidget bindModel2Filter =
+      CWBindWidget('bindModel2Filter', ModeBindWidget.selected);
+  CWBindWidget bindModel2Data =
+      CWBindWidget('bindModel2Data', ModeBindWidget.selected);
+  CWBindWidget bindFilter2Data =
+      CWBindWidget('bindFilter2Data', ModeBindWidget.selected);
+  CWBindWidget bindModel2Attr =
+      CWBindWidget('bindModel2Attr', ModeBindWidget.selected);
+  CWBindWidget bindProvider2Attr =
+      CWBindWidget('bindProvider2Attr', ModeBindWidget.selected);
 
   void initWidgetLoader() {
     loaderDesigner.modeDesktop = false;
@@ -126,11 +139,37 @@ class CWApplication {
 
     ///////////////////////////////////////////////////////////
     collection
+        .addObject('PageModel')
+        .addAttr('name', CDAttributType.text)
+        .addAttr('_id_', CDAttributType.text)
+        .withAction(AttrActionDefaultUUID())
+        .addAttr('subPages', CDAttributType.many);
+
+    ///////////////////////////////////////////////////////////
+    collection
         .addObject('DataProvider')
         .addAttr('name', CDAttributType.text)
         .addAttr('type', CDAttributType.text)
         .addAttr('tableModel', CDAttributType.text)
         .addAttr('idProvider', CDAttributType.text);
+
+    ///////////////////////////////////////////////////////////
+    collection
+        .addObject('StyleModel')
+        .addAttr('boxAlignVertical', CDAttributType.text)
+        .addAttr('boxAlignHorizontal', CDAttributType.text)
+        .addAttr('ptop', CDAttributType.dec)
+        .addAttr('pbottom', CDAttributType.dec)
+        .addAttr('pleft', CDAttributType.dec)
+        .addAttr('pright', CDAttributType.dec)
+        .addAttr('elevation', CDAttributType.dec)
+        .addAttr('bRadius', CDAttributType.dec)
+        .addAttr('bSize', CDAttributType.dec)
+        .addAttr('bgColor', CDAttributType.one,
+            tname: CWSelectorType.color.name)
+        .addAttr('bColor', CDAttributType.one, tname: CWSelectorType.color.name)
+        .addAttr('tColor', CDAttributType.one,
+            tname: CWSelectorType.color.name);
 
     ///////////////////////////////////////////////////////////
     collection
@@ -158,17 +197,6 @@ class CWApplication {
 
     _initProvider();
   }
-
-  CWBindWidget bindModel2Filter =
-      CWBindWidget('bindModel2Filter', ModeBindWidget.selected);
-  CWBindWidget bindModel2Data =
-      CWBindWidget('bindModel2Data', ModeBindWidget.selected);
-  CWBindWidget bindFilter2Data =
-      CWBindWidget('bindFilter2Data', ModeBindWidget.selected);
-  CWBindWidget bindModel2Attr =
-      CWBindWidget('bindModel2Attr', ModeBindWidget.selected);
-  CWBindWidget bindProvider2Attr =
-      CWBindWidget('bindProvider2Attr', ModeBindWidget.selected);
 
   void _initProvider() {
     Future deleteModel(CWWidgetEvent e) async {
@@ -246,7 +274,7 @@ class CWApplication {
     //----------------------------------------------------------------
     loaderModel.addProvider(pagesProvider);
     pagesProvider.addContent(collection
-        .createEntityByJson('DataModel', {'_id_': '?', 'name': 'Home'}));
+        .createEntityByJson('PageModel', {'_id_': '?', 'name': 'Home'}));
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -370,5 +398,15 @@ class CWApplication {
     designData.content.add(loader.collectionDataModel.createEntity(type));
     designData.getData().idxSelected = 0;
     return designData;
+  }
+
+  void refreshData() {
+    CWProvider provider = CWApplication.of().dataProvider;
+
+    String idCache = provider.getProviderCacheID();
+    CoreGlobalCache.cacheNbData.remove(idCache);
+    provider.loader!.reload();
+
+    CWApplication.of().loaderData.findWidgetByXid('rootData')!.repaint();
   }
 }

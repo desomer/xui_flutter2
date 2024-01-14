@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
+import 'package:xui_flutter/widget/cw_selector.dart';
 
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -17,9 +18,11 @@ class CWText extends CWWidgetMapLabel {
         .addWidget(
             'CWText', (CWWidgetCtx ctx) => CWText(key: ctx.getKey(), ctx: ctx))
         .addAttr('label', CDAttributType.text)
-        .addAttr('textColor', CDAttributType.one, tname: 'color')
-        .addAttr('icon', CDAttributType.one, tname: 'icon')
-        ;
+        .addCustomValue('bindEnable', true)
+        .addAttr('textColor', CDAttributType.one,
+            tname: CWSelectorType.color.name)
+        .addAttr('icon', CDAttributType.one, tname: CWSelectorType.icon.name)
+        .addAttr('_style_', CDAttributType.one, tname: CWSelectorType.style.name);
   }
 
   @override
@@ -40,6 +43,26 @@ class _CWTextState extends StateCW<CWText> {
 
   @override
   Widget build(BuildContext context) {
+    //Text('\$8.99', style: Theme.of(context).textTheme.bodyLarge);
+    /*
+
+    'displayLarge', displayLarge, defaultValue: defaultTheme.displayLarge));
+    properties.add(DiagnosticsProperty<TextStyle>('displayMedium', displayMedium, defaultValue: defaultTheme.displayMedium));
+    properties.add(DiagnosticsProperty<TextStyle>('displaySmall', displaySmall, defaultValue: defaultTheme.displaySmall));
+    properties.add(DiagnosticsProperty<TextStyle>('headlineLarge', headlineLarge, defaultValue: defaultTheme.headlineLarge));
+    properties.add(DiagnosticsProperty<TextStyle>('headlineMedium', headlineMedium, defaultValue: defaultTheme.headlineMedium));
+    properties.add(DiagnosticsProperty<TextStyle>('headlineSmall', headlineSmall, defaultValue: defaultTheme.headlineSmall));
+    properties.add(DiagnosticsProperty<TextStyle>('titleLarge', titleLarge, defaultValue: defaultTheme.titleLarge));
+    properties.add(DiagnosticsProperty<TextStyle>('titleMedium', titleMedium, defaultValue: defaultTheme.titleMedium));
+    properties.add(DiagnosticsProperty<TextStyle>('titleSmall', titleSmall, defaultValue: defaultTheme.titleSmall));
+    properties.add(DiagnosticsProperty<TextStyle>('bodyLarge', bodyLarge, defaultValue: defaultTheme.bodyLarge));
+    properties.add(DiagnosticsProperty<TextStyle>('bodyMedium', bodyMedium, defaultValue: defaultTheme.bodyMedium));
+    properties.add(DiagnosticsProperty<TextStyle>('bodySmall', bodySmall, defaultValue: defaultTheme.bodySmall));
+    properties.add(DiagnosticsProperty<TextStyle>('labelLarge', labelLarge, defaultValue: defaultTheme.labelLarge));
+    properties.add(DiagnosticsProperty<TextStyle>('labelMedium', labelMedium, defaultValue: defaultTheme.labelMedium));
+    properties.add(DiagnosticsProperty<TextStyle>('labelSmall', labelSmall, defaultValue: defaultTheme.labelSmall));
+    */
+
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     String type = slotConfig?.slot?.type ?? '';
@@ -53,7 +76,7 @@ class _CWTextState extends StateCW<CWText> {
       icon = Icon(ic);
     }
 
-    var label = widget.getLabel(icon!=null?'':'[label]');
+    var label = widget.getLabel(icon != null ? '' : '[label]');
     Widget? text;
 
     if (label != '' || icon == null) {

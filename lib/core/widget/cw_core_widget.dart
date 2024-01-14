@@ -1,9 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 
 import '../../designer/application_manager.dart';
+import '../../designer/builder/prop_builder.dart';
 import '../../designer/cw_factory.dart';
 import '../../designer/designer.dart';
 import '../../designer/selector_manager.dart';
@@ -41,6 +44,113 @@ mixin CWSlotManager {
   CWWidgetCtx createInArrayCtx(CWWidgetCtx ctx, String id, int? idx) {
     return CWWidgetCtx('${ctx.xid}$id${idx?.toString() ?? ''}', ctx.loader,
         '${ctx.pathWidget}[].$id${idx?.toString() ?? ''}');
+  }
+}
+
+class CWStyledBox {
+  CWStyledBox(this.widget) {
+    style = widget.ctx.designEntity?.getOne('_style_');
+  }
+
+  final CWWidget widget;
+  late Map<String, dynamic>? style;
+
+  bool styleExist(List<String> properties) {
+    style = widget.ctx.designEntity?.getOne('_style_');
+    for (var p in properties) {
+      if (style?[p] != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  double getStyleDouble(String id, double def) {
+    return style?[id] ?? def;
+  }
+
+  double? getStyleNDouble(String id) {
+    return style?[id];
+  }
+
+  double? getElevation() {
+    return getStyleNDouble('elevation');
+  }
+
+  Color? getColor(String id) {
+    var oneValue = style?[id];
+    return oneValue != null
+        ? Color(int.parse(oneValue['color'], radix: 16))
+        : null;
+  }
+
+  // Offset dragAnchorStrategy(
+  //     Draggable<Object> d, BuildContext context, Offset point) {
+  //   return Offset(d.feedbackOffset.dx + 10, d.feedbackOffset.dy + 10);
+  // }
+
+  Widget getDragPaddding(Widget w) {
+    return Draggable<String>(
+      onDragUpdate: (details) {
+        print(details);
+
+        CoreDataEntity prop = PropBuilder.preparePropChange(
+            widget.ctx.loader, DesignCtx().forDesign(widget.ctx));
+
+        Map<String, dynamic>? s = prop.value['_style_'];
+        var alignX = s?['boxAlignHorizontal'] ?? '-1';
+        var alignY = s?['boxAlignVertical'] ?? '-1';
+
+        if (alignY == '-1' || alignY == '0') {
+          double vy = s?['ptop'] ?? 0;
+          s?['ptop'] = max(0.0, vy + details.delta.dy);
+        } else {
+          double vy = s?['pbottom'] ?? 0;
+          s?['pbottom'] = max(0.0, vy - details.delta.dy);
+        }
+        if (alignX == '-1' || alignX == '0') {
+          double vx = s?['pleft'] ?? 0;
+          s?['pleft'] = max(0.0, vx + details.delta.dx);
+        } else {
+          double vx = s?['pright'] ?? 0;
+          s?['pright'] = max(0.0, vx - details.delta.dx);
+        }
+
+        widget.repaint();
+        CoreDesigner.emit(CDDesignEvent.reselect, null);
+      },
+      //dragAnchorStrategy: dragAnchorStrategy,
+      data: 'drag',
+      feedback: Container(),
+      child: w,
+    );
+  }
+
+  Widget getStyledBox(Widget content) {
+    if (style == null) {
+      return content;
+    }
+    AlignmentDirectional? align;
+    if (styleExist(['boxAlignVertical', 'boxAlignHorizontal'])) {
+      align = AlignmentDirectional(
+          double.parse(style!['boxAlignHorizontal'] ?? '-1'),
+          double.parse(style!['boxAlignVertical'] ?? '-1'));
+    }
+
+    widget.ctx.infoSelector.withPadding = false;
+    if (styleExist(['pleft', 'ptop', 'pright', 'pbottom'])) {
+      EdgeInsets padding = EdgeInsets.fromLTRB(
+          getStyleDouble('pleft', 0),
+          getStyleDouble('ptop', 0),
+          getStyleDouble('pright', 0),
+          getStyleDouble('pbottom', 0));
+      content = Padding(
+          key: widget.ctx.getContentKey(true),
+          padding: padding,
+          child: content);
+    }
+
+    return Container(alignment: align, child: getDragPaddding(content));
   }
 }
 
@@ -136,15 +246,21 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
     return provider?.getBoolValueOf(ctx, iDBind) ?? false;
   }
 
-  Map<String, dynamic>? getMapOne() {
+  double? getMapDouble() {
     CWProvider? provider = CWProvider.of(ctx);
-    return provider?.getMapValueOf(ctx, iDBind);
+    return provider?.getDoubleValueOf(ctx, iDBind);
+  }
+
+  Map<String, dynamic>? getMapOne(String id) {
+    CWProvider? provider = CWProvider.of(ctx);
+    return provider?.getMapValueOf(ctx, id);
   }
 }
 
 abstract class StateCW<T extends CWWidget> extends State<T> {
   int repaintTime = 0;
   bool mustRepaint = false;
+  late CWStyledBox styledBox;
 
   void repaint() {
     if (mounted) {
@@ -158,6 +274,7 @@ abstract class StateCW<T extends CWWidget> extends State<T> {
   void initState() {
     if (widget.ctx.xid != 'root' || widget is! CWSlot) {
       widget.ctx.state = this;
+      styledBox = CWStyledBox(widget);
     }
     super.initState();
   }
@@ -293,6 +410,15 @@ abstract class CWWidgetMapProvider extends CWWidget with CWWidgetProvider {
   }
 }
 
+////////////////////////////////////////////////////////////////////////
+class CWWidgetInfoSelector {
+  CWWidgetInfoSelector({this.slotKey, this.contentKey});
+
+  bool withPadding = false;
+  GlobalKey? contentKey;
+  GlobalKey? slotKey;
+}
+
 class CWWidgetCtx {
   CWWidgetCtx(this.xid, this.loader, this.pathWidget);
   String xid;
@@ -304,9 +430,17 @@ class CWWidgetCtx {
   CWSlot? inSlot;
   dynamic lastEvent;
   late StateCW state;
+  CWWidgetInfoSelector infoSelector = CWWidgetInfoSelector();
 
   WidgetFactoryEventHandler get factory {
     return loader.factory;
+  }
+
+  Key? getContentKey(bool padding) {
+    var k = getKey();
+    if (padding) infoSelector.withPadding = true;
+    if (k is GlobalKey) infoSelector.contentKey = k;
+    return k;
   }
 
   Key? getKey() {

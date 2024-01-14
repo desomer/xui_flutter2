@@ -1,6 +1,7 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:xui_flutter/designer/designer_selector_style.dart';
 import 'package:xui_flutter/designer/widget_filter_builder.dart';
 
 import '../core/data/core_data_filter.dart';
@@ -9,6 +10,7 @@ import '../core/store/driver.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_selector_overlay_action.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../db_icon_icons.dart';
 import '../test_loader.dart';
 import 'application_manager.dart';
 import 'cw_factory.dart';
@@ -18,6 +20,7 @@ import 'designer_selector_pages.dart';
 import 'designer_selector_properties.dart';
 import 'designer_selector_provider.dart';
 import 'designer_selector_query.dart';
+import 'selector_manager.dart';
 import 'widget/widget_tab.dart';
 
 final log = Logger('DesignerPageEditor');
@@ -27,7 +30,9 @@ class DesignerEditor extends StatelessWidget {
   DesignerEditor({super.key});
 
   late TabController controllerTabRight;
+  late TabController controllerTabLeft;
   late TabController controllerTabResult;
+  TabController? controllerTabData;
 
   final ScrollController scrollComponentController = ScrollController(
     initialScrollOffset: 0.0,
@@ -35,6 +40,11 @@ class DesignerEditor extends StatelessWidget {
   );
 
   final ScrollController scrollPropertiesController = ScrollController(
+    initialScrollOffset: 0.0,
+    keepScrollOffset: true,
+  );
+
+  final ScrollController scrollStyleController = ScrollController(
     initialScrollOffset: 0.0,
     keepScrollOffset: true,
   );
@@ -72,27 +82,49 @@ class DesignerEditor extends StatelessWidget {
     return Row(children: [
       SizedBox(
         width: 300,
-        child: WidgetTab(heightTab: 40, listTab: const [
-          Tab(icon: Tooltip(message: 'Navigation', child: Icon(Icons.near_me))),
-          Tab(icon: Tooltip(message: 'Data', child: Icon(Icons.manage_search)))
-        ], listTabCont: [
-          DesignerPages(ctx: ctxPages),
-          Column(
-            children: [
-              Expanded(
-                  child: DesignerQuery(
-                      key: CoreDesigner.of().queryKey,
-                      mode: FilterBuilderMode.selector,
-                      ctx: ctxQuery)),
-              const Divider(thickness: 1, height: 1),
-              Expanded(child: getResultProperties(ctxResult))
+        child: WidgetTab(
+            heightTab: 40,
+            onController: (TabController a) {
+              controllerTabLeft = a;
+            },
+            listTab: const [
+              Tab(icon: Icon(Icons.widgets)),
+              Tab(
+                  icon: Tooltip(
+                      message: 'Navigation', child: Icon(Icons.near_me))),
+              Tab(
+                  icon: Tooltip(
+                      message: 'Data', child: Icon(size: 18, DBIcon.database)))
             ],
-          )
-        ]),
+            listTabCont: [
+              getComponetPanel(),
+              DesignerPages(ctx: ctxPages),
+              Column(
+                children: [
+                  Expanded(
+                      child: DesignerQuery(
+                          key: CoreDesigner.of().queryKey,
+                          mode: FilterBuilderMode.selector,
+                          ctx: ctxQuery)),
+                  const Divider(thickness: 1, height: 1),
+                  Expanded(child: getResultProperties(ctxResult))
+                ],
+              )
+            ]),
       ),
       Expanded(child: CoreDesigner.of().designView),
       SizedBox(width: 300, child: getTabProperties())
     ]);
+  }
+
+  SingleChildScrollView getComponetPanel() {
+    return SingleChildScrollView(
+        //key: const PageStorageKey<String>('pageWidget'),
+        controller: scrollComponentController,
+        scrollDirection: Axis.vertical,
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: ComponentDesc.getListComponent));
   }
 
   Widget getResultProperties(CWWidgetCtx ctxResult) {
@@ -105,9 +137,8 @@ class DesignerEditor extends StatelessWidget {
       icon: Icon(Icons.data_object_rounded),
     ));
 
-    final List<Widget> listTabCont = <Widget>[];
-
     return LayoutBuilder(builder: (context, constraints) {
+      final List<Widget> listTabCont = <Widget>[];
       listTabCont.add(SingleChildScrollView(
           controller: scrollResultController,
           scrollDirection: Axis.vertical,
@@ -134,13 +165,11 @@ class DesignerEditor extends StatelessWidget {
   Widget getTabProperties() {
     final List<Widget> listTab = <Widget>[];
     listTab.add(const Tab(
-      // height: 30,
       icon: Icon(Icons.edit_note),
     ));
 
     listTab.add(const Tab(
-      // height: 30,
-      icon: Icon(Icons.widgets),
+      icon: Icon(Icons.style_rounded),
     ));
 
     final List<Widget> listTabCont = <Widget>[];
@@ -152,12 +181,12 @@ class DesignerEditor extends StatelessWidget {
         child: DesignerProp(key: CoreDesigner.of().propKey)));
 
     listTabCont.add(SingleChildScrollView(
-        //key: const PageStorageKey<String>('pageWidget'),
-        controller: scrollComponentController,
+        //key: const PageStorageKey<String>('pageProp'),
+        controller: scrollStyleController,
         scrollDirection: Axis.vertical,
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: ComponentDesc.getListComponent))); // const Steps());
+        child: DesignerStyle(key: CoreDesigner.of().styleKey)));
+
+    //listTabCont.add(); // const Steps());
 
     return WidgetTab(
         heightTab: 40,
@@ -234,7 +263,7 @@ class DesignerView extends StatefulWidget {
         rebuild();
         repaintAll();
         Future.delayed(const Duration(milliseconds: 100), () {
-           CoreDesigner.emit(CDDesignEvent.reselect, 'redisplayProp');
+          CoreDesigner.emit(CDDesignEvent.reselect, redisplayProp);
         });
       });
     }

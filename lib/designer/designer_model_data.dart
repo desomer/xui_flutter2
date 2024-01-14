@@ -16,7 +16,7 @@ class DesignerData extends StatefulWidget {
   ArrayBuilder? arrayBuilder;
 
   DesignerData({super.key, required this.bindWidget}) {
-
+    
     bindWidget.fctBindNested = (CoreDataEntity item) {
       var app = CWApplication.of();
       CoreDataFilter filter = CoreDataFilter()..setFilterData(item);
@@ -41,7 +41,7 @@ class DesignerData extends StatefulWidget {
       arrayBuilder = ArrayBuilder(loaderCtx: loader, provider: provider);
       arrayBuilder!.initDesignArrayFromLoader('rootData', 'Array');
     };
-  } 
+  }
 
   final CWBindWidget bindWidget;
   CoreDataEntity? tableEntity;
@@ -54,6 +54,7 @@ class _DesignerDataState extends State<DesignerData> {
   @override
   void initState() {
     super.initState();
+
     widget.bindWidget.nestedWidgetState = this;
   }
 

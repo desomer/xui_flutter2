@@ -17,39 +17,41 @@ class PropBuilder {
   //     <String, CoreDataEntity>{};
 
   void buildWidgetProperties(CWWidgetCtx ctx, int buttonId) {
-    String pathWidget = ctx.pathWidget;
+    State? state = CoreDesigner.of().propKey.currentState;
+    bool ok = true;
 
-    listProp.clear();
-    //mapEntityByPath.clear();
-    listPath.clear();
+    // ignore: dead_code
+    if (ok || state != null) {
+      String pathWidget = ctx.pathWidget;
 
-    while (pathWidget.isNotEmpty) {
-      DesignCtx aCtx = DesignCtx().forDesignByPath(ctx, pathWidget, null);
+      listProp.clear();
+      listPath.clear();
 
-      if (aCtx.widget == null) {
-        //debugPrint('>>> $pathWidget as empty slot');
-      } else {
-        _addWidgetProp(aCtx, ctx, pathWidget);
-        listPath.insert(0, aCtx);
+      while (pathWidget.isNotEmpty) {
+        DesignCtx aCtx = DesignCtx().forDesignByPath(ctx, pathWidget, null);
+
+        if (aCtx.widget == null) {
+          //debugPrint('>>> $pathWidget as empty slot');
+        } else {
+          _addWidgetProp(aCtx, ctx, pathWidget);
+          listPath.insert(0, aCtx);
+        }
+
+        _addSlotConstraint(aCtx, ctx, pathWidget);
+        //_addSlotVirtualConstraint(pathWidget, aCtx, ctx);
+
+        int i = pathWidget.lastIndexOf('.');
+        if (i < 0) break;
+        pathWidget = pathWidget.substring(0, i);
+        if (pathWidget.endsWith('[]')) {
+          i = i - 2;
+        }
+        pathWidget = pathWidget.substring(0, i);
       }
 
-      _addSlotConstraint(aCtx, ctx, pathWidget);
-      //_addSlotVirtualConstraint(pathWidget, aCtx, ctx);
-
-      int i = pathWidget.lastIndexOf('.');
-      if (i < 0) break;
-      pathWidget = pathWidget.substring(0, i);
-      if (pathWidget.endsWith('[]')) {
-        i = i - 2;
-      }
-      pathWidget = pathWidget.substring(0, i);
+      // ignore: invalid_use_of_protected_member
+      state?.setState(() {});
     }
-
-    DesignerPropState? state =
-        CoreDesigner.of().propKey.currentState as DesignerPropState?;
-
-    // ignore: invalid_use_of_protected_member
-    state?.setState(() {});
   }
 
   // void _addSlotVirtualConstraint(
@@ -66,16 +68,17 @@ class PropBuilder {
       designEntity?.operation = CDAction.read;
     }
 
-    designEntity ??= PropBuilder._getEmptyEntity(ctx.loader, aCtx);
+    designEntity ??= PropBuilder.getEmptyEntity(ctx.loader, aCtx);
     aCtx.designEntity = designEntity;
 
     // un provider par widget
     var provider = CWProvider(
         'properProvider', designEntity.type, CWProviderDataSelector.noLoader())
       ..addContent(designEntity);
-    provider.addAction(CWProviderAction.onValueChanged, RefreshDesign(aCtx));
     provider.addAction(
         CWProviderAction.onStateNone2Create, MapDesign(aCtx, designEntity));
+    provider.addAction(CWProviderAction.onValueChanged, RefreshDesign(aCtx));
+    
     // provider.addAction(
     //     CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
     provider.addUserAction('onTapHeader', OnWidgetSelect(aCtx));
@@ -105,7 +108,7 @@ class PropBuilder {
       }
 
       constraintEntity ??=
-          PropBuilder._getEmptyEntity(slotCtx.loader, aCtxConstraint);
+          PropBuilder.getEmptyEntity(slotCtx.loader, aCtxConstraint);
 
       var provider = CWProvider('constraint', constraintEntity.type,
           CWProviderDataSelector.noLoader())
@@ -121,7 +124,7 @@ class PropBuilder {
       listProp.addAll(FormBuilder().getFormWidget(provider, loader));
     }
 
-    if (sc!=null && sc.pathNested != null) {
+    if (sc != null && sc.pathNested != null) {
       _addSlotConstraint(ctxDesign, slotCtx, sc.pathNested!);
     }
   }
@@ -139,7 +142,7 @@ class PropBuilder {
 
     var prop = aCtx.widget!.ctx.designEntity;
     if (prop == null) {
-      prop = _getEmptyEntity(loader, aCtx);
+      prop = getEmptyEntity(loader, aCtx);
       setDesignOn(aCtx, prop);
     }
     // else {
@@ -148,7 +151,7 @@ class PropBuilder {
     return prop;
   }
 
-  static CoreDataEntity _getEmptyEntity(CWAppLoaderCtx loader, DesignCtx aCtx) {
+  static CoreDataEntity getEmptyEntity(CWAppLoaderCtx loader, DesignCtx aCtx) {
     CoreDataEntity? emptyEntity;
     if (aCtx.isSlot) {
       SlotConfig sc = loader.factory.mapSlotConstraintByPath[aCtx.pathWidget]!;

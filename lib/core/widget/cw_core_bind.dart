@@ -22,6 +22,12 @@ class CWBindWidget {
     }
   }
 
+  void rebindNested() {
+    if (currentEntity!=null && fctBindNested != null) {
+      fctBindNested!(currentEntity!);
+    }
+  }  
+
   void onSelect(CoreDataEntity item) {
     if (modeBindWidget == ModeBindWidget.selected) {
       bindNested(item);
@@ -33,6 +39,10 @@ class CWBindWidget {
   }
 
   void repaint() {
+    if (currentEntity!=null && !(nestedWidgetState?.mounted ?? true)) {
+      // changement du state si rebuild du nested
+      bindNested(currentEntity!);
+    }
     if (nestedWidgetState?.mounted ?? false) {
       // ignore: invalid_use_of_protected_member
       nestedWidgetState?.setState(() {});

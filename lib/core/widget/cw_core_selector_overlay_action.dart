@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/selector_manager.dart';
 
 import '../../designer/action_manager.dart';
@@ -36,49 +37,62 @@ class SelectorActionWidget extends StatefulWidget {
     });
   }
 
-  static void showActionWidget(GlobalKey key) {
+  static void showActionWidget(CWWidgetInfoSelector info) {
     // ignore: cast_nullable_to_non_nullable
-    final SelectorActionWidgetState st = SelectorActionWidget
+    final SelectorActionWidgetState stateSelectorAction = SelectorActionWidget
         .actionPanKey.currentState as SelectorActionWidgetState;
 
-    if (key.currentContext == null) {
+    if (info.slotKey == null) {
       debugPrint('showActionWidget none');
       return;
     }
 
     // ignore: invalid_use_of_protected_member
-    st.setState(() {
-      final Offset position =
-          CwToolkit.getPosition(key, SelectorActionWidget.designerKey);
+    stateSelectorAction.setState(() {
+      setPosition(info.slotKey!, stateSelectorAction.recSlot);
+      stateSelectorAction.visibleContent = false;
 
-      Offset positionRefMin = CwToolkit.getPosition(
-          SelectorActionWidget.scaleKeyMin, CoreDesigner.of().designerKey);
-      Offset positionRef100 = CwToolkit.getPosition(
-          SelectorActionWidget.scaleKey2, CoreDesigner.of().designerKey);
-      Offset positionRefMax = CwToolkit.getPosition(
-          SelectorActionWidget.scaleKeyMax, CoreDesigner.of().designerKey);
+      if (info.contentKey != null) {
+        setPosition(info.contentKey!, stateSelectorAction.recContent);
+        stateSelectorAction.visibleContent =
+            !stateSelectorAction.recContent.equals(stateSelectorAction.recSlot);
+      }
 
-      double previewPixelRatio = (positionRef100.dx - positionRefMin.dx) / 100;
-      //double p2 = positionRef2.dy - positionRefMin.dy;
-      //print("showActionWidget $p1 $p2");
-
-      // ignore: cast_nullable_to_non_nullable
-      final RenderBox box = key.currentContext!.findRenderObject() as RenderBox;
-
-      st.gLeft = position.dx * previewPixelRatio + positionRefMin.dx;
-      st.gBottom = position.dy * previewPixelRatio +
-          positionRefMin.dy +
-          box.size.height * previewPixelRatio;
-      st.gTop = position.dy * previewPixelRatio + positionRefMin.dy;
-      st.gRight = position.dx * previewPixelRatio +
-          positionRefMin.dx +
-          box.size.width * previewPixelRatio;
-
-      if (st.gTop < positionRefMin.dy) st.gTop = positionRefMin.dy;
-      if (st.gBottom > positionRefMax.dy) st.gBottom = positionRefMax.dy;
-
-      st.visible = true;
+      stateSelectorAction.visible = true;
     });
+  }
+
+  static void setPosition(GlobalKey selectedKey, CWRec r) {
+    final Offset position =
+        CwToolkit.getPosition(selectedKey, SelectorActionWidget.designerKey);
+
+    Offset positionRefMin = CwToolkit.getPosition(
+        SelectorActionWidget.scaleKeyMin, CoreDesigner.of().designerKey);
+    Offset positionRef100 = CwToolkit.getPosition(
+        SelectorActionWidget.scaleKey2, CoreDesigner.of().designerKey);
+    Offset positionRefMax = CwToolkit.getPosition(
+        SelectorActionWidget.scaleKeyMax, CoreDesigner.of().designerKey);
+
+    double previewPixelRatio = (positionRef100.dx - positionRefMin.dx) / 100;
+
+    final RenderBox box =
+        selectedKey.currentContext!.findRenderObject() as RenderBox;
+
+    r.left = position.dx * previewPixelRatio + positionRefMin.dx;
+    r.bottom = position.dy * previewPixelRatio +
+        positionRefMin.dy +
+        box.size.height * previewPixelRatio;
+    r.top = position.dy * previewPixelRatio + positionRefMin.dy;
+    r.right = position.dx * previewPixelRatio +
+        positionRefMin.dx +
+        box.size.width * previewPixelRatio;
+
+    if (r.top < positionRefMin.dy) {
+      r.top = positionRefMin.dy;
+    }
+    if (r.bottom > positionRefMax.dy) {
+      r.bottom = positionRefMax.dy;
+    }
   }
 }
 
@@ -108,12 +122,25 @@ enum DesignAction {
   none
 }
 
-class SelectorActionWidgetState extends State<SelectorActionWidget> {
-  double gBottom = 10;
-  double gLeft = 10;
-  double gTop = 10;
-  double gRight = 10;
+class CWRec {
+  double bottom = 10;
+  double left = 10;
+  double top = 10;
+  double right = 10;
 
+  bool equals(CWRec r) {
+    return r.bottom == bottom &&
+        r.left == left &&
+        r.top == top &&
+        r.right == right;
+  }
+}
+
+class SelectorActionWidgetState extends State<SelectorActionWidget> {
+  CWRec recSlot = CWRec();
+  CWRec recContent = CWRec();
+
+  bool visibleContent = false;
   bool visible = false;
 
   ZoneDesc bottomZone = ZoneDesc();
@@ -149,14 +176,15 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       });
     }
 
-    bottomZone.initPos = () {
-      bottomZone.top = gBottom - 10;
-      bottomZone.left = gLeft;
-      bottomZone.width = gRight - gLeft;
+    //////////////////////////////////////////////////////////////////////////
+    bottomZone.initPos = (CWRec r) {
+      bottomZone.top = r.bottom - 10;
+      bottomZone.left = r.left;
+      bottomZone.width = r.right - r.left;
       bottomZone.height = 40;
 
       double topBtn = 10;
-      double leftBtn = (gRight - gLeft) / 2;
+      double leftBtn = bottomZone.width! / 2;
 
       bottomZone.actions = [
         getAddAction(
@@ -165,13 +193,13 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       ];
     };
 
-    topZone.initPos = () {
-      topZone.top = gTop - 30;
-      topZone.left = gLeft;
-      topZone.width = gRight - gLeft;
+    topZone.initPos = (CWRec r) {
+      topZone.top = r.top - 30;
+      topZone.left = r.left;
+      topZone.width = r.right - r.left;
       topZone.height = 40;
       double topBtn = 10;
-      double leftBtn = (gRight - gLeft) / 2;
+      double leftBtn = topZone.width! / 2;
       topZone.actions = [
         getAddAction(
             topBtn, leftBtn - 25, Icons.expand_less, DesignAction.moveTop),
@@ -179,15 +207,15 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       ];
     };
 
-    rightZone.initPos = () {
-      rightZone.top = gTop;
-      rightZone.left = gRight - 10;
+    rightZone.initPos = (CWRec r) {
+      rightZone.top = r.top;
+      rightZone.left = r.right - 10;
       rightZone.width = 40;
-      rightZone.height = gBottom - gTop;
+      rightZone.height = r.bottom - r.top;
 
       if (rightZone.height! < 60) {
         rightZone.height = 60;
-        rightZone.top = gTop - (60 - (gBottom - gTop)) / 2;
+        rightZone.top = r.top - (60 - (r.bottom - r.top)) / 2;
       }
 
       double topBtn = rightZone.height! / 2;
@@ -200,15 +228,15 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       ];
     };
 
-    leftZone.initPos = () {
-      leftZone.top = gTop;
-      leftZone.left = gLeft - 30;
+    leftZone.initPos = (CWRec r) {
+      leftZone.top = r.top;
+      leftZone.left = r.left - 30;
       leftZone.width = 40;
-      leftZone.height = gBottom - gTop;
+      leftZone.height = r.bottom - r.top;
 
       if (leftZone.height! < 60) {
         leftZone.height = 60;
-        leftZone.top = gTop - (60 - (gBottom - gTop)) / 2;
+        leftZone.top = r.top - (60 - (r.bottom - r.top)) / 2;
       }
 
       double topBtn = leftZone.height! / 2;
@@ -221,23 +249,23 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       ];
     };
 
-    deleteZone.initPos = () {
-      deleteZone.top = gBottom - 10;
-      deleteZone.left = gLeft - 10;
-      deleteZone.width = 40;
-      deleteZone.height = 40;
+    deleteZone.initPos = (CWRec r) {
+      deleteZone.top = r.bottom - 20;
+      deleteZone.left = r.left - 20;
+      deleteZone.width = 60;
+      deleteZone.height = 60;
 
-      double topBtn = 10;
-      double leftBtn = 10;
+      double topBtn = 15;
+      double leftBtn = 5;
 
       deleteZone.actions = [
         getAddAction(topBtn, leftBtn, Icons.delete, DesignAction.delete),
       ];
     };
 
-    sizeZone.initPos = () {
-      sizeZone.top = gBottom - 10;
-      sizeZone.left = gRight - 30;
+    sizeZone.initPos = (CWRec r) {
+      sizeZone.top = r.bottom - 10;
+      sizeZone.left = r.right - 30;
       sizeZone.width = 40;
       sizeZone.height = 40;
 
@@ -250,8 +278,10 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
     };
   }
 
-  Positioned getZone(ZoneDesc z) {
-    z.initPos!();
+  ///////////////////////////////////////////////////////////////////////////////
+
+  Positioned getZone(ZoneDesc z, CWRec r) {
+    z.initPos!(r);
 
     return Positioned(
         top: z.top,
@@ -300,14 +330,22 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   @override
   Widget build(Object context) {
     List<Widget> childrenAction = [];
-    childrenAction.add(getZone(deleteZone));
-    childrenAction.add(getZone(sizeZone));
-    childrenAction.add(getZone(topZone));
-    childrenAction.add(getZone(bottomZone));
-    childrenAction.add(getZone(rightZone));
-    childrenAction.add(getZone(leftZone));
-    childrenAction.add(BoxSelected(
-        key: boxkey, top: gTop, left: gLeft, right: gRight, bottom: gBottom));
+    childrenAction.add(getZone(deleteZone, recSlot));
+    childrenAction.add(getZone(sizeZone, recSlot));
+    childrenAction.add(getZone(topZone, recSlot));
+    childrenAction.add(getZone(bottomZone, recSlot));
+    childrenAction.add(getZone(rightZone, recSlot));
+    childrenAction.add(getZone(leftZone, recSlot));
+    childrenAction
+        .add(BoxSelected(key: boxkey, rec: recSlot, mode: CWModeBox.slot));
+
+    if (visibleContent) {
+      childrenAction.add(BoxSelected(
+        rec: recContent,
+        mode: CWModeBox.content,
+      ));
+    }
+
     return Visibility(
         visible: visible && !isPreviewMode,
         child: Stack(children: childrenAction));
@@ -388,7 +426,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
             onDraggableCanceled: (velocity, offset) {
               dragInProgess = false;
               BoxSelectedState box = boxkey.currentState as BoxSelectedState;
-              box.changeSize(gBottom - gTop, gRight - gLeft);
+              box.changeSize(
+                  recSlot.bottom - recSlot.top, recSlot.right - recSlot.left);
               CoreDesigner.emit(CDDesignEvent.reselect, null);
             },
             feedback: SizedBox(
@@ -435,23 +474,17 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   }
 }
 
+enum CWModeBox { slot, content }
+
 // ignore: must_be_immutable
 class BoxSelected extends StatefulWidget {
-  BoxSelected({
-    super.key,
-    required this.top,
-    required this.left,
-    required this.right,
-    required this.bottom,
-  });
+  BoxSelected({super.key, required this.rec, required this.mode});
 
-  double top;
-  double left;
-  double right;
-  double bottom;
+  CWRec rec;
+  CWModeBox mode;
 
   Size getSize() {
-    return Size(right - left, bottom - top);
+    return Size(rec.right - rec.left, rec.bottom - rec.top);
   }
 
   @override
@@ -463,18 +496,18 @@ class BoxSelected extends StatefulWidget {
 class BoxSelectedState extends State<BoxSelected> {
   void changeSize(double h, double w) {
     setState(() {
-      widget.bottom = h + widget.top;
-      widget.right = w + widget.left;
+      widget.rec.bottom = h + widget.rec.top;
+      widget.rec.right = w + widget.rec.left;
     });
   }
 
   void addSize(double h, double w) {
     setState(() {
-      if (h > 0 || widget.bottom + h > widget.top + 5) {
-        widget.bottom = h + widget.bottom;
+      if (h > 0 || widget.rec.bottom + h > widget.rec.top + 5) {
+        widget.rec.bottom = h + widget.rec.bottom;
       }
-      if (w > 0 || widget.right + w >= widget.left + 5) {
-        widget.right = w + widget.right;
+      if (w > 0 || widget.rec.right + w >= widget.rec.left + 5) {
+        widget.rec.right = w + widget.rec.right;
       }
     });
   }
@@ -484,18 +517,21 @@ class BoxSelectedState extends State<BoxSelected> {
     return AnimatedPositioned(
         duration: Duration(
             milliseconds: (SelectorActionWidgetState.dragInProgess ? 1 : 200)),
-        top: widget.top,
-        left: widget.left,
+        top: widget.rec.top,
+        left: widget.rec.left,
         child: MouseRegion(
             opaque: false,
             child: AnimatedContainer(
               duration: Duration(
                   milliseconds:
                       (SelectorActionWidgetState.dragInProgess ? 1 : 200)),
-              width: widget.right - widget.left,
-              height: widget.bottom - widget.top,
-              decoration:
-                  BoxDecoration(border: Border.all(color: Colors.deepOrange)),
+              width: widget.rec.right - widget.rec.left,
+              height: widget.rec.bottom - widget.rec.top,
+              decoration: BoxDecoration(
+                  border: Border.all(
+                      color: widget.mode == CWModeBox.slot
+                          ? Colors.deepOrange
+                          : Colors.lightBlue)),
             )));
   }
 }

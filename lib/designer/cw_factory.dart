@@ -1,6 +1,7 @@
 import 'package:xui_flutter/widget/cw_action.dart';
 import 'package:xui_flutter/widget/cw_array.dart';
 import 'package:xui_flutter/widget/cw_loader.dart';
+import 'package:xui_flutter/widget/cw_page.dart';
 import 'package:xui_flutter/widget/cw_selector.dart';
 import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
@@ -14,6 +15,7 @@ import '../core/data/core_data.dart';
 import '../core/data/core_event.dart';
 import '../widget/cw_container_form.dart';
 import '../widget/cw_app.dart';
+import '../widget/cw_toogle.dart';
 import '../widget/cw_list.dart';
 import '../widget/cw_tab.dart';
 import '../core/data/core_provider.dart';
@@ -50,6 +52,7 @@ class CWWidgetCollectionBuilder {
     CWActionLink.initFactory(this);
     CWSelector.initFactory(this);
     CWDecorator.initFactory(this);
+    CWToogle.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -76,6 +79,10 @@ class CWWidgetCollectionBuilder {
     })
         .addAttr('type', CDAttributType.text)
         .addAttr(iDProviderName, CDAttributType.text);
+
+    addWidget('CWPage', (CWWidgetCtx ctx) {
+      return CWPageCtx(ctx);
+    });        
   }
 
   CoreDataObjectBuilder addWidget(String type, Function f) {

@@ -6,12 +6,14 @@ class WidgetTab extends StatefulWidget {
       required this.listTabCont,
       required this.heightTab,
       this.onController,
-      super.key});
+      super.key,
+      this.autoHeight});
 
   final List<Widget> listTab;
   final List<Widget> listTabCont;
   final double heightTab;
   final Function? onController;
+  final bool? autoHeight;
 
   @override
   State<WidgetTab> createState() {
@@ -32,9 +34,15 @@ class _WidgetTabState extends State<WidgetTab>
         vsync: this,
         length: widget.listTab.length,
         animationDuration: const Duration(milliseconds: 200));
-    
+
     if (widget.onController != null) {
       widget.onController?.call(controllerTab);
+    }
+
+    if (widget.autoHeight == true) {
+      controllerTab.addListener(() {
+        setState(() {});
+      });
     }
   }
 
@@ -49,24 +57,30 @@ class _WidgetTabState extends State<WidgetTab>
     return LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       double heightTab = widget.heightTab;
-      var heightContent = viewportConstraints.maxHeight - heightTab - 2;
+      if (widget.autoHeight == true) {
+        return Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+          getTabActionLayout(widget.listTab, heightTab),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return widget.listTabCont[controllerTab.index];
+            },
+          ),
+        ]);
+      } else {
+        var heightContent = viewportConstraints.maxHeight - heightTab - 2;
 
-      // List<Widget> childTab = [];
-      // for (var element in widget.listTabCont) {
-      //   childTab.add(SizedBox(height: height2, width: double.infinity, child: element,));
-      // }
-
-      return Column(children: <Widget>[
-        getTabActionLayout(widget.listTab, heightTab),
-        Container(
-            padding: const EdgeInsets.all(0.0),
-            decoration: BoxDecoration(
-                border:
-                    Border.all(color: Theme.of(context).secondaryHeaderColor)),
-            height: heightContent,
-            child: TabBarView(
-                controller: controllerTab, children: widget.listTabCont))
-      ]);
+        return Column(children: <Widget>[
+          getTabActionLayout(widget.listTab, heightTab),
+          Container(
+              padding: const EdgeInsets.all(0.0),
+              decoration: BoxDecoration(
+                  border: Border.all(
+                      color: Theme.of(context).secondaryHeaderColor)),
+              height: heightContent,
+              child: TabBarView(
+                  controller: controllerTab, children: widget.listTabCont))
+        ]);
+      }
     });
   }
 

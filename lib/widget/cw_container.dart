@@ -16,7 +16,6 @@ import '../designer/designer_selector_query.dart';
 abstract class CWContainer extends CWWidgetChild {
   const CWContainer({super.key, required super.ctx});
 
-
   bool isFill(bool def) {
     return ctx.designEntity?.getBool('fill', def) ?? def;
   }
@@ -61,6 +60,44 @@ abstract class CWContainer extends CWWidgetChild {
       return slot;
     }
   }
+
+  MainAxisAlignment getMainAxisAlignment(String name) {
+    String v = ctx.designEntity?.value[name] ?? '';
+    switch (v) {
+      case 'start':
+        return MainAxisAlignment.start;
+      case 'end':
+        return MainAxisAlignment.end;
+      case 'center':
+        return MainAxisAlignment.center;
+      case 'spaceAround':
+        return MainAxisAlignment.spaceAround;
+      case 'spaceBetween':
+        return MainAxisAlignment.spaceBetween;
+      case 'spaceEvenly':
+        return MainAxisAlignment.spaceEvenly;
+      default:
+        return MainAxisAlignment.start;
+    }
+  }
+
+  CrossAxisAlignment getCrossAxisAlignment(String name) {
+    String v = ctx.designEntity?.value[name] ?? '';
+    switch (v) {
+      case 'start':
+        return CrossAxisAlignment.start;
+      case 'end':
+        return CrossAxisAlignment.end;
+      case 'center':
+        return CrossAxisAlignment.center;
+      case 'spaceAround':
+        return CrossAxisAlignment.stretch;
+      case 'baseline':
+        return CrossAxisAlignment.baseline;
+      default:
+        return CrossAxisAlignment.start;
+    }
+  }
 }
 
 // ignore: must_be_immutable
@@ -81,13 +118,33 @@ class CWColumn extends CWContainer {
   }
 
   static void initFactory(CWWidgetCollectionBuilder c) {
+    List listAxis = [
+      {'icon': Icons.align_vertical_top, 'value': 'start'},
+      {'icon': Icons.align_vertical_center, 'value': 'center'},
+      {'icon': Icons.align_vertical_bottom, 'value': 'end'},
+      {'icon': Icons.vertical_distribute_rounded, 'value': 'spaceAround'},
+      {'icon': Icons.format_line_spacing_rounded, 'value': 'spaceBetween'},
+      {'icon': Icons.vertical_distribute_rounded, 'value': 'spaceEvenly'}
+    ];
+
+    List listCross = [
+      {'icon': Icons.align_horizontal_left, 'value': 'start'},
+      {'icon': Icons.align_horizontal_center, 'value': 'center'},
+      {'icon': Icons.align_horizontal_right, 'value': 'end'},
+      {'icon': Icons.settings_ethernet, 'value': 'stretch'},
+    ];
+
     c
         .addWidget('CWColumn',
             (CWWidgetCtx ctx) => CWColumn(key: ctx.getKey(), ctx: ctx))
         .addAttr(iDCount, CDAttributType.int)
         .withAction(AttrActionDefault(2))
         .addAttr('fill', CDAttributType.bool)
-        .withAction(AttrActionDefault(true));
+        .withAction(AttrActionDefault(true))
+        .addAttr('verticalAlign', CDAttributType.text, tname: 'toogle')
+        .addCustomValue('bindValue', listAxis)
+        .addAttr('horizAlign', CDAttributType.text, tname: 'toogle')
+        .addCustomValue('bindValue', listCross);
 
     c.collection
         .addObject('CWColConstraint')
@@ -132,9 +189,9 @@ class CWColumnState extends StateCW<CWColumn>
       }
 
       listStack.add(Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: widget.getMainAxisAlignment('verticalAlign'),
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: widget.getCrossAxisAlignment('horizAlign'),
           children: listSlot));
 
       if (nb == 0 && widget.isForm) {
@@ -162,7 +219,7 @@ class CWColumnState extends StateCW<CWColumn>
       CWProvider? provider = CWProvider.of(widget.ctx);
       setProviderDataOK(provider, ok);
       provider?.addAction(
-        CWProviderAction.onRowSelected, ActionRepaint(widget.ctx));
+          CWProviderAction.onRowSelected, ActionRepaint(widget.ctx));
       return getWidget();
     }
 
@@ -183,6 +240,23 @@ class CWRow extends CWContainer {
   const CWRow({super.key, required super.ctx});
 
   static void initFactory(CWWidgetCollectionBuilder c) {
+    List listAxis = [
+      {'icon': Icons.align_horizontal_left, 'value': 'start'},
+      {'icon': Icons.align_horizontal_center, 'value': 'center'},
+      {'icon': Icons.align_horizontal_right, 'value': 'end'},
+      {'icon': Icons.horizontal_distribute, 'value': 'spaceAround'},
+      {'icon': Icons.view_column_rounded, 'value': 'spaceBetween'},
+      {'icon': Icons.horizontal_distribute, 'value': 'spaceEvenly'}
+    ];
+
+    List listCross = [
+      {'icon': Icons.align_vertical_top, 'value': 'start'},
+      {'icon': Icons.align_vertical_center, 'value': 'center'},
+      {'icon': Icons.align_vertical_bottom, 'value': 'end'},
+      {'icon': Icons.settings_ethernet, 'value': 'stretch'},
+      //{'icon': Icons.format_strikethrough, 'value': 'baseline'}
+    ];
+
     c.collection
             .addObject('CWRowConstraint')
             .addAttr('flex', CDAttributType.int)
@@ -198,9 +272,13 @@ class CWRow extends CWContainer {
         .addWidget(
             'CWRow', (CWWidgetCtx ctx) => CWRow(key: ctx.getKey(), ctx: ctx))
         .addAttr(iDCount, CDAttributType.int)
-        .withAction(AttrActionDefault(3))
+        .withAction(AttrActionDefault(2))
         .addAttr('fill', CDAttributType.bool)
-        .withAction(AttrActionDefault(true));
+        .withAction(AttrActionDefault(true))
+        .addAttr('horizAlign', CDAttributType.text, tname: 'toogle')
+        .addCustomValue('bindValue', listAxis)
+        .addAttr('verticalAlign', CDAttributType.text, tname: 'toogle')
+        .addCustomValue('bindValue', listCross);
   }
 
   @override
@@ -232,9 +310,9 @@ class CWRowState extends StateCW<CWRow> {
     }
 
     return Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: widget.getMainAxisAlignment('horizAlign'),
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: widget.getCrossAxisAlignment('verticalAlign'),
         children: listSlot);
   }
 }
@@ -307,7 +385,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addBottom(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', false, iDCount);
+      return DesignActionManager()
+          .addBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont0');
       return true;
@@ -332,7 +411,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveBottom(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
+      return DesignActionManager()
+          .moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       return false;
     }
@@ -341,7 +421,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveTop(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
+      return DesignActionManager()
+          .moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
     } else {
       return false;
     }
@@ -365,7 +446,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addRight(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', false, iDCount);
+      return DesignActionManager()
+          .addBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont0');
       return true;
@@ -395,7 +477,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveLeft(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
+      return DesignActionManager()
+          .moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
     } else {
       return false;
     }
@@ -404,7 +487,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool moveRight(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
+      return DesignActionManager()
+          .moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
     } else {
       return false;
     }

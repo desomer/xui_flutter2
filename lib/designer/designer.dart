@@ -13,6 +13,7 @@ import 'package:xui_flutter/designer/widget/widget_drag_file.dart';
 import 'package:xui_flutter/designer/widget/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
+import '../core/data/core_data_query.dart';
 import '../core/data/core_provider.dart';
 import '../core/store/driver.dart';
 import '../core/widget/cw_core_bind.dart';
@@ -97,6 +98,7 @@ class CoreDesigner extends StatefulWidget {
   final GlobalKey rootKey = GlobalKey(debugLabel: 'rootKey');
   final GlobalKey designerKey = GlobalKey(debugLabel: 'designerKey');
   final GlobalKey propKey = GlobalKey(debugLabel: 'CoreDesigner.propKey');
+  final GlobalKey styleKey = GlobalKey(debugLabel: 'CoreDesigner.styleKey');
 
   final GlobalKey queryKey = GlobalKey(debugLabel: 'designerQueryKey');
   final GlobalKey providerKey = GlobalKey(debugLabel: 'designerProviderKey');
@@ -210,7 +212,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                 mini: true,
                 child: const Icon(Icons.add, color: Colors.white),
                 onPressed: () {
-                  widget.editor.controllerTabRight.index = 1;
+                  widget.editor.controllerTabLeft.index = 0;
                 },
               ),
               bottomNavigationBar: BottomAppBar(
@@ -278,6 +280,23 @@ class _CoreDesignerState extends State<CoreDesigner>
 
   Widget getDataPan() {
     WidgetTab tabModelDesc = WidgetTab(
+      onController: (TabController a) {
+        a.addListener(() async {
+          if (a.indexIsChanging) {
+            log.fine('change data tab ${a.index}');
+            await CoreGlobalCache.saveCache(CWApplication.of().dataProvider);
+            await CoreGlobalCache.saveCache(
+                CWApplication.of().dataModelProvider);
+            CWApplication.of().refreshData();
+
+            if (a.index == 1) {
+              // re creer le tableau de data en fonction des changements du model
+              CWApplication.of().bindModel2Data.rebindNested();
+            }
+          }
+        });
+        widget.editor.controllerTabData = a;
+      },
       heightTab: 60,
       listTab: const [
         Tab(text: 'Model', icon: Icon(Icons.data_object)),

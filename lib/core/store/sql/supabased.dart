@@ -92,7 +92,7 @@ class SupabaseDriver extends StoreDriver {
   }
 
   dynamic _getJsonDataModel(String idTable, CoreDataEntity? filters) async {
-    var query = client['main']!
+    PostgrestFilterBuilder query = client['main']!
             .from('ListModel')
             .select('json')
             .eq('idTable', idTable)
@@ -114,7 +114,7 @@ class SupabaseDriver extends StoreDriver {
           var operator = clause['operator'];
           var value1 = clause['value1'];
           if (colId != null) {
-            query.filter('json->>$colId', _mapOpe[operator]!, value1);
+            query = query.filter('json->>$colId', _mapOpe[operator]!, value1);
           }
         }
       }

@@ -76,6 +76,7 @@ class CoreDataObjectBuilder {
     ret.typeName = tname;
     _attributs.add(ret);
     attributsByName[name] = ret;
+
     return ret;
   }
 
@@ -83,6 +84,11 @@ class CoreDataObjectBuilder {
   CoreDataObjectBuilder addAttr(String name, CDAttributType type,
       {String? tname}) {
     _lastAttr = addAttribut(name, type, tname: tname);
+    return this;
+  }
+
+  CoreDataObjectBuilder addCustomValue(String name, dynamic value) {
+    _lastAttr?.addCustomValue(name, value);
     return this;
   }
 
@@ -102,8 +108,8 @@ class CoreDataObjectBuilder {
     var allAttribut = getAllAttribut();
 
     for (final CoreDataAttribut attr in allAttribut) {
-      if (attr.actions[CDActionData.defValue.toString()] != null) {
-        for (var element in attr.actions[CDActionData.defValue.toString()]!) {
+      if (attr.actions?[CDActionData.defValue.toString()] != null) {
+        for (var element in attr.actions![CDActionData.defValue.toString()]!) {
           CoreDataCtx ctx = CoreDataCtx();
           ctx.payload = CoreAttrCtx(ret, attr);
           element.execute(ctx);
@@ -274,19 +280,36 @@ class CoreDataEntity {
     return v;
   }
 
-  // CoreDataEntity? getManyEntity(CoreDataCollection collection, String attrName) {
-  //   if (value[attrName] == null) {
-  //     return null;
-  //   }
+  List<dynamic>? getMany(String attrName) {
+    if (value[attrName] == null) {
+      return null;
+    }
 
-  //   final List<Map<String, dynamic>> v = value[attrName] as List<Map<String, dynamic>>;
+    final List v = value[attrName] as List;
+    return v;
+  }
 
-  //   final CoreDataObjectBuilder builder =
-  //       collection.getClass(getType(null, v))!;
-  //   final CoreDataEntity val = builder.getEntityModel();
-  //   val.value = v;
-  //   return val;
-  // }
+  List<CoreDataEntity>? getManyEntity(
+      CoreDataCollection collection, String attrName) {
+    if (value[attrName] == null) {
+      return null;
+    }
+
+    final List<dynamic> v = value[attrName] as List<dynamic>;
+    List<CoreDataEntity> ret = [];
+
+    for (var aObj in v) {
+      final Map<String, dynamic> v = aObj;
+
+      final CoreDataObjectBuilder builder =
+          collection.getClass(getType(null, v))!;
+      final CoreDataEntity val = builder.getEntityModel();
+      val.value = v;
+      ret.add(val);
+    }
+
+    return ret;
+  }
 
   String? getString(String attr, {String? def}) {
     final dynamic v = value[attr];
@@ -358,7 +381,7 @@ class CoreDataEntity {
   static const String cstTypeAttr = r'$type';
 
   String getType(CoreDataAttribut? attr, Map<String, dynamic> src) {
-    return src[cstTypeAttr]! as String;
+    return src[cstTypeAttr] ?? '';
   }
 
   void _browse(CoreDataCtx ctx, CoreDataCollection collection,
@@ -396,13 +419,17 @@ class CoreDataEntity {
             final idxPath = CoreDataAttributItemIdx('[$i]');
             idxPath.idxInArray = i;
             ctx.pathData.add(idxPath);
-            final Map<String, dynamic> o = element as Map<String, dynamic>;
-            // print("r =" + o.toString());
-            // ignore: avoid_dynamic_calls
-            final CoreDataObjectBuilder builderOne =
-                collection.getClass(getType(attr, o))!;
-            final CoreDataEntity child = builderOne.getEntityModel();
-            child._browse(ctx, collection, attr, o, 'Item');
+            if (element is Map<String, dynamic>) {
+              // boucle si tableau d'object
+              final Map<String, dynamic> o = element;
+              String type = getType(attr, o);
+              if (type != '') {
+                final CoreDataObjectBuilder builderOne =
+                    collection.getClass(type)!;
+                final CoreDataEntity child = builderOne.getEntityModel();
+                child._browse(ctx, collection, attr, o, 'Item');
+              }
+            }
             ctx.pathData.removeLast();
           }
           ctx.pathData.removeLast();
@@ -627,6 +654,19 @@ class CoreDataPath {
 class CoreDataAttribut {
   CoreDataAttribut(this.name);
 
+  CoreDataAttribut addCustomValue(String name, dynamic value) {
+    customValue ??= {};
+    customValue![name] = value;
+    return this;
+  }
+
+  CoreDataAttribut init(CDAttributType aType, {String? tName, String? aLabel}) {
+    type = aType;
+    typeName = tName;
+    label = aLabel;
+    return this;
+  }
+
   void initWith(CoreDataAttribut src) {
     type = src.type;
     typeName = src.typeName;
@@ -634,24 +674,26 @@ class CoreDataAttribut {
     actions = src.actions;
   }
 
-  late String name;
+  String name;
+  String? label;
   CDAttributType type = CDAttributType.text;
   String? typeName;
+  Map<String, dynamic>? customValue;
 
-  Map<int, List<CoreDataValidator>> validators =
-      <int, List<CoreDataValidator>>{};
-  Map<String, List<CoreDataBrowseAction>> actions =
-      <String, List<CoreDataBrowseAction>>{};
+  Map<int, List<CoreDataValidator>>? validators;
+  Map<String, List<CoreDataBrowseAction>>? actions;
 
   CoreDataAttribut addAction(String actionId, CoreDataBrowseAction action) {
-    actions.putIfAbsent(actionId.toString(), () => <CoreDataBrowseAction>[]);
-    actions[actionId]!.add(action);
+    actions ??= {};
+    actions!.putIfAbsent(actionId.toString(), () => <CoreDataBrowseAction>[]);
+    actions![actionId]!.add(action);
     return this;
   }
 
   CoreDataAttribut addValidator(CDPriority priority, CoreDataValidator action) {
-    validators.putIfAbsent(priority.index, () => <CoreDataValidator>[]);
-    validators[priority.index]!.add(action);
+    validators ??= {};
+    validators!.putIfAbsent(priority.index, () => <CoreDataValidator>[]);
+    validators![priority.index]!.add(action);
     return this;
   }
 }
