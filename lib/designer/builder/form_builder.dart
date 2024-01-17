@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import '../../core/data/core_data.dart';
-import '../../core/data/core_provider.dart';
+import '../../core/data/core_repository.dart';
 import '../application_manager.dart';
 import '../designer.dart';
 
 class FormBuilder {
   //static const String providerName = "Form";
 
-  List<Widget> getFormWidget(CWProvider provider, CWAppLoaderCtx ctxLoader) {
+  List<Widget> getFormWidget(CWRepository provider, CWAppLoaderCtx ctxLoader) {
     var listWidget = <Widget>[];
     CoreDataEntity entity = provider.getEntityByIdx(0);
 
@@ -36,7 +36,7 @@ class FormBuilder {
       }
     }
 
-    loader.ctxLoader.addProvider(provider);
+    loader.ctxLoader.addRepository(provider);
 
     listWidget.add(loader.getWidget('root', 'root'));
     return listWidget;
@@ -47,7 +47,7 @@ class FormBuilder {
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);
 
-    CWProvider provider = app.getProviderFromQuery(query, widget);
+    CWRepository provider = app.getRepositoryFromQuery(query, widget);
 
     //provider.getData().idxSelected = 0;
     provider.getData().idxDisplayed = 0;
@@ -61,8 +61,8 @@ class FormBuilder {
     widget.repaint();
   }
 
-  void _createDesign(CWAppLoaderCtx loaderCtx, CWProvider provider, String xid,
-      String path, bool designOnly) {
+  void _createDesign(CWAppLoaderCtx loaderCtx, CWRepository provider,
+      String xid, String path, bool designOnly) {
     final CoreDataObjectBuilder builder =
         loaderCtx.collectionDataModel.getClass(provider.type)!;
 
@@ -103,7 +103,7 @@ class FormBuilder {
       }
       //if (loader.nbAttr > 0) break;
     }
-    loader.ctxLoader.addProvider(provider);
+    loader.ctxLoader.addRepository(provider);
 
     loader.addWidget('root', 'provider_${provider.id}', 'CWProvider',
         <String, dynamic>{'type': provider.type, iDProviderName: provider.id});
@@ -132,7 +132,7 @@ class AttrFormLoader extends CWWidgetLoader {
     }
   }
 
-  CWProvider provider;
+  CWRepository provider;
   int nbAttr = 0;
   String nameForm;
   bool isRoot;

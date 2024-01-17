@@ -6,7 +6,7 @@ import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import '../store/driver.dart';
 import '../widget/cw_core_widget.dart';
 import 'core_data_filter.dart';
-import 'core_provider.dart';
+import 'core_repository.dart';
 
 abstract class CoreDataLoader {
   void addData(CoreDataEntity data);
@@ -16,10 +16,10 @@ abstract class CoreDataLoader {
   Future<void> saveData(dynamic content);
   Future<void> deleteData(dynamic content);
   void deleteAll();
-  void changed(CWProvider provider, CoreDataEntity entity);
+  void changed(CWRepository provider, CoreDataEntity entity);
   void reorder(int oldIndex, int newIndex);
   void reload();
-  void setFilter(CWProvider provider, CoreDataFilter? aFilter);
+  void setFilter(CWRepository provider, CoreDataFilter? aFilter);
   CoreDataFilter? getFilter();
   void setCacheViewID(String cacheID, {required String onTable});
 }
@@ -155,7 +155,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  void changed(CWProvider provider, CoreDataEntity entity) {
+  void changed(CWRepository provider, CoreDataEntity entity) {
     //entity.prepareChange(loader.collectionDataModel);
     entity.doChanged();
   }
@@ -167,11 +167,11 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  void setFilter(CWProvider provider, CoreDataFilter? aFilter) {
+  void setFilter(CWRepository provider, CoreDataFilter? aFilter) {
     if (aFilter == null) {
       _dicoFilter.remove(_cacheViewId);
     } else if (_cacheViewId != null) {
-      var providerCacheID = provider.getProviderCacheID(aFilter: aFilter);
+      var providerCacheID = provider.getRepositoryCacheID(aFilter: aFilter);
       _dicoFilter[providerCacheID] = aFilter;
       log.fine('set filter on $providerCacheID');
     }
@@ -188,7 +188,7 @@ class CoreDataLoaderMap extends CoreDataLoader {
 
 class CoreDataLoaderNested extends CoreDataLoader {
   CWAppLoaderCtx loader;
-  CWProvider providerParent;
+  CWRepository providerParent;
   String attribut;
   CoreDataLoaderNested(this.loader, this.providerParent, this.attribut);
 
@@ -246,7 +246,7 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  void changed(CWProvider provider, CoreDataEntity entity) {
+  void changed(CWRepository provider, CoreDataEntity entity) {
     //entity.prepareChange(loader.collectionDataModel);
     entity.doChanged();
 
@@ -269,14 +269,13 @@ class CoreDataLoaderNested extends CoreDataLoader {
   void reload() {}
 
   @override
-  void setFilter(CWProvider provider, CoreDataFilter? aFilter) {}
+  void setFilter(CWRepository provider, CoreDataFilter? aFilter) {}
 
   @override
   CoreDataFilter? getFilter() {
     return null;
   }
-  
+
   @override
-  void setCacheViewID(String cacheID, {required String onTable}) {
-  }
+  void setCacheViewID(String cacheID, {required String onTable}) {}
 }

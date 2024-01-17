@@ -4,14 +4,15 @@ import 'package:xui_flutter/designer/selector_manager.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_selector_overlay_action.dart';
+import '../core/widget/cw_core_styledbox.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer.dart';
 import 'builder/prop_builder.dart';
 import 'designer_model.dart';
-import 'designer_selector_provider.dart';
+import 'designer_selector_repository.dart';
 
 // ignore: must_be_immutable
 class DesignerProp extends StatefulWidget {
@@ -84,7 +85,7 @@ class OnLinkSelect extends CoreDataAction {
               decoration: BoxDecoration(border: Border.all()),
               height: 500,
               width: 300,
-              child: DesignerProvider(
+              child: DesignerRepository(
                   ctx: ctxQuery,
                   bindWidget: CWApplication.of().bindProvider2Attr),
             ),
@@ -112,7 +113,7 @@ class OnLinkSelect extends CoreDataAction {
               ),
               child: const Text('Unbind'),
               onPressed: () {
-                var provider = CWProvider.of(ctxRow);
+                var provider = CWRepository.of(ctxRow);
                 provider?.setValuePropOf(ctxRow, event, iDBind, null);
                 Navigator.of(context).pop();
                 ctxRow.getCWWidget()?.repaint();
@@ -124,7 +125,7 @@ class OnLinkSelect extends CoreDataAction {
               ),
               child: const Text('Bind'),
               onPressed: () {
-                var provider = CWProvider.of(ctxRow);
+                var provider = CWRepository.of(ctxRow);
                 CoreDataEntity infoProv =
                     CWApplication.of().bindProvider2Attr.currentEntity!;
                 CoreDataEntity? infoAttr =
@@ -203,7 +204,7 @@ class MapDesignStyle extends CoreDataAction {
       PropBuilder.setDesignOn(aCtx, prop);
       prop.operation = CDAction.update;
     }
-    prop.value['_style_'] = style.value;
+    prop.value[iDStyle] = style.value;
     style.operation = CDAction.update;
     debugPrint('set style on ${aCtx.xid}');
   }

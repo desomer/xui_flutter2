@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/data/core_data.dart';
-import '../../core/data/core_provider.dart';
+import '../../core/data/core_repository.dart';
 import '../../core/widget/cw_core_loader.dart';
 import '../../core/widget/cw_core_widget.dart';
 import '../designer.dart';
@@ -72,13 +72,13 @@ class PropBuilder {
     aCtx.designEntity = designEntity;
 
     // un provider par widget
-    var provider = CWProvider(
-        'properProvider', designEntity.type, CWProviderDataSelector.noLoader())
+    var provider = CWRepository('properProvider', designEntity.type,
+        CWRepositoryDataSelector.noLoader())
       ..addContent(designEntity);
     provider.addAction(
-        CWProviderAction.onStateNone2Create, MapDesign(aCtx, designEntity));
-    provider.addAction(CWProviderAction.onValueChanged, RefreshDesign(aCtx));
-    
+        CWRepositoryAction.onStateNone2Create, MapDesign(aCtx, designEntity));
+    provider.addAction(CWRepositoryAction.onValueChanged, RefreshDesign(aCtx));
+
     // provider.addAction(
     //     CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
     provider.addUserAction('onTapHeader', OnWidgetSelect(aCtx));
@@ -110,13 +110,13 @@ class PropBuilder {
       constraintEntity ??=
           PropBuilder.getEmptyEntity(slotCtx.loader, aCtxConstraint);
 
-      var provider = CWProvider('constraint', constraintEntity.type,
-          CWProviderDataSelector.noLoader())
+      var provider = CWRepository('constraint', constraintEntity.type,
+          CWRepositoryDataSelector.noLoader())
         ..addContent(constraintEntity);
 
       provider.addAction(
-          CWProviderAction.onValueChanged, RefreshDesignParent(ctxDesign));
-      provider.addAction(CWProviderAction.onStateNone2Create,
+          CWRepositoryAction.onValueChanged, RefreshDesignParent(ctxDesign));
+      provider.addAction(CWRepositoryAction.onStateNone2Create,
           MapConstraint(aCtxConstraint, constraintEntity));
 
       CWAppLoaderCtx loader = CWAppLoaderCtx().from(slotCtx.loader);

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
+import 'package:xui_flutter/designer/designer.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_data_query.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_expand_panel.dart';
@@ -29,9 +29,8 @@ class DesignerModelAttribut extends StatelessWidget {
     return tabAttributDesc;
   }
 
-  Widget getRainbox()
-  {
-     return Container(
+  Widget getRainbox() {
+    return Container(
       width: 100,
       height: 100,
       margin: const EdgeInsets.all(20),
@@ -86,8 +85,8 @@ class _DesignerAttributState extends State<DesignerAttribut> {
     CWAppLoaderCtx loader =
         CWAppLoaderCtx().from(CWApplication.of().loaderModel);
 
-    var provider = CWProvider(
-        'AttrProvider', 'DataAttribut', CWProviderDataSelector.noLoader())
+    var provider = CWRepository(
+        'AttrProvider', 'DataAttribut', CWRepositoryDataSelector.noLoader())
       ..addContent(
           loader.collectionDataModel.createEntityByJson('DataAttribut', {}));
 
@@ -99,10 +98,9 @@ class _DesignerAttributState extends State<DesignerAttribut> {
           CWApplication.of().dataAttributProvider.getSelectedEntity()!;
       // print(attrEntity!.value);
       attrEntity.operation = CDAction.delete;
-      CoreGlobalCache.saveCache(CWApplication.of().dataAttributProvider);
-      CoreGlobalCache.saveCache(CWApplication.of().dataModelProvider);
+      CoreDesigner.emit(CDDesignEvent.saveModel, null);  
       CWApplication.of().dataAttributProvider.doEvent(
-          CWProviderAction.onStateDelete, CWApplication.of().loaderModel,
+          CWRepositoryAction.onStateDelete, CWApplication.of().loaderModel,
           repaintXid: 'rootAttrExp');
 
       //TODO supprimer la colonne de le bdd

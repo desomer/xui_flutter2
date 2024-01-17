@@ -4,7 +4,7 @@ import 'package:xui_flutter/widget/cw_selector.dart';
 
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import 'cw_list.dart';
 
 class CWText extends CWWidgetMapLabel {
@@ -21,8 +21,7 @@ class CWText extends CWWidgetMapLabel {
         .addCustomValue('bindEnable', true)
         .addAttr('textColor', CDAttributType.one,
             tname: CWSelectorType.color.name)
-        .addAttr('icon', CDAttributType.one, tname: CWSelectorType.icon.name)
-        .addAttr('_style_', CDAttributType.one, tname: CWSelectorType.style.name);
+        .addAttr('icon', CDAttributType.one, tname: CWSelectorType.icon.name);
   }
 
   @override

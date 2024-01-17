@@ -6,13 +6,13 @@ import '../core/data/core_data.dart';
 import '../core/data/core_data_filter.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_expand_panel.dart';
 import '../widget/cw_selector.dart';
-import 'cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import 'designer_model_data.dart';
 import 'designer_model.dart';
 
@@ -28,18 +28,20 @@ class CWApplication {
   CWAppLoaderCtx loaderModel = CWAppLoaderCtx(); // pour les models de data
   CWAppLoaderCtx loaderData = CWAppLoaderCtx(); // pour les data
 
+  CWWidgetCtx? ctxApp;
+
   // les models
-  CWProvider dataModelProvider = CWProvider(
-      'DataModelProvider', 'DataModel', CWProviderDataSelector.noLoader());
+  CWRepository dataModelProvider = CWRepository(
+      'DataModelProvider', 'DataModel', CWRepositoryDataSelector.noLoader());
 
-  late CWProvider dataAttributProvider; // les attribut
-  late CWProvider dataProvider; // les datas
+  late CWRepository dataAttributProvider; // les attribut
+  late CWRepository dataProvider; // les datas
 
-  CWProvider pagesProvider = CWProvider(
-      'PagesProvider', 'PageModel', CWProviderDataSelector.noLoader());
+  CWRepository pagesProvider = CWRepository(
+      'PagesProvider', 'PageModel', CWRepositoryDataSelector.noLoader());
 
-  CWProvider listAttrProvider = CWProvider(
-      'listAttrProvider', 'ModelAttributs', CWProviderDataSelector.noLoader());
+  CWRepository listAttrProvider = CWRepository('listAttrProvider',
+      'ModelAttributs', CWRepositoryDataSelector.noLoader());
 
   Map<String, CoreDataEntity> cacheMapData = {};
   Map<String, CoreDataEntity> cacheMapModel = {};
@@ -141,6 +143,7 @@ class CWApplication {
     collection
         .addObject('PageModel')
         .addAttr('name', CDAttributType.text)
+        .addAttr('route', CDAttributType.text)
         .addAttr('_id_', CDAttributType.text)
         .withAction(AttrActionDefaultUUID())
         .addAttr('subPages', CDAttributType.many);
@@ -203,7 +206,7 @@ class CWApplication {
       var selectedEntity = dataModelProvider.getSelectedEntity();
       selectedEntity!.operation = CDAction.delete;
       await CoreGlobalCache.saveCache(dataModelProvider);
-      dataModelProvider.doEvent(CWProviderAction.onStateDelete, loaderModel,
+      dataModelProvider.doEvent(CWRepositoryAction.onStateDelete, loaderModel,
           repaintXid: 'rootModelCol0');
       // supprime les datas
       CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
@@ -219,82 +222,82 @@ class CWApplication {
         collection.createEntityByJson('DataHeader', {'label': 'Entity'});
 
     dataModelProvider.addAction(
-        CWProviderAction.onStateNone, OnInsertModel(loaderModel));
+        CWRepositoryAction.onStateNone, OnInsertModel(loaderModel));
     dataModelProvider.addAction(
-        CWProviderAction.onMapWidget, OnBuildEdit(['name'], false));
+        CWRepositoryAction.onMapWidget, OnBuildEdit(['name'], false));
     dataModelProvider.addAction(
-        CWProviderAction.onRowSelected, OnSelectModel());
+        CWRepositoryAction.onRowSelected, OnSelectModel());
 
     dataModelProvider.getData().dataloader =
         CoreDataLoaderMap(loaderModel, cacheMapModel, 'listData')
           ..setCacheViewID('models', onTable: 'models');
 
-    loaderModel.addProvider(dataModelProvider);
+    loaderModel.addRepository(dataModelProvider);
     //----------------------------------------------
     // loader de type nested
-    dataAttributProvider = CWProvider(
+    dataAttributProvider = CWRepository(
         'DataAttrProvider',
         'ModelAttributs',
-        CWProviderDataSelector.loader(
+        CWRepositoryDataSelector.loader(
             CoreDataLoaderNested(loaderModel, dataModelProvider, 'listAttr')));
 
     dataAttributProvider.header =
         collection.createEntityByJson('DataHeader', {'label': '?'});
 
     dataAttributProvider.addAction(
-        CWProviderAction.onMapWidget, OnBuildEdit(['name'], false));
+        CWRepositoryAction.onMapWidget, OnBuildEdit(['name'], false));
     dataAttributProvider.addAction(
-        CWProviderAction.onStateNone, OnAddAttr(dataAttributProvider));
+        CWRepositoryAction.onStateNone, OnAddAttr(dataAttributProvider));
     dataAttributProvider.addAction(
-        CWProviderAction.onRowSelected, OnSelectAttribut());
+        CWRepositoryAction.onRowSelected, OnSelectAttribut());
 
     //-------------------------------------------------------
     listAttrProvider.header =
         collection.createEntityByJson('DataHeader', {'label': '?'});
     listAttrProvider.addAction(
-        CWProviderAction.onMapWidget, OnIsVisible(['*'], false));
+        CWRepositoryAction.onMapWidget, OnIsVisible(['*'], false));
 
     //-------------------------------------------------------
-    dataProvider = CWProvider(
+    dataProvider = CWRepository(
         'DataProvider',
         '?',
-        CWProviderDataSelector.loader(
+        CWRepositoryDataSelector.loader(
             CoreDataLoaderMap(loaderData, cacheMapData, 'listData')));
     dataProvider.header =
         collection.createEntityByJson('DataHeader', {'label': '?'});
 
     dataProvider.addAction(
-        CWProviderAction.onMapWidget, OnBuildEdit(['*'], true));
-    dataProvider.addAction(CWProviderAction.onStateNone, OnInsertData());
+        CWRepositoryAction.onMapWidget, OnBuildEdit(['*'], true));
+    dataProvider.addAction(CWRepositoryAction.onStateNone, OnInsertData());
     dataProvider.addAction(
-        CWProviderAction.onStateNone2Create, SetDate('_createAt_'));
+        CWRepositoryAction.onStateNone2Create, SetDate('_createAt_'));
     dataProvider.addAction(
-        CWProviderAction.onValueChanged, SetDate('_updateAt_'));
+        CWRepositoryAction.onValueChanged, SetDate('_updateAt_'));
 
     //----------------------------------------------------------------
-    loaderModel.addProvider(pagesProvider);
-    pagesProvider.addContent(collection
-        .createEntityByJson('PageModel', {'_id_': '?', 'name': 'Home'}));
+    loaderModel.addRepository(pagesProvider);
+    pagesProvider.addContent(collection.createEntityByJson(
+        'PageModel', {'_id_': 'home', 'route': '/', 'name': 'Home'}));
   }
 
   //////////////////////////////////////////////////////////////////////////
 
-  CWProvider getProviderFromQuery(CoreDataEntity query, CWWidget widget) {
-    CWProvider provider;
+  CWRepository getRepositoryFromQuery(CoreDataEntity query, CWWidget widget) {
+    CWRepository provider;
     switch (query.type) {
       case 'DataProvider':
         provider = loaderDesigner.getProvider(query.value['idProvider'])!;
         break;
       case 'DataFilter':
         var aFilter = CoreDataFilter()..setFilterData(query);
-        provider = CWProviderCtx.createFromTable(
+        provider = CWRepositoryCtx.createFromTable(
             query.value['model'], widget.ctx,
             filter: aFilter);
         break;
       case 'DataModel':
       default:
         provider =
-            CWProviderCtx.createFromTable(query.value['_id_'], widget.ctx);
+            CWRepositoryCtx.createFromTable(query.value['_id_'], widget.ctx);
     }
     return provider;
   }
@@ -355,14 +358,14 @@ class CWApplication {
     data.addGroup(loader.collectionDataModel.getClass('DataEntity')!);
   }
 
-  CWProvider getDataProvider(
+  CWRepository getDataProvider(
       CWAppLoaderCtx loader, CoreDataEntity tableEntity) {
     var label = tableEntity.value['name'];
     var idData = tableEntity.value['_id_'];
 
     dataProvider.type = idData;
     CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
-    dataLoader.setCacheViewID(dataProvider.getProviderCacheID(),
+    dataLoader.setCacheViewID(dataProvider.getRepositoryCacheID(),
         onTable: idData); // choix de la map a afficher
     dataProvider.header!.value['label'] = label;
 
@@ -370,26 +373,26 @@ class CWApplication {
     return dataProvider;
   }
 
-  CWProvider getDesignDataProvider(
+  CWRepository getDesignDataRepository(
       CWAppLoaderCtx loader, CoreDataEntity tableEntity, String? idProvider,
       {CoreDataFilter? filter}) {
     //var label = tableEntity.value["name"];
     var type = tableEntity.value['_id_'];
 
     var coreDataLoaderMap = CoreDataLoaderMap(loader, cacheMapData, 'listData');
-    CWProviderData dataLoaderFinal = CWProviderData(coreDataLoaderMap);
+    CWRepositoryData dataLoaderFinal = CWRepositoryData(coreDataLoaderMap);
 
     //pas de data en design
-    CWProviderData dataLoaderDesign = CWProviderData(null);
+    CWRepositoryData dataLoaderDesign = CWRepositoryData(null);
 
     String id = idProvider ??
         customAlphabet('1234567890abcdef', 10); //tableEntity.value['name'];
 
-    CWProvider designData = CWProvider(id, type,
-        CWProviderDataSelector(dataLoaderFinal, dataLoaderDesign, loader));
+    CWRepository designData = CWRepository(id, type,
+        CWRepositoryDataSelector(dataLoaderFinal, dataLoaderDesign, loader));
 
     var aFilter = (filter?.isFilter() ?? false) ? filter : null;
-    var providerCacheID = designData.getProviderCacheID(aFilter: aFilter);
+    var providerCacheID = designData.getRepositoryCacheID(aFilter: aFilter);
     coreDataLoaderMap.setCacheViewID(providerCacheID, onTable: type);
     designData.setFilter(aFilter);
 
@@ -401,9 +404,9 @@ class CWApplication {
   }
 
   void refreshData() {
-    CWProvider provider = CWApplication.of().dataProvider;
+    CWRepository provider = CWApplication.of().dataProvider;
 
-    String idCache = provider.getProviderCacheID();
+    String idCache = provider.getRepositoryCacheID();
     CoreGlobalCache.cacheNbData.remove(idCache);
     provider.loader!.reload();
 

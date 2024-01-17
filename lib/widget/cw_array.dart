@@ -5,16 +5,16 @@ import 'package:xui_flutter/designer/designer.dart';
 import 'package:xui_flutter/widget/cw_selector.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/builder/array_builder.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import '../designer/designer_selector_query.dart';
 import '../designer/widget_crud.dart';
 import 'cw_array_row.dart';
 
-class CWArray extends CWWidgetMapProvider {
+class CWArray extends CWWidgetMapRepository {
   const CWArray({super.key, required super.ctx});
 
   @override
@@ -37,8 +37,10 @@ class CWArray extends CWWidgetMapProvider {
         .addWidget('CWArray',
             (CWWidgetCtx ctx) => CWArray(key: ctx.getKey(), ctx: ctx))
         .addAttr(iDCount, CDAttributType.int)
-        .addAttr(iDProviderName, CDAttributType.text, tname: CWSelectorType.provider.name)
-        .addAttr('behaviour', CDAttributType.one, tname: CWSelectorType.behaviour.name);        
+        .addAttr(iDProviderName, CDAttributType.text,
+            tname: CWSelectorType.provider.name)
+        .addAttr('behaviour', CDAttributType.one,
+            tname: CWSelectorType.behaviour.name);
 
     c.collection
         .addObject('CWColArrayConstraint')
@@ -66,7 +68,7 @@ class _CwArrayState extends StateCW<CWArray> {
 
   @override
   Widget build(BuildContext context) {
-    var provider = CWProvider.of(widget.ctx);
+    var provider = CWRepository.of(widget.ctx);
     //debugPrint('display provider ${provider!.name} hash = ${provider.getData().hashCode}');
     var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
@@ -227,11 +229,11 @@ class _CwArrayState extends StateCW<CWArray> {
     return listView;
   }
 
-  CWProvider? provider;
+  CWRepository? provider;
   List<Widget> _getRowBuilder(
       CWArrayRowState rowState, int nbCol, int idxRow, double maxWidth) {
     final List<Widget> listConts = [];
-    provider = CWProvider.of(widget.ctx);
+    provider = CWRepository.of(widget.ctx);
 
     for (var i = 0; i < nbCol; i++) {
       dynamic contentForKey = '';
@@ -319,7 +321,7 @@ class _CwArrayState extends StateCW<CWArray> {
 
 class DragColCtx {
   DragColCtx(this.provider, this.idxCol);
-  CWProvider? provider;
+  CWRepository? provider;
   int idxCol;
 }
 
@@ -422,7 +424,7 @@ class CwRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell (
+    return InkWell(
         // la row
         onTap: () {
           aCWRow.selected(aCWRow.stateArray.widget.ctx);

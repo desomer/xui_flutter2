@@ -7,15 +7,16 @@ import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/widget/cw_core_selector_overlay_action.dart';
 import 'package:xui_flutter/designer/action_manager.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/builder/prop_builder.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import '../designer/designer.dart';
-import 'cw_router.dart';
+import 'cw_app_router.dart';
 
 final log = Logger('CWApp');
 
@@ -81,6 +82,8 @@ class CWApp extends CWWidgetChild {
 
   @override
   void initSlot(String path) {
+    CWApplication.of().ctxApp = ctx;
+
     addSlotPath('root', SlotConfig('root'));
 
     var nb = nbBtnBottomNavBar();
@@ -177,8 +180,8 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
   }
 
   Widget getRouterWithCache(BuildContext context) {
-    var nb = widget.nbBtnBottomNavBar();
-    if (nb == 0) nb = 1;
+    var nbPage = widget.nbBtnBottomNavBar();
+    if (nbPage == 0) nbPage = 1;
 
     Color mainColor = widget.getColor('color') ??
         (widget.isDark() ? Colors.grey.shade900 : Colors.white);
@@ -196,30 +199,20 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     if (widget.listRoute.isEmpty || mustRepaint) {
       log.fine('create all routes');
       widget.listRoute.clear();
-      for (var i = 0; i < nb; i++) {
+      for (var i = 0; i < nbPage; i++) {
         var aRoute = getSubRoute(i == 0 ? '/' : '/route$i', (state) {
-          return ScaffoldResponsiveDrawer(
-              appBar: AppBar(
-                elevation: 0,
-                title: getTitle(i),
-                actions: getActions(i),
-              ),
-              body: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20)),
-                  child: Container(
-                      color: backgroundColor,
-                      child: Material(child: getBody(i)))));
+          return getWidgetPage('route$i', backgroundColor);
         });
+
         widget.listRoute.add(aRoute);
       }
     }
 
-    nb = widget.listAction.length;
+    nbPage = widget.listAction.length;
     widget.listAction.clear();
     for (var i = 0; i < widget.nbBtnBottomNavBar(); i++) {
-      widget.listAction.add(ActionLink('link $i', Icons.link, widget.ctx));
+      widget.listAction
+          .add(ActionLink('link $i', i == 0 ? '/' : '/route$i', widget.ctx));
     }
 
     //FocusScope.of(context).requestFocus(FocusNode());
@@ -227,7 +220,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
 
     if (routerWidgetCache == null ||
         CWApp.router == null ||
-        widget.listAction.length != nb ||
+        widget.listAction.length != nbPage ||
         mustRepaint) {
       String r = '/';
       if (CWApp.router != null) {
@@ -235,6 +228,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
         r = l.path;
       }
       final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
       log.fine('create GoRouter instance');
       CWApp.router = GoRouter(
           navigatorKey: rootNavigatorKey,
@@ -283,6 +277,20 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
 
     mustRepaint = false;
     return routerWidgetCache!;
+  }
+
+  ScaffoldResponsiveDrawer getWidgetPage(String id, Color backgroundColor) {
+    return ScaffoldResponsiveDrawer(
+        appBar: AppBar(
+          elevation: 0,
+          title: getTitle(id),
+          actions: getActions(id),
+        ),
+        body: ClipRRect(
+            borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+            child: Container(
+                color: backgroundColor, child: Material(child: getBody(id)))));
   }
 
   @override
@@ -334,14 +342,14 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     });
   }
 
-  Widget getTitle(int idx) {
+  Widget getTitle(String idx) {
     return CWSlot(
         type: 'appbar',
         key: GlobalKey(debugLabel: 'slot appbar'),
         ctx: widget.createChildCtx(widget.ctx, 'AppBar$idx', null));
   }
 
-  List<Widget> getActions(int idx) {
+  List<Widget> getActions(String idx) {
     var createChildCtx =
         widget.createChildCtx(widget.ctx, 'AppBarAct$idx', null);
 
@@ -369,14 +377,14 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     return ret;
   }
 
-  Widget getBody(int idx) {
+  Widget getBody(String id) {
     if (widget.isFill()) {
       return Column(children: [
         Expanded(
             child: CWSlot(
                 type: 'body',
                 key: GlobalKey(debugLabel: 'slot body'),
-                ctx: widget.createChildCtx(widget.ctx, 'Body$idx', null),
+                ctx: widget.createChildCtx(widget.ctx, 'Body$id', null),
                 slotAction: SlotBodyAction()))
       ]);
     } else {
@@ -391,7 +399,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
               CWSlot(
                   type: 'body',
                   key: GlobalKey(debugLabel: 'slot body'),
-                  ctx: widget.createChildCtx(widget.ctx, 'Body$idx', null),
+                  ctx: widget.createChildCtx(widget.ctx, 'Body$id', null),
                   slotAction: SlotBodyAction())
             ]),
           ));

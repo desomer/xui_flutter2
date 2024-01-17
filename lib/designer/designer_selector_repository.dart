@@ -2,25 +2,25 @@ import 'package:animated_tree_view/animated_tree_view.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'designer_selector_query.dart';
 
-class DesignerProvider extends CWWidgetMapProvider {
-  const DesignerProvider({super.key, required super.ctx, this.bindWidget});
+class DesignerRepository extends CWWidgetMapRepository {
+  const DesignerRepository({super.key, required super.ctx, this.bindWidget});
   final CWBindWidget? bindWidget;
 
   @override
-  State<DesignerProvider> createState() => _DesignerProviderState();
+  State<DesignerRepository> createState() => _DesignerProviderState();
 
   @override
   void initSlot(String path) {}
 }
 
-class _DesignerProviderState extends State<DesignerProvider> {
+class _DesignerProviderState extends State<DesignerRepository> {
   TreeViewController? _controller;
-  late IndexedTreeNode<CWProvider> nodesRemovedIndexedTree;
+  late IndexedTreeNode<CWRepository> nodesRemovedIndexedTree;
   // late CWProvider provider;
 
   @override
@@ -36,7 +36,7 @@ class _DesignerProviderState extends State<DesignerProvider> {
   }
 
   Widget getTree() {
-    return TreeView.indexTyped<CWProvider, IndexedTreeNode<CWProvider>>(
+    return TreeView.indexTyped<CWRepository, IndexedTreeNode<CWRepository>>(
         builder: (context, node) {
           return getCell(node);
         },
@@ -83,7 +83,7 @@ class _DesignerProviderState extends State<DesignerProvider> {
     return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy - 5);
   }
 
-  Widget getDrag(IndexedTreeNode<CWProvider> node, Widget child) {
+  Widget getDrag(IndexedTreeNode<CWRepository> node, Widget child) {
     return Draggable<DragQueryCtx>(
         dragAnchorStrategy: dragAnchorStrategy,
         onDragStarted: () {
@@ -98,7 +98,7 @@ class _DesignerProviderState extends State<DesignerProvider> {
         child: child);
   }
 
-  Container getCell(IndexedTreeNode<CWProvider> node) {
+  Container getCell(IndexedTreeNode<CWRepository> node) {
     Widget cell;
     if (node.level == 0) {
       cell = const Text('Result');
@@ -112,12 +112,12 @@ class _DesignerProviderState extends State<DesignerProvider> {
         child: Row(children: [Expanded(child: cell)]));
   }
 
-  IndexedTreeNode<CWProvider> getTreeData() {
-    var nodesRemovedIndexedTree = IndexedTreeNode<CWProvider>.root();
+  IndexedTreeNode<CWRepository> getTreeData() {
+    var nodesRemovedIndexedTree = IndexedTreeNode<CWRepository>.root();
 
     var factory = CWApplication.of().loaderDesigner.factory;
 
-    for (CWProvider aNode in factory.mapProvider.values) {
+    for (CWRepository aNode in factory.mapRepository.values) {
       nodesRemovedIndexedTree.add(IndexedTreeNode(key: aNode.id, data: aNode));
     }
 

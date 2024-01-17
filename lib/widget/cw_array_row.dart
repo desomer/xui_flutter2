@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
 
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'cw_array.dart';
 import 'cw_list.dart';
@@ -30,8 +30,8 @@ class CWArrayRow extends StatefulWidget {
 
   void selected(CWWidgetCtx ctx) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
-    ctxWE.action = CWProviderAction.onRowSelected.toString();
-    CWProvider? provider = CWProvider.of(stateArray.widget.ctx);
+    ctxWE.action = CWRepositoryAction.onRowSelected.toString();
+    CWRepository? provider = CWRepository.of(stateArray.widget.ctx);
     log.fine('selected row $rowIdx');
     if (provider != null) {
       ctxWE.provider = provider;
@@ -40,7 +40,7 @@ class CWArrayRow extends StatefulWidget {
       if (provider.getData().idxSelected != rowIdx) {
         provider.getData().idxSelected = rowIdx;
         provider.displayRenderingMode = DisplayRenderingMode.selected;
-        provider.doAction(ctx, ctxWE, CWProviderAction.onRowSelected);
+        provider.doAction(ctx, ctxWE, CWRepositoryAction.onRowSelected);
       }
     }
   }
@@ -82,8 +82,8 @@ class CWArrayRowState extends State<CWArrayRow> {
           ),
           IgnorePointer(child: LayoutBuilder(
             builder: (context, constraints) {
-              CWProvider? provider =
-                  CWProvider.of(widget.stateArray.widget.ctx);
+              CWRepository? provider =
+                  CWRepository.of(widget.stateArray.widget.ctx);
 
               //debugPrint('get array provider ${provider!.name} hash = ${provider.getData().hashCode}');
 

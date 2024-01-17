@@ -7,7 +7,7 @@ import 'package:xui_flutter/designer/designer.dart';
 import '../core/data/core_data_filter.dart';
 import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/store/driver.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../widget/cw_array.dart';
@@ -43,10 +43,10 @@ class WidgetFilterbuilder extends StatefulWidget {
 
   void setFilterOnData(String? idModel) {
     if (idModel != null) {
-      CWProvider providerData = CWApplication.of().dataProvider;
+      CWRepository providerData = CWApplication.of().dataProvider;
       providerData.type = idModel;
       CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-      dataLoader.setCacheViewID(providerData.getProviderCacheID(),
+      dataLoader.setCacheViewID(providerData.getRepositoryCacheID(),
           onTable: idModel); // choix de la map a afficher
       if (providerData.loader!.getFilter() == null) {
         var aFilter = CoreDataFilter();
@@ -109,11 +109,10 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
               visible: listGroupWidget.isNotEmpty,
               child: IconButton(
                   onPressed: () async {
-                    await CoreGlobalCache.saveCache(
-                        CWApplication.of().dataProvider);
-                    await CoreGlobalCache.saveCache(
-                        CWApplication.of().dataModelProvider);
-                    CWApplication.of().refreshData();
+                    var app = CWApplication.of();
+                    await CoreGlobalCache.saveCache(app.dataProvider);
+                    await CoreGlobalCache.saveCache(app.dataModelProvider);
+                    app.refreshData();
                   },
                   icon: const Icon(Icons.search_rounded)))
         ]));
@@ -164,7 +163,7 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
 
                 await saveFilter(context);
 
-                CWProvider providerData = CWApplication.of().dataProvider;
+                CWRepository providerData = CWApplication.of().dataProvider;
                 // recharge un filter vide
                 providerData.loader!.setFilter(providerData, null);
                 setState(() {});

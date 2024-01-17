@@ -6,13 +6,13 @@ import 'package:xui_flutter/db_icon_icons.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_data_filter.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
 import 'widget_filter_builder.dart';
 
-class DesignerQuery extends CWWidgetMapProvider {
+class DesignerQuery extends CWWidgetMapRepository {
   const DesignerQuery(
       {required this.mode, super.key, required super.ctx, this.listBindWidget});
 
@@ -31,12 +31,12 @@ final log = Logger('DesignerQuery');
 class _DesignerQueryState extends State<DesignerQuery> {
   TreeViewController? _controller;
   late IndexedTreeNode<CoreDataEntity> nodesRemovedIndexedTree;
-  late CWProvider provider;
+  late CWRepository provider;
 
   @override
   void initState() {
     super.initState();
-    provider = CWProvider.of(widget.ctx)!;
+    provider = CWRepository.of(widget.ctx)!;
     for (CWBindWidget element in widget.listBindWidget ?? []) {
       element.masterProvider = provider;
     }
@@ -47,7 +47,7 @@ class _DesignerQueryState extends State<DesignerQuery> {
     var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
     Widget getContent(int ok) {
-      var provider = CWProvider.of(widget.ctx);
+      var provider = CWRepository.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
       nodesRemovedIndexedTree = getTreeData();
       return getTree();

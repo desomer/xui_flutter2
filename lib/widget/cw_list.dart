@@ -4,18 +4,18 @@ import 'package:flutter/scheduler.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/builder/array_builder.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import '../designer/designer.dart';
 import '../designer/designer_selector_query.dart';
 import 'cw_array_row.dart';
 import 'cw_toolkit.dart';
 
 // ignore: must_be_immutable
-class CWList extends CWWidgetMapProvider {
+class CWList extends CWWidgetMapRepository {
   CWList({super.key, required super.ctx});
 
   @override
@@ -142,7 +142,7 @@ class _CwListState extends StateCW<CWList> {
   }
 
   Widget getListView(int nbRow) {
-    CWProvider? provider = CWProvider.of(widget.ctx);
+    CWRepository? provider = CWRepository.of(widget.ctx);
 
     if (nbRow == -1) {
       return getDropQuery(50);
@@ -201,10 +201,10 @@ class _CwListState extends StateCW<CWList> {
   @override
   Widget build(BuildContext context) {
     var futureData =
-        widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
+        widget.initFutureDataOrNot(CWRepository.of(widget.ctx), widget.ctx);
 
     Widget getContent(int ok) {
-      var provider = CWProvider.of(widget.ctx);
+      var provider = CWRepository.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
       return Stack(key: keyListOrigin, children: [
         getListView(ok),
@@ -254,7 +254,7 @@ class _CWListSelectorState extends State<CWListSelector> {
 //---------------------------------------------------------------
 class InheritedStateContainer extends InheritedWidget {
   // Data is your entire state.
-  final StateCW<CWWidgetMapProvider> arrayState;
+  final StateCW<CWWidgetMapRepository> arrayState;
   final CWArrayRowState? rowState;
   final int? index;
 
@@ -275,8 +275,8 @@ class InheritedStateContainer extends InheritedWidget {
 
   void selected(CWWidgetCtx ctx) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
-    ctxWE.action = CWProviderAction.onRowSelected.toString();
-    CWProvider? provider = CWProvider.of(arrayState.widget.ctx);
+    ctxWE.action = CWRepositoryAction.onRowSelected.toString();
+    CWRepository? provider = CWRepository.of(arrayState.widget.ctx);
     //print('selected row $index');
     if (provider != null) {
       ctxWE.provider = provider;
@@ -284,7 +284,7 @@ class InheritedStateContainer extends InheritedWidget {
       ctxWE.loader = arrayState.widget.ctx.loader;
       if (provider.getData().idxSelected != index) {
         provider.getData().idxSelected = index!;
-        provider.doAction(ctx, ctxWE, CWProviderAction.onRowSelected);
+        provider.doAction(ctx, ctxWE, CWRepositoryAction.onRowSelected);
         if (arrayState is _CwListState) {
           // affiche la ligne selectionné
           (arrayState as _CwListState).changeObserve(key as GlobalKey);

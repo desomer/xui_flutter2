@@ -3,7 +3,7 @@ import 'package:xui_flutter/core/data/core_data_filter.dart';
 import 'package:xui_flutter/core/data/core_data_loader.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -16,17 +16,16 @@ class DesignerData extends StatefulWidget {
   ArrayBuilder? arrayBuilder;
 
   DesignerData({super.key, required this.bindWidget}) {
-    
     bindWidget.fctBindNested = (CoreDataEntity item) {
       var app = CWApplication.of();
       CoreDataFilter filter = CoreDataFilter()..setFilterData(item);
       var modelID = filter.getModelID();
       tableEntity = app.getTableModelByID(modelID);
-      CWProvider providerData = app.dataProvider;
+      CWRepository providerData = app.dataProvider;
       if (filter.isFilter()) {
         providerData.type = modelID;
         CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-        dataLoader.setCacheViewID(providerData.getProviderCacheID(),
+        dataLoader.setCacheViewID(providerData.getRepositoryCacheID(),
             onTable: modelID); // choix de la map a afficher
         providerData.setFilter(filter);
       } else {
@@ -35,7 +34,7 @@ class DesignerData extends StatefulWidget {
 
       CWAppLoaderCtx loader = CWApplication.of().loaderData;
       CWApplication.of().initDataModelWithAttr(loader, tableEntity!);
-      CWProvider provider =
+      CWRepository provider =
           CWApplication.of().getDataProvider(loader, tableEntity!);
 
       arrayBuilder = ArrayBuilder(loaderCtx: loader, provider: provider);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/designer/designer.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_data_query.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
@@ -88,8 +88,7 @@ class OnSelectModel extends CoreDataAction {
   @override
   void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     var app = CWApplication.of();
-    CoreGlobalCache.saveCache(app.dataProvider);
-    CoreGlobalCache.saveCache(app.dataModelProvider);
+    CoreDesigner.emit(CDDesignEvent.saveModel, null);  
 
     var selectedModel = event!.provider?.getSelectedEntity();
     _changeLabelOnAttr(selectedModel!);

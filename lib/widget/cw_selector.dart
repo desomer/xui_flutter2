@@ -8,8 +8,8 @@ import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/widget/cw_container_form.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
-import '../designer/cw_factory.dart';
+import '../core/data/core_repository.dart';
+import '../core/widget/cw_factory.dart';
 import '../designer/designer_selector_behaviour.dart';
 import 'cw_action.dart';
 
@@ -95,7 +95,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
 
   Tooltip getBindBtn(BuildContext context) {
     String nameAttr = '';
-    var provider = CWProvider.of(widget.ctx);
+    var provider = CWRepository.of(widget.ctx);
     var e = provider?.getDisplayedEntity();
     var v = e?.value[widget.ctx.designEntity!.value[iDBind]];
     if (v != null) {
@@ -328,8 +328,8 @@ class _CWSelectorState extends StateCW<CWSelector> {
   List<Widget> getProviderContent() {
     String provID = widget.getMapString();
 
-    CWProvider? provider =
-        CWApplication.of().loaderDesigner.factory.mapProvider[provID];
+    CWRepository? provider =
+        CWApplication.of().loaderDesigner.factory.mapRepository[provID];
 
     var data = provider?.getQueryName() ?? 'no provider';
     return [

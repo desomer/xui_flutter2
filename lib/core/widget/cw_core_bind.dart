@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
 
-import '../data/core_provider.dart';
+import '../data/core_repository.dart';
 
 enum ModeBindWidget { selected }
 
@@ -10,7 +10,7 @@ class CWBindWidget {
 
   String id;
   State? nestedWidgetState;
-  CWProvider? masterProvider;
+  CWRepository? masterProvider;
   ModeBindWidget modeBindWidget;
   Function(CoreDataEntity)? fctBindNested;
   CoreDataEntity? currentEntity;
@@ -23,10 +23,10 @@ class CWBindWidget {
   }
 
   void rebindNested() {
-    if (currentEntity!=null && fctBindNested != null) {
+    if (currentEntity != null && fctBindNested != null) {
       fctBindNested!(currentEntity!);
     }
-  }  
+  }
 
   void onSelect(CoreDataEntity item) {
     if (modeBindWidget == ModeBindWidget.selected) {
@@ -39,7 +39,7 @@ class CWBindWidget {
   }
 
   void repaint() {
-    if (currentEntity!=null && !(nestedWidgetState?.mounted ?? true)) {
+    if (currentEntity != null && !(nestedWidgetState?.mounted ?? true)) {
       // changement du state si rebuild du nested
       bindNested(currentEntity!);
     }

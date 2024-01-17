@@ -3,8 +3,9 @@ import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/builder/form_builder.dart';
 
-import '../../core/data/core_provider.dart';
+import '../../core/data/core_repository.dart';
 import '../../core/widget/cw_core_loader.dart';
+import '../../core/widget/cw_core_styledbox.dart';
 import '../../core/widget/cw_core_widget.dart';
 import '../../widget/cw_selector.dart';
 import '../designer.dart';
@@ -43,7 +44,7 @@ class StyleBuilder {
       designEntity ??= PropBuilder.getEmptyEntity(aCtx.loader, dCtx);
       aCtx.designEntity = designEntity;
 
-      Map<String, dynamic>? aStyle = aCtx.designEntity?.value['_style_'];
+      Map<String, dynamic>? aStyle = aCtx.designEntity?.value[iDStyle];
       CoreDataEntity styleEntity;
       if (aStyle == null) {
         styleEntity = app.collection.createEntityByJson('StyleModel', {});
@@ -52,13 +53,14 @@ class StyleBuilder {
         styleEntity.operation = CDAction.read;
       }
 
-      var provider = CWProvider(
-          'styleProvider', styleEntity.type, CWProviderDataSelector.noLoader())
+      var provider = CWRepository('styleProvider', styleEntity.type,
+          CWRepositoryDataSelector.noLoader())
         ..addContent(styleEntity);
 
-      provider.addAction(CWProviderAction.onValueChanged,
+      provider.addAction(CWRepositoryAction.onValueChanged,
           MapDesignStyle(dCtx, designEntity, styleEntity));
-      provider.addAction(CWProviderAction.onValueChanged, RefreshDesign(dCtx));
+      provider.addAction(
+          CWRepositoryAction.onValueChanged, RefreshDesign(dCtx));
 
       //------------------------------------------------------------------
       initAlignment(aCtx, provider);
@@ -73,9 +75,9 @@ class StyleBuilder {
     }
   }
 
-  void initPadding(CWWidgetCtx ctx, CWProvider provider) {
+  void initPadding(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addProvider(provider);
+    ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
         AttrFormLoader('rootBody0', ctxLoader, 'Padding', provider, true);
@@ -112,9 +114,9 @@ class StyleBuilder {
     listStyle.add(loader.getWidget('root', 'root'));
   }
 
-  void initMargin(CWWidgetCtx ctx, CWProvider provider) {
+  void initMargin(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addProvider(provider);
+    ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
         AttrFormLoader('rootBody0', ctxLoader, 'Margin', provider, true);
@@ -151,9 +153,9 @@ class StyleBuilder {
     listStyle.add(loader.getWidget('root', 'root'));
   }
 
-  void initBorder(CWWidgetCtx ctx, CWProvider provider) {
+  void initBorder(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addProvider(provider);
+    ctxLoader.addRepository(provider);
 
     AttrFormLoader loader = AttrFormLoader(
         'rootBody0', ctxLoader, 'Border & Elevation', provider, true);
@@ -191,9 +193,9 @@ class StyleBuilder {
     listStyle.add(loader.getWidget('root', 'root'));
   }
 
-  void initAlignment(CWWidgetCtx ctx, CWProvider provider) {
+  void initAlignment(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addProvider(provider);
+    ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
         AttrFormLoader('rootBody0', ctxLoader, 'Alignment', provider, true);
@@ -222,9 +224,9 @@ class StyleBuilder {
     listStyle.add(loader.getWidget('root', 'root'));
   }
 
-  void initBackground(CWWidgetCtx ctx, CWProvider provider) {
+  void initBackground(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addProvider(provider);
+    ctxLoader.addRepository(provider);
 
     AttrFormLoader loader = AttrFormLoader(
         'root', ctxLoader, 'Background', provider, true,
@@ -255,9 +257,9 @@ class StyleBuilder {
     listStyle.add(tab);
   }
 
-  void initText(CWWidgetCtx ctx, CWProvider provider) {
+  void initText(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addProvider(provider);
+    ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
         AttrFormLoader('rootBody0', ctxLoader, 'Text', provider, true);

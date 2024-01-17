@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 
 class CWTab extends CWWidget {
   const CWTab({

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 
 /// gestion d'un loader (utiliser dans les AttrListLooader)
-class CWLoader extends CWWidgetMapProvider {
+class CWLoader extends CWWidgetMapRepository {
   const CWLoader({super.key, required super.ctx});
 
   @override
@@ -28,10 +28,10 @@ class _CwLoaderState extends StateCW<CWLoader> {
   @override
   Widget build(BuildContext context) {
     var futureData =
-        widget.initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
+        widget.initFutureDataOrNot(CWRepository.of(widget.ctx), widget.ctx);
 
     Widget getContent(int ok) {
-      var provider = CWProvider.of(widget.ctx);
+      var provider = CWRepository.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
       return CWSlot(
           type: 'body',

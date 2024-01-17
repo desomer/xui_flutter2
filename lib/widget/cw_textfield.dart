@@ -8,10 +8,9 @@ import 'package:xui_flutter/widget/cw_array_row.dart';
 import 'package:xui_flutter/widget/cw_array_cell.dart';
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import 'cw_container_form.dart';
 import 'cw_list.dart';
-import 'cw_selector.dart';
 
 class CWTextfield extends CWWidgetMapValue {
   const CWTextfield({
@@ -34,8 +33,7 @@ class CWTextfield extends CWWidgetMapValue {
         .withAction(AttrActionDefault(true))
         .addAttr('label', CDAttributType.text)
         .addCustomValue('bindEnable', true)
-        .addAttr('type', CDAttributType.text)
-        .addAttr('_style_', CDAttributType.one, tname: CWSelectorType.style.name);
+        .addAttr('type', CDAttributType.text);
   }
 
   String? getLabelNull() {

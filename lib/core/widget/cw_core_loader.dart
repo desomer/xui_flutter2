@@ -1,7 +1,7 @@
-import 'package:xui_flutter/core/data/core_provider.dart';
+import 'package:xui_flutter/core/data/core_repository.dart';
 
 import '../data/core_data.dart';
-import '../../designer/cw_factory.dart';
+import 'cw_factory.dart';
 import 'cw_core_widget.dart';
 
 abstract class CWWidgetLoader {
@@ -19,8 +19,8 @@ abstract class CWWidgetLoader {
     return ctxLoader.collectionWidget;
   }
 
-  CWProvider? getProvider(String name) {
-    return ctxLoader.factory.mapProvider[name];
+  CWRepository? getRepository(String name) {
+    return ctxLoader.factory.mapRepository[name];
   }
 
   void setRoot(String xid, String implement) {
@@ -122,8 +122,8 @@ class CWAppLoaderCtx {
     factory = WidgetFactoryEventHandler(this);
   }
 
-  CWProvider? getProvider(String name) {
-    return factory.mapProvider[name];
+  CWRepository? getProvider(String name) {
+    return factory.mapRepository[name];
   }
 
   CWWidgetCtx? findByXid(String name) {
@@ -174,8 +174,8 @@ class CWAppLoaderCtx {
     return constraint;
   }
 
-  void addProvider(CWProvider provider) {
-    factory.mapProvider[provider.id] = provider;
+  void addRepository(CWRepository provider) {
+    factory.mapRepository[provider.id] = provider;
   }
 }
 

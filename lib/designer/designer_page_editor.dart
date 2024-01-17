@@ -5,7 +5,7 @@ import 'package:xui_flutter/designer/designer_selector_style.dart';
 import 'package:xui_flutter/designer/widget_filter_builder.dart';
 
 import '../core/data/core_data_filter.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/store/driver.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_selector_overlay_action.dart';
@@ -13,12 +13,12 @@ import '../core/widget/cw_core_widget.dart';
 import '../db_icon_icons.dart';
 import '../test_loader.dart';
 import 'application_manager.dart';
-import 'cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import 'designer.dart';
 import 'designer_selector_component.dart';
 import 'designer_selector_pages.dart';
 import 'designer_selector_properties.dart';
-import 'designer_selector_provider.dart';
+import 'designer_selector_repository.dart';
 import 'designer_selector_query.dart';
 import 'selector_manager.dart';
 import 'widget/widget_tab.dart';
@@ -98,7 +98,7 @@ class DesignerEditor extends StatelessWidget {
             ],
             listTabCont: [
               getComponetPanel(),
-              DesignerPages(ctx: ctxPages),
+              DesignerPages(ctx: ctxPages, key : CoreDesigner.of().pagesKey),
               Column(
                 children: [
                   Expanded(
@@ -144,7 +144,7 @@ class DesignerEditor extends StatelessWidget {
           scrollDirection: Axis.vertical,
           child: SizedBox(
               height: constraints.maxHeight - 45,
-              child: DesignerProvider(
+              child: DesignerRepository(
                   key: CoreDesigner.of().providerKey, ctx: ctxResult))));
 
       listTabCont.add(SingleChildScrollView(

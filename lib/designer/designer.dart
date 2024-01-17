@@ -14,11 +14,11 @@ import 'package:xui_flutter/designer/widget/widget_tab.dart';
 import 'package:xui_flutter/widget/cw_breadcrumb.dart';
 
 import '../core/data/core_data_query.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/store/driver.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../db_icon_icons.dart';
-import 'cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import 'designer_model_list.dart';
 import 'designer_model_attribut.dart';
 import 'designer_model_data.dart';
@@ -31,7 +31,7 @@ import 'widget/widget_preview.dart';
 import 'designer_selector_attribut.dart';
 import 'widget_filter_builder.dart';
 
-enum CDDesignEvent { select, reselect, preview, save, clear }
+enum CDDesignEvent { select, reselect, preview, savePage, clear, saveModel }
 
 final log = Logger('CoreDesigner');
 
@@ -42,7 +42,13 @@ class CoreDesigner extends StatefulWidget {
 
     log.fine('init event listener');
 
-    CoreDesigner.on(CDDesignEvent.save, (arg) async {
+    CoreDesigner.on(CDDesignEvent.saveModel, (arg) async {
+      var app = CWApplication.of();
+      await CoreGlobalCache.saveCache(app.dataModelProvider);
+      await CoreGlobalCache.saveCache(app.dataProvider);
+    });
+
+    CoreDesigner.on(CDDesignEvent.savePage, (arg) async {
       log.fine('save action');
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
       storage?.setData('#pages', CoreDesigner.ofLoader().cwFactory.value);
@@ -105,6 +111,7 @@ class CoreDesigner extends StatefulWidget {
 
   final GlobalKey dataFilterKey = GlobalKey(debugLabel: 'dataFilterKey');
   final GlobalKey navCmpKey = GlobalKey(debugLabel: 'navCmpKey');
+  final GlobalKey pagesKey = GlobalKey(debugLabel: 'pagesKey');
 
   final _eventListener = EventListener();
   final editor = DesignerEditor();
@@ -190,7 +197,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                   InkWell(
                     child: const Icon(size: 25, Icons.save),
                     onTap: () {
-                      CoreDesigner.emit(CDDesignEvent.save, null);
+                      CoreDesigner.emit(CDDesignEvent.savePage, null);
                     },
                   ),
                   const SizedBox(width: 20),
@@ -284,10 +291,10 @@ class _CoreDesignerState extends State<CoreDesigner>
         a.addListener(() async {
           if (a.indexIsChanging) {
             log.fine('change data tab ${a.index}');
-            await CoreGlobalCache.saveCache(CWApplication.of().dataProvider);
-            await CoreGlobalCache.saveCache(
-                CWApplication.of().dataModelProvider);
-            CWApplication.of().refreshData();
+            var app = CWApplication.of();
+            await CoreGlobalCache.saveCache(app.dataProvider);
+            await CoreGlobalCache.saveCache(app.dataModelProvider);
+            app.refreshData();
 
             if (a.index == 1) {
               // re creer le tableau de data en fonction des changements du model

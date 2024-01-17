@@ -1,10 +1,10 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
-import 'package:xui_flutter/designer/cw_factory.dart';
+import 'package:xui_flutter/core/widget/cw_factory.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../designer/action_manager.dart';
@@ -213,13 +213,14 @@ class CWColumnState extends StateCW<CWColumn>
   }
 
   Widget buildProvider(BuildContext context) {
-    var futureData = initFutureDataOrNot(CWProvider.of(widget.ctx), widget.ctx);
+    var futureData =
+        initFutureDataOrNot(CWRepository.of(widget.ctx), widget.ctx);
 
     dynamic getContent(int ok) {
-      CWProvider? provider = CWProvider.of(widget.ctx);
+      CWRepository? provider = CWRepository.of(widget.ctx);
       setProviderDataOK(provider, ok);
       provider?.addAction(
-          CWProviderAction.onRowSelected, ActionRepaint(widget.ctx));
+          CWRepositoryAction.onRowSelected, ActionRepaint(widget.ctx));
       return getWidget();
     }
 

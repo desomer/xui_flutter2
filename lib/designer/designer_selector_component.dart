@@ -32,6 +32,8 @@ class ComponentDesc {
       CardComponents('Input', [
         ComponentDesc('Text', Icons.text_fields, 'CWTextfield'),
         ComponentDesc('Switch', Icons.toggle_on, 'CWSwitch'),
+        ComponentDesc('Dropdown', Icons.checklist_rounded, 'CWDropdown'),
+        
       ]),
     ];
   }

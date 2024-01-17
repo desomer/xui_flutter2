@@ -1,7 +1,7 @@
 import 'package:logging/logging.dart';
 
 import 'core_data.dart';
-import 'core_provider.dart';
+import 'core_repository.dart';
 
 final log = Logger('CoreGlobalCache');
 
@@ -9,8 +9,8 @@ class CoreGlobalCache {
   static final Map<String, int> cacheNbData = {};
   static final Map<String, List<CoreDataEntity>> cacheDataValue = {};
 
-  static void setCache(CWProvider provider, int nbrow) {
-    String idCache = provider.getProviderCacheID();
+  static void setCache(CWRepository provider, int nbrow) {
+    String idCache = provider.getRepositoryCacheID();
     cacheNbData[idCache] = nbrow;
     if (nbrow == -1) {
       log.finer('save cache on bdd <$idCache> with $nbrow rows');
@@ -20,8 +20,8 @@ class CoreGlobalCache {
     }
   }
 
-  static Future<void> saveCache(CWProvider provider) async {
-    String idCache = provider.getProviderCacheID();
+  static Future<void> saveCache(CWRepository provider) async {
+    String idCache = provider.getRepositoryCacheID();
     List<CoreDataEntity> contentDeleted = [];
     List<dynamic> contentToSave = [];
     List<dynamic> contentToDelete = [];
@@ -50,14 +50,15 @@ class CoreGlobalCache {
     }
   }
 
-  static void setCacheValue(CWProvider provider, List<CoreDataEntity> rows) {
-    String idCache = provider.getProviderCacheID();
+  static void setCacheValue(CWRepository provider, List<CoreDataEntity> rows) {
+    String idCache = provider.getRepositoryCacheID();
     cacheDataValue[idCache] = rows;
-    log.finer('set cache value <$idCache> with ${rows.length} json; nb Cache = ${cacheDataValue.length}');
+    log.finer(
+        'set cache value <$idCache> with ${rows.length} json; nb Cache = ${cacheDataValue.length}');
   }
 
-  static void notifNewRow(CWProvider provider) {
-    String idCache = provider.getProviderCacheID();
+  static void notifNewRow(CWRepository provider) {
+    String idCache = provider.getRepositoryCacheID();
     int v = cacheNbData[idCache]!;
     cacheNbData[idCache] = v + 1;
   }

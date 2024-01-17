@@ -3,12 +3,14 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../widget/cw_app_router.dart';
 import 'application_manager.dart';
+import 'designer.dart';
 
-class DesignerPages extends CWWidgetMapProvider {
+class DesignerPages extends CWWidgetMapRepository {
   const DesignerPages({super.key, required super.ctx});
 
   @override
@@ -21,12 +23,12 @@ class DesignerPages extends CWWidgetMapProvider {
 class _DesignerPagesState extends State<DesignerPages> {
   TreeViewController? _controller;
   late IndexedTreeNode<CoreDataEntity> nodesRemovedIndexedTree;
-  late CWProvider provider;
+  late CWRepository provider;
 
   @override
   void initState() {
     super.initState();
-    provider = CWProvider.of(widget.ctx)!;
+    provider = CWRepository.of(widget.ctx)!;
   }
 
   @override
@@ -34,7 +36,7 @@ class _DesignerPagesState extends State<DesignerPages> {
     var futureData = widget.initFutureDataOrNot(provider, widget.ctx);
 
     Widget getContent(int ok) {
-      var provider = CWProvider.of(widget.ctx);
+      var provider = CWRepository.of(widget.ctx);
       widget.setProviderDataOK(provider, ok);
       nodesRemovedIndexedTree = getTreeData();
       return getTree();
@@ -117,18 +119,8 @@ class _DesignerPagesState extends State<DesignerPages> {
               child: InkWell(
                   onTap: () {
                     setState(() {
-                      var app = CWApplication.of();
-                      var createEntityByJson = app.collection
-                          .createEntityByJson('PageModel', {'name': 'NewPage'});
-                      (node.data?.value['on'] as CoreDataEntity).addMany(
-                          app.loaderDesigner, 'subPages', createEntityByJson);
-                      //app.pagesProvider.addContent(createEntityByJson);
+                      addPage(node);
                     });
-
-                    // CoreDesigner.ofLoader().addWidget('root',
-                    //     'page_${provider.id}', 'CWPage', <String, dynamic>{
-                    //   'type': provider.type,
-                    // });
                   },
                   child: DottedBorder(
                       color: Colors.grey,
@@ -141,7 +133,18 @@ class _DesignerPagesState extends State<DesignerPages> {
                       )))))
         ]);
       } else {
-        cell = getDrag(node, Text('${node.data?.value['name']}'));
+        cell = getDrag(
+            node,
+            Row(children: [
+              Text('${node.data?.value['name']}'),
+              const Spacer(),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
+                  child: InkWell(
+                    child: const Icon(Icons.visibility),
+                    onTap: () {},
+                  )),
+            ]));
       }
     }
 
@@ -149,6 +152,37 @@ class _DesignerPagesState extends State<DesignerPages> {
         margin: const EdgeInsets.fromLTRB(25, 0, 0, 0),
         constraints: const BoxConstraints(minHeight: 25),
         child: Row(children: [Expanded(child: cell)]));
+  }
+
+  void initPage(CWApplication app, CoreDataEntity aNode) {
+    app.loaderDesigner.factory.listPages.add(
+        ActionLink(aNode.value['name'], aNode.value['route'], app.ctxApp!));
+
+    var listSubPage = aNode.getManyEntity(app.collection, 'subPages') ?? [];
+
+    for (var aSubPage in listSubPage) {
+      initPage(app, aSubPage);
+    }
+  }
+
+  void addPage(IndexedTreeNode<CoreDataEntity> node) {
+    var app = CWApplication.of();
+
+    var createEntityByJson =
+        app.collection.createEntityByJson('PageModel', {'name': 'NewPage'});
+
+    createEntityByJson.value['route'] =
+        '/page${createEntityByJson.value['_id_']}';
+
+    (node.data?.value['on'] as CoreDataEntity)
+        .addMany(app.loaderDesigner, 'subPages', createEntityByJson);
+
+    CoreDesigner.ofLoader()
+        .addWidget('root', 'page_${provider.id}', 'CWPage', <String, dynamic>{
+      'type': 'page',
+    });
+    app.loaderDesigner.factory.listPages.clear();
+    initPage(app, app.pagesProvider.getEntityByIdx(0));
   }
 
   IndexedTreeNode<CoreDataEntity> getTreeData() {
@@ -182,7 +216,8 @@ class _DesignerPagesState extends State<DesignerPages> {
     CoreDataEntity ent = CWApplication.of().collection.createEntityByJson(
         'PageModel', {'_id_': 'add', 'name': 'add', 'on': aNode});
 
-    indexedTreeNode.add(IndexedTreeNode(key: aNode.value['_id_']+'#add', data: ent));
+    indexedTreeNode
+        .add(IndexedTreeNode(key: aNode.value['_id_'] + '#add', data: ent));
   }
 }
 

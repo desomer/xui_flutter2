@@ -7,19 +7,21 @@ import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
 
-import '../core/widget/cw_core_loader.dart';
-import '../widget/cw_container.dart';
-import '../widget/cw_decorator.dart';
-import '../widget/cw_expand_panel.dart';
-import '../core/data/core_data.dart';
-import '../core/data/core_event.dart';
-import '../widget/cw_container_form.dart';
-import '../widget/cw_app.dart';
-import '../widget/cw_toogle.dart';
-import '../widget/cw_list.dart';
-import '../widget/cw_tab.dart';
-import '../core/data/core_provider.dart';
-import '../core/widget/cw_core_widget.dart';
+import '../../widget/cw_app_router.dart';
+import 'cw_core_loader.dart';
+import '../../widget/cw_container.dart';
+import '../../widget/cw_decorator.dart';
+import '../../widget/cw_dropdown.dart';
+import '../../widget/cw_expand_panel.dart';
+import '../data/core_data.dart';
+import '../data/core_event.dart';
+import '../../widget/cw_container_form.dart';
+import '../../widget/cw_app.dart';
+import '../../widget/cw_toogle.dart';
+import '../../widget/cw_list.dart';
+import '../../widget/cw_tab.dart';
+import '../data/core_repository.dart';
+import 'cw_core_widget.dart';
 
 class CWWidgetCollectionBuilder {
   CWWidgetCollectionBuilder() {
@@ -53,6 +55,7 @@ class CWWidgetCollectionBuilder {
     CWSelector.initFactory(this);
     CWDecorator.initFactory(this);
     CWToogle.initFactory(this);
+    CWDropdown.initFactory(this);
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -75,14 +78,14 @@ class CWWidgetCollectionBuilder {
         .addAttr('implement', CDAttributType.text);
 
     addWidget('CWProvider', (CWWidgetCtx ctx) {
-      return CWProviderCtx(ctx);
+      return CWRepositoryCtx(ctx);
     })
         .addAttr('type', CDAttributType.text)
         .addAttr(iDProviderName, CDAttributType.text);
 
     addWidget('CWPage', (CWWidgetCtx ctx) {
       return CWPageCtx(ctx);
-    });        
+    });
   }
 
   CoreDataObjectBuilder addWidget(String type, Function f) {
@@ -113,7 +116,8 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   Map<String, String> mapChildXidByXid = <String, String>{};
   Map<String, String> mapXidByPath = <String, String>{};
 
-  Map<String, CWProvider> mapProvider = <String, CWProvider>{};
+  Map<String, CWRepository> mapRepository = <String, CWRepository>{};
+  List<ActionLink> listPages = [];
 
   void initSlot() {
     final rootWidget = mapWidgetByXid['root']!;
@@ -195,7 +199,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
             mapWidgetByXid[xid] = widg;
             widg.ctx.pathDataCreate = ctx.getPathData();
           }
-          if (widg is CWProviderCtx) {
+          if (widg is CWWidgetVirtual) {
             mapWidgetVirtualByXid[xid] = widg;
             widg.ctx.pathDataCreate = ctx.getPathData();
           }
@@ -253,12 +257,12 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
 
       if (wid != null) {
         CWWidgetEvent ctxWE = CWWidgetEvent();
-        ctxWE.action = CWProviderAction.onFactoryMountWidget.name;
+        ctxWE.action = CWRepositoryAction.onFactoryMountWidget.name;
         ctxWE.payload = mapWidgetByXid[xid];
 
-        mapProvider[mapProvider.keys.firstOrNull]
+        mapRepository[mapRepository.keys.firstOrNull]
             ?.getData()
-            .actions[CWProviderAction.onFactoryMountWidget]
+            .actions[CWRepositoryAction.onFactoryMountWidget]
             ?.first
             .execute(wid.ctx, ctxWE);
       }

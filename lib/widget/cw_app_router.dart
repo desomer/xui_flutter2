@@ -8,12 +8,11 @@ import 'package:xui_flutter/designer/action_manager.dart';
 import '../core/widget/cw_core_slot.dart';
 import 'cw_app.dart';
 
-
 class ActionLink {
-  ActionLink(this.name, this.icon, this.ctx);
+  ActionLink(this.name, this.route, this.ctxApp);
   String name;
-  IconData icon;
-  CWWidgetCtx ctx;
+  String route;
+  CWWidgetCtx ctxApp;
 }
 
 class ScaffoldResponsiveDrawer extends StatelessWidget {
@@ -23,6 +22,30 @@ class ScaffoldResponsiveDrawer extends StatelessWidget {
   final AppBar appBar;
   final Widget body;
   final scaffoldKey = GlobalKey<ScaffoldState>();
+
+
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth < 800) {
+        return Scaffold(
+          key: scaffoldKey,
+          drawer: getDrawer(),
+          appBar: appBar,
+          body: body,
+        );
+      } else {
+        return Scaffold(
+          key: scaffoldKey,
+          appBar: appBar,
+          body: Row(
+            children: [getDrawer(), Expanded(child: body)],
+          ),
+        );
+      }
+    });
+  }
 
   Drawer getDrawer() {
     return Drawer(
@@ -78,51 +101,34 @@ class ScaffoldResponsiveDrawer extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      if (constraints.maxWidth < 800) {
-        return  Scaffold(
-          key: scaffoldKey,
-          drawer: getDrawer(),
-          appBar: appBar,
-          body: body,
-        );
-      } else {
-        return Scaffold(
-          key: scaffoldKey,
-          appBar: appBar,
-          body: Row(
-            children: [getDrawer(), Expanded(child: body)],
-          ),
-        );
-      }
-    });
-  }
+  }  
 }
 
+/// ***********************************************************************
+///  gestion par Scaffold With NavigationBar  ou  NavigationRail
+///  gestion de l'animation  grace à AnimatedBranchContainer
+///                 
 class ScaffoldWithNestedNavigation extends StatelessWidget {
   const ScaffoldWithNestedNavigation(
       {super.key,
       required this.navigationShell,
       required this.children,
-      required this.listAction}); // ?? const ValueKey<String>('ScaffoldWithNestedNavigation')
+      required this.listAction});
 
   final StatefulNavigationShell navigationShell;
   final List<Widget> children;
   final List<ActionLink> listAction;
 
   void _goBranch(int index) {
-    navigationShell.goBranch(
-      index,
-      // A common pattern when using bottom navigation bars is to support
-      // navigating to the initial location when tapping the item that is
-      // already active. This example demonstrates how to support this behavior,
-      // using the initialLocation parameter of goBranch.
-      initialLocation: index == navigationShell.currentIndex,
-    );
+    // navigationShell.goBranch(
+    //   index,
+    //   // A common pattern when using bottom navigation bars is to support
+    //   // navigating to the initial location when tapping the item that is
+    //   // already active. This example demonstrates how to support this behavior,
+    //   // using the initialLocation parameter of goBranch.
+    //   initialLocation: index == navigationShell.currentIndex,
+    // );
+    CWApp.router!.go(listAction[index].route);
   }
 
   @override
@@ -179,15 +185,14 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
     for (var element in listAction) {
       var slot = CWSlot(
         type: 'navigation',
-        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Nav$i'),
-        ctx: createChildCtx(element.ctx, 'Nav', i),
+        key: GlobalKey(debugLabel: 'slot ${element.ctxApp.xid}Nav$i'),
+        ctx: createChildCtx(element.ctxApp, 'Nav', i),
         slotAction: SlotNavAction(),
       );
 
       listBtn.add(BottomNavigationBarItem(
-          label: '', //element.name,
+          label: '',
           icon: slot
-          //Icon(element.icon),
           ));
       i++;
     }
@@ -196,7 +201,6 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
         currentIndex: selectedIndex,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        //fixedColor: Colors.green,
         items: listBtn,
         type: BottomNavigationBarType.fixed,
         onTap: (int indexOfItem) {
@@ -235,8 +239,8 @@ class ScaffoldWithNavigationRail extends StatelessWidget with CWSlotManager {
     for (var element in listAction) {
       var slot = CWSlot(
         type: 'navigation',
-        key: GlobalKey(debugLabel: 'slot ${element.ctx.xid}Nav$i'),
-        ctx: createChildCtx(element.ctx, 'Nav', i),
+        key: GlobalKey(debugLabel: 'slot ${element.ctxApp.xid}Nav$i'),
+        ctx: createChildCtx(element.ctxApp, 'Nav', i),
         slotAction: SlotNavAction(),
       );
 

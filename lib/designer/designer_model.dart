@@ -5,7 +5,7 @@ import 'package:xui_flutter/designer/builder/array_builder.dart';
 import 'package:xui_flutter/designer/widget_crud.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,8 @@ class DesignerModel extends StatelessWidget {
               .changeProp('label', name);
           CoreDataEntity tableModel = selectedEntity.value['tableModel'];
           app.listAttrProvider.content.length = 0;
-          app.listAttrProvider.addAll(app.loaderModel, tableModel.value['listAttr']);
+          app.listAttrProvider
+              .addAll(app.loaderModel, tableModel.value['listAttr']);
         }
 
         bindWidget.nestedWidgetState =
@@ -118,7 +119,7 @@ class _DesignerListAttributState extends State<DesignerListAttribut> {
 
 class OnAddAttr extends CoreDataAction {
   OnAddAttr(this.provider);
-  CWProvider provider;
+  CWRepository provider;
 
   @override
   void execute(Object? ctx, CWWidgetEvent? event) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../../core/data/core_data.dart';
-import '../../core/data/core_provider.dart';
+import '../../core/data/core_repository.dart';
 import '../../core/widget/cw_core_loader.dart';
 import '../../core/widget/cw_core_widget.dart';
 import '../designer.dart';
@@ -12,7 +12,7 @@ class ArrayBuilder {
 
   CWAppLoaderCtx loaderCtx;
   CWWidget? widget;
-  CWProvider? provider;
+  CWRepository? provider;
 
   void initDesignArrayFromLoader(String name, String type) {
     ColRowLoader? loader = _createDesign(provider!, type, name, name, true);
@@ -35,7 +35,7 @@ class ArrayBuilder {
     // init les data models
     await app.dataModelProvider.getItemsCount(widget.ctx);
 
-    CWProvider provider = app.getProviderFromQuery(query, widget);
+    CWRepository provider = app.getRepositoryFromQuery(query, widget);
 
     _createDesign(provider, type, widget.ctx.xid, widget.ctx.pathWidget, false);
 
@@ -47,8 +47,8 @@ class ArrayBuilder {
 
   //////////////////////////////////////////////
 
-  ColRowLoader _createDesign(CWProvider provider, String typeArray, String xid,
-      String path, bool isRoot) {
+  ColRowLoader _createDesign(CWRepository provider, String typeArray,
+      String xid, String path, bool isRoot) {
     final CoreDataObjectBuilder builder =
         loaderCtx.collectionDataModel.getClass(provider.type)!;
 
@@ -69,7 +69,7 @@ class ArrayBuilder {
         break;
     }
 
-    loader.ctxLoader.addProvider(provider);
+    loader.ctxLoader.addRepository(provider);
     loader.addWidget(
         'root', 'provider_${provider.id}', 'CWProvider', <String, dynamic>{
       'type': provider.type,
@@ -138,7 +138,7 @@ abstract class ColRowLoader extends CWWidgetLoader {
 class AttrNoneLoader extends ColRowLoader {
   AttrNoneLoader(super.xid, super.ctxDesign, this.provider, this.isRoot);
 
-  CWProvider provider;
+  CWRepository provider;
   bool isRoot;
 
   @override
@@ -164,7 +164,7 @@ class AttrArrayLoader extends ColRowLoader {
   }
 
   int nbAttr = 0;
-  CWProvider provider;
+  CWRepository provider;
   bool isRoot;
 
   @override
@@ -176,12 +176,12 @@ class AttrArrayLoader extends ColRowLoader {
     String tag = isRoot ? 'Col0' : '';
 
     CWWidgetEvent ctxWE = CWWidgetEvent();
-    ctxWE.action = CWProviderAction.onMapWidget.toString();
+    ctxWE.action = CWRepositoryAction.onMapWidget.toString();
     ctxWE.provider = provider;
     ctxWE.payload = {'attr': attribut, 'infoAttr': infoAttr};
     ctxWE.loader = ctxLoader;
 
-    provider.doAction(null, ctxWE, CWProviderAction.onMapWidget);
+    provider.doAction(null, ctxWE, CWRepositoryAction.onMapWidget);
 
     if (ctxWE.retAction != 'None') {
       if (ctxWE.ret != null) {
@@ -245,19 +245,19 @@ class AttrListLoader extends ColRowLoader {
   }
 
   int nbAttr = 0;
-  CWProvider provider;
+  CWRepository provider;
   bool reorder = false;
   bool isRoot;
 
   @override
   void addAttr(CoreDataAttribut attribut, Map<String, dynamic> infoAttr) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
-    ctxWE.action = CWProviderAction.onMapWidget.toString();
+    ctxWE.action = CWRepositoryAction.onMapWidget.toString();
     ctxWE.provider = provider;
     ctxWE.payload = {'attr': attribut, 'infoAttr': infoAttr};
     ctxWE.loader = ctxLoader;
 
-    provider.doAction(null, ctxWE, CWProviderAction.onMapWidget);
+    provider.doAction(null, ctxWE, CWRepositoryAction.onMapWidget);
     if (ctxWE.retAction != 'None') {
       if (ctxWE.ret != null) {
         CoreDataEntity widget = ctxWE.ret;

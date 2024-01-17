@@ -3,8 +3,8 @@ import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
-import '../designer/cw_factory.dart';
+import '../core/data/core_repository.dart';
+import '../core/widget/cw_factory.dart';
 
 mixin CWActionManager {
   void doAction(
@@ -17,7 +17,7 @@ mixin CWActionManager {
     var p = actionId.split('@');
     ctxWE.action = p[0];
     String dest = p[1];
-    CWProvider? provider = widget.ctx.loader.factory.mapProvider[dest];
+    CWRepository? provider = widget.ctx.loader.factory.mapRepository[dest];
     if (provider != null) {
       ctxWE.provider = provider;
       ctxWE.loader = widget.ctx.loader;

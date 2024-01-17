@@ -7,7 +7,7 @@ import 'package:xui_flutter/widget/cw_action.dart';
 
 import '../core/data/core_data.dart';
 import '../core/widget/cw_core_widget.dart';
-import '../designer/cw_factory.dart';
+import '../core/widget/cw_factory.dart';
 import '../designer/help/widget_no_visible_on_resize.dart';
 
 enum CWExpandAction { actions }

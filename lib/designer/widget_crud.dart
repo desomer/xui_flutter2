@@ -2,7 +2,7 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
 import '../core/data/core_data.dart';
-import '../core/data/core_provider.dart';
+import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_list.dart';
@@ -10,7 +10,7 @@ import '../widget/cw_list.dart';
 class WidgetDrag extends StatefulWidget {
   const WidgetDrag({required this.provider, super.key});
 
-  final CWProvider provider;
+  final CWRepository provider;
 
   @override
   State<WidgetDrag> createState() => _WidgetDragState();
@@ -28,10 +28,10 @@ class _WidgetDragState extends State<WidgetDrag> {
       return true;
     }, onAccept: (item) {
       CWWidgetEvent ctxWE = CWWidgetEvent();
-      ctxWE.action = CWProviderAction.onStateNone.toString();
+      ctxWE.action = CWRepositoryAction.onStateNone.toString();
       ctxWE.provider = widget.provider;
       ctxWE.payload = item;
-      widget.provider.doAction(null, ctxWE, CWProviderAction.onStateNone);
+      widget.provider.doAction(null, ctxWE, CWRepositoryAction.onStateNone);
     });
   }
 
@@ -54,9 +54,12 @@ class _WidgetDragState extends State<WidgetDrag> {
 
 class WidgetAddBtn extends StatefulWidget {
   const WidgetAddBtn(
-      {required this.provider, required this.loader, this.repaintXid, super.key});
+      {required this.provider,
+      required this.loader,
+      this.repaintXid,
+      super.key});
 
-  final CWProvider provider;
+  final CWRepository provider;
   final CWAppLoaderCtx loader;
   final String? repaintXid;
 
@@ -69,7 +72,7 @@ class _WidgetAddBtnState extends State<WidgetAddBtn> {
   Widget build(BuildContext context) {
     return InkWell(
         onTap: () {
-          widget.provider.doEvent(CWProviderAction.onStateNone, widget.loader,
+          widget.provider.doEvent(CWRepositoryAction.onStateNone, widget.loader,
               repaintXid: widget.repaintXid);
         },
         child: Container(
@@ -106,10 +109,10 @@ class _WidgetDeleteBtnState extends State<WidgetDeleteBtn> {
         var r =
             context.getInheritedWidgetOfExactType<InheritedStateContainer>();
 
-        var provider = CWProvider.of(r!.arrayState.widget.ctx);
+        var provider = CWRepository.of(r!.arrayState.widget.ctx);
         provider!.content[r.index!].operation = CDAction.delete;
         provider.doEvent(
-            CWProviderAction.onStateDelete, r.arrayState.widget.ctx.loader);
+            CWRepositoryAction.onStateDelete, r.arrayState.widget.ctx.loader);
         r.repaintRow(r.arrayState.widget.ctx);
       },
     );

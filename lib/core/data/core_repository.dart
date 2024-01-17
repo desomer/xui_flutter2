@@ -9,7 +9,7 @@ import 'core_data.dart';
 import 'core_data_filter.dart';
 import 'core_data_query.dart';
 
-enum CWProviderAction {
+enum CWRepositoryAction {
   onFactoryMountWidget, //attribut mount sur un widget avec la prop
   onMapWidget, // permet de renvoyer le type de widget à Mapper
   onStateNone,
@@ -23,90 +23,18 @@ enum CWProviderAction {
 const String iDProviderName = 'providerName';
 const String iDBind = 'bindAttr';
 
-class CWProviderData {
-  CWProviderData(this.dataloader);
-
-  List<CoreDataEntity> content = [];
-  int idxDisplayed = -1;
-  int idxSelected = -1;
-  Map<CWProviderAction, List<CoreDataAction>> actions = {};
-  Map<String, List<CoreDataAction>> userActions = {};
-  CoreDataLoader? dataloader;
-}
-
-class CWProviderDataSelector {
-  CWProviderDataSelector(this.finalData, this.designData, this.appLoader);
-  CWProviderData designData;
-  CWProviderData finalData;
-  CWAppLoaderCtx? appLoader;
-
-  static CWProviderDataSelector noLoader() {
-    CWProviderData data = CWProviderData(null);
-    return CWProviderDataSelector(data, data, null);
-  }
-
-  static CWProviderDataSelector loader(CoreDataLoader loader) {
-    CWProviderData data = CWProviderData(loader);
-    return CWProviderDataSelector(data, data, null);
-  }
-
-  CWProviderData getData() {
-    var mode = appLoader?.mode ?? ModeRendering.view;
-
-    switch (mode) {
-      case ModeRendering.view:
-        return finalData;
-      default:
-        return designData;
-    }
-  }
-}
-
-final log = Logger('CWProviderCtx');
-
-class CWProviderCtx extends CWWidgetVirtual {
-  CWProviderCtx(super.ctx);
-
-  @override
-  void init() {
-    var providerName = ctx.designEntity!.value[iDProviderName];
-    if (ctx.loader.factory.mapProvider[providerName] == null) {
-      CWProvider provider = createFromTable(
-          ctx.designEntity!.value['type'], ctx,
-          idProvider: providerName);
-      provider.id = providerName;
-      String filterID = ctx.designEntity!.value['filter'] ?? 'none';
-      provider.setFilter(CWApplication.of().mapFilters[filterID]);
-      log.fine(
-          'init appli provider <${provider.id}> [${provider.type}] hash = ${provider.getData().hashCode}');
-      ctx.loader.addProvider(provider);
-    }
-  }
-
-  static CWProvider createFromTable(String idModel, CWWidgetCtx ctx,
-      {String? idProvider, CoreDataFilter? filter}) {
-    var app = CWApplication.of();
-    var tableEntity = app.getTableModelByID(idModel);
-    app.initDataModelWithAttr(ctx.loader, tableEntity);
-    CWProvider provider = app.getDesignDataProvider(
-        ctx.loader, tableEntity, idProvider,
-        filter: filter);
-    return provider;
-  }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////
 enum DisplayRenderingMode { selected, displayed }
 
-class CWProvider {
-  CWProvider(this.id, this.type, this.dataSelector);
+class CWRepository {
+  CWRepository(this.id, this.type, this.dataSelector);
 
   String id;
   CoreDataEntity? header;
   String type;
   DisplayRenderingMode displayRenderingMode = DisplayRenderingMode.displayed;
 
-  late CWProviderDataSelector dataSelector;
+  late CWRepositoryDataSelector dataSelector;
 
   CoreDataEntity getCoreDataEntity() {
     var tableModel = getTableModel();
@@ -122,7 +50,7 @@ class CWProvider {
     return itemProvider;
   }
 
-  String getProviderCacheID({CoreDataFilter? aFilter}) {
+  String getRepositoryCacheID({CoreDataFilter? aFilter}) {
     if (aFilter != null) {
       return '$id#id=$type;fl=${aFilter.getQueryKey()}';
     }
@@ -145,7 +73,7 @@ class CWProvider {
     return CWApplication.of().getTableModelByID(type);
   }
 
-  CWProviderData getData() {
+  CWRepositoryData getData() {
     return dataSelector.getData();
   }
 
@@ -163,7 +91,7 @@ class CWProvider {
 
   void setFilter(CoreDataFilter? aFilter) {
     dataSelector.finalData.dataloader?.setCacheViewID(
-        getProviderCacheID(aFilter: aFilter),
+        getRepositoryCacheID(aFilter: aFilter),
         onTable: aFilter?.getModelID() ?? type); // choix de la map a afficher
     dataSelector.finalData.dataloader?.setFilter(this, aFilter);
   }
@@ -221,13 +149,13 @@ class CWProvider {
     return getData().content[getData().idxSelected];
   }
 
-  CWProvider addAction(CWProviderAction idAction, CoreDataAction action) {
+  CWRepository addAction(CWRepositoryAction idAction, CoreDataAction action) {
     if (getData().actions[idAction] == null) getData().actions[idAction] = [];
     getData().actions[idAction]!.add(action);
     return this;
   }
 
-  CWProvider addUserAction(String idAction, CoreDataAction action) {
+  CWRepository addUserAction(String idAction, CoreDataAction action) {
     if (getData().userActions[idAction] == null) {
       getData().userActions[idAction] = [];
     }
@@ -235,8 +163,8 @@ class CWProvider {
     return this;
   }
 
-  CWProvider doAction(
-      CWWidgetCtx? ctx, CWWidgetEvent? event, CWProviderAction idAction) {
+  CWRepository doAction(
+      CWWidgetCtx? ctx, CWWidgetEvent? event, CWRepositoryAction idAction) {
     event?.widgetCtx = ctx;
     if (getData().actions[idAction] != null) {
       for (var act in getData().actions[idAction]!) {
@@ -246,7 +174,7 @@ class CWProvider {
     return this;
   }
 
-  CWProvider doUserAction(
+  CWRepository doUserAction(
       CWWidgetCtx? ctx, CWWidgetEvent? event, String idAction) {
     event?.widgetCtx = ctx;
     if (getData().userActions[idAction] != null) {
@@ -257,9 +185,9 @@ class CWProvider {
     return this;
   }
 
-  static CWProvider? of(CWWidgetCtx ctx, {String? id}) {
-    CWProvider? provider = ctx
-        .factory.mapProvider[id ?? ctx.designEntity?.getString(iDProviderName)];
+  static CWRepository? of(CWWidgetCtx ctx, {String? id}) {
+    CWRepository? provider = ctx.factory
+        .mapRepository[id ?? ctx.designEntity?.getString(iDProviderName)];
     return provider;
   }
 
@@ -311,9 +239,9 @@ class CWProvider {
 
     var rowOperation = displayedEntity.operation;
     if (rowOperation == CDAction.none) {
-      doAction(ctx, event, CWProviderAction.onStateNone2Create);
+      doAction(ctx, event, CWRepositoryAction.onStateNone2Create);
     }
-    doAction(ctx, event, CWProviderAction.onValueChanged);
+    doAction(ctx, event, CWRepositoryAction.onValueChanged);
 
     getData().dataloader?.changed(this, displayedEntity);
   }
@@ -342,7 +270,7 @@ class CWProvider {
     return getData().content.length;
   }
 
-  void doEvent(CWProviderAction event, CWAppLoaderCtx loader,
+  void doEvent(CWRepositoryAction event, CWAppLoaderCtx loader,
       {String? repaintXid}) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = event.toString();
@@ -354,6 +282,80 @@ class CWProvider {
         loader.factory.mapWidgetByXid[repaintXid]!.repaint();
       });
     }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+class CWRepositoryData {
+  CWRepositoryData(this.dataloader);
+
+  List<CoreDataEntity> content = [];
+  int idxDisplayed = -1;
+  int idxSelected = -1;
+  Map<CWRepositoryAction, List<CoreDataAction>> actions = {};
+  Map<String, List<CoreDataAction>> userActions = {};
+  CoreDataLoader? dataloader;
+}
+
+class CWRepositoryDataSelector {
+  CWRepositoryDataSelector(this.finalData, this.designData, this.appLoader);
+  CWRepositoryData designData;
+  CWRepositoryData finalData;
+  CWAppLoaderCtx? appLoader;
+
+  static CWRepositoryDataSelector noLoader() {
+    CWRepositoryData data = CWRepositoryData(null);
+    return CWRepositoryDataSelector(data, data, null);
+  }
+
+  static CWRepositoryDataSelector loader(CoreDataLoader loader) {
+    CWRepositoryData data = CWRepositoryData(loader);
+    return CWRepositoryDataSelector(data, data, null);
+  }
+
+  CWRepositoryData getData() {
+    var mode = appLoader?.mode ?? ModeRendering.view;
+
+    switch (mode) {
+      case ModeRendering.view:
+        return finalData;
+      default:
+        return designData;
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+final log = Logger('CWProviderCtx');
+
+class CWRepositoryCtx extends CWWidgetVirtual {
+  CWRepositoryCtx(super.ctx);
+
+  @override
+  void init() {
+    var providerName = ctx.designEntity!.value[iDProviderName];
+    if (ctx.loader.factory.mapRepository[providerName] == null) {
+      CWRepository provider = createFromTable(
+          ctx.designEntity!.value['type'], ctx,
+          idProvider: providerName);
+      provider.id = providerName;
+      String filterID = ctx.designEntity!.value['filter'] ?? 'none';
+      provider.setFilter(CWApplication.of().mapFilters[filterID]);
+      log.fine(
+          'init appli provider <${provider.id}> [${provider.type}] hash = ${provider.getData().hashCode}');
+      ctx.loader.addRepository(provider);
+    }
+  }
+
+  static CWRepository createFromTable(String idModel, CWWidgetCtx ctx,
+      {String? idProvider, CoreDataFilter? filter}) {
+    var app = CWApplication.of();
+    var tableEntity = app.getTableModelByID(idModel);
+    app.initDataModelWithAttr(ctx.loader, tableEntity);
+    CWRepository provider = app.getDesignDataRepository(
+        ctx.loader, tableEntity, idProvider,
+        filter: filter);
+    return provider;
   }
 }
 
