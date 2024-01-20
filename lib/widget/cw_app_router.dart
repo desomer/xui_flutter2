@@ -6,12 +6,16 @@ import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/action_manager.dart';
 
 import '../core/widget/cw_core_slot.dart';
+import 'cw_action.dart';
 import 'cw_app.dart';
 
 class ActionLink {
-  ActionLink(this.name, this.route, this.ctxApp);
+  ActionLink(this.id, this.name, this.route, this.ctxApp);
+
+  String id;
   String name;
   String route;
+  bool? selected;
   CWWidgetCtx ctxApp;
 }
 
@@ -22,8 +26,6 @@ class ScaffoldResponsiveDrawer extends StatelessWidget {
   final AppBar appBar;
   final Widget body;
   final scaffoldKey = GlobalKey<ScaffoldState>();
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -101,13 +103,13 @@ class ScaffoldResponsiveDrawer extends StatelessWidget {
         ],
       ),
     );
-  }  
+  }
 }
 
 /// ***********************************************************************
 ///  gestion par Scaffold With NavigationBar  ou  NavigationRail
 ///  gestion de l'animation  grace à AnimatedBranchContainer
-///                 
+///
 class ScaffoldWithNestedNavigation extends StatelessWidget {
   const ScaffoldWithNestedNavigation(
       {super.key,
@@ -128,15 +130,34 @@ class ScaffoldWithNestedNavigation extends StatelessWidget {
     //   // using the initialLocation parameter of goBranch.
     //   initialLocation: index == navigationShell.currentIndex,
     // );
-    CWApp.router!.go(listAction[index].route);
+    //CWApplication.of().goRoute(listAction[index].route);
+    for (var element in listAction) {
+      element.selected = false;
+    }
+    listAction[index].selected = true;
+    //CWApplication.of().goRoute(CWApplication.of().listPages[index].route);
+    var id = 'rootNav$index';
+    CWWidget? w = listAction[index].ctxApp.findWidgetInSlot(id);
+    if (w is CWActionManager) {
+      (w as CWActionManager).doAction(null, w!, w.ctx.designEntity?.value);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    int currentPage = navigationShell.currentIndex;
+    int currentAction = 0;
+    for (var i = 0; i < listAction.length; i++) {
+      if (listAction[i].selected == true) {
+        currentAction = i;
+        break;
+      }
+    }
+
     return LayoutBuilder(builder: (context, constraints) {
       if (listAction.length < 2) {
         return AnimatedBranchContainer(
-          currentIndex: navigationShell.currentIndex,
+          currentIndex: currentPage,
           children: children,
         );
       }
@@ -145,20 +166,20 @@ class ScaffoldWithNestedNavigation extends StatelessWidget {
         return ScaffoldWithNavigationBar(
           listAction: listAction,
           body: AnimatedBranchContainer(
-            currentIndex: navigationShell.currentIndex,
+            currentIndex: currentPage,
             children: children,
           ),
-          selectedIndex: navigationShell.currentIndex,
+          selectedActionIndex: currentAction,
           onDestinationSelected: _goBranch,
         );
       } else {
         return ScaffoldWithNavigationRail(
           listAction: listAction,
           body: AnimatedBranchContainer(
-            currentIndex: navigationShell.currentIndex,
+            currentIndex: currentPage,
             children: children,
           ),
-          selectedIndex: navigationShell.currentIndex,
+          selectedActionIndex: currentAction,
           onDestinationSelected: _goBranch,
         );
       }
@@ -171,11 +192,11 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
   const ScaffoldWithNavigationBar(
       {super.key,
       required this.body,
-      required this.selectedIndex,
+      required this.selectedActionIndex,
       required this.onDestinationSelected,
       required this.listAction});
   final Widget body;
-  final int selectedIndex;
+  final int selectedActionIndex;
   final ValueChanged<int> onDestinationSelected;
   final List<ActionLink> listAction;
 
@@ -190,15 +211,12 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
         slotAction: SlotNavAction(),
       );
 
-      listBtn.add(BottomNavigationBarItem(
-          label: '',
-          icon: slot
-          ));
+      listBtn.add(BottomNavigationBarItem(label: '', icon: slot));
       i++;
     }
 
     return BottomNavigationBar(
-        currentIndex: selectedIndex,
+        currentIndex: selectedActionIndex,
         showSelectedLabels: false,
         showUnselectedLabels: false,
         items: listBtn,
@@ -223,11 +241,11 @@ class ScaffoldWithNavigationRail extends StatelessWidget with CWSlotManager {
   const ScaffoldWithNavigationRail(
       {super.key,
       required this.body,
-      required this.selectedIndex,
+      required this.selectedActionIndex,
       required this.onDestinationSelected,
       required this.listAction});
   final Widget body;
-  final int selectedIndex;
+  final int selectedActionIndex;
   final ValueChanged<int> onDestinationSelected;
   final List<ActionLink> listAction;
 
@@ -255,7 +273,7 @@ class ScaffoldWithNavigationRail extends StatelessWidget with CWSlotManager {
       body: Row(
         children: [
           NavigationRail(
-              selectedIndex: selectedIndex,
+              selectedIndex: selectedActionIndex,
               onDestinationSelected: onDestinationSelected,
               labelType: NavigationRailLabelType.none,
               destinations: actions),

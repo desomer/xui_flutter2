@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nanoid/nanoid.dart';
 import 'package:xui_flutter/designer/designer_model_list.dart';
 
@@ -10,9 +11,11 @@ import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../widget/cw_app_router.dart';
 import '../widget/cw_expand_panel.dart';
 import '../widget/cw_selector.dart';
 import '../core/widget/cw_factory.dart';
+import 'designer.dart';
 import 'designer_model_data.dart';
 import 'designer_model.dart';
 
@@ -57,6 +60,66 @@ class CWApplication {
       CWBindWidget('bindModel2Attr', ModeBindWidget.selected);
   CWBindWidget bindProvider2Attr =
       CWBindWidget('bindProvider2Attr', ModeBindWidget.selected);
+
+  final listRoute = <StatefulShellBranch>[];
+  final listAction = <ActionLink>[];
+  final listPages = <ActionLink>[];
+  ActionLink? currentPage;
+  GoRouter? router;
+
+  void goRoute(String route) {
+    if (CoreDesigner.of().designView.loader?.ctxLoader.mode ==
+        ModeRendering.design) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        CWWidget wid =
+            CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
+        CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
+      });
+    }
+    for (var p in listPages) {
+      if (p.route == route) {
+        currentPage = p;
+        break;
+      }
+    }
+    router!.go(route);
+    // ignore: invalid_use_of_protected_member
+    CoreDesigner.of().pagesKey.currentState?.setState(() {});
+  }
+
+  CoreDataEntity? _getEntityPage(CoreDataEntity aNode, String id) {
+    if (aNode.value['_id_'] == id) {
+      return aNode;
+    } else {
+      var listSubPage = aNode.getManyEntity(collection, 'subPages') ?? [];
+
+      for (var aSubPage in listSubPage) {
+        var ret = _getEntityPage(aSubPage, id);
+        if (ret != null) return ret;
+      }
+    }
+    return null;
+  }
+
+  CoreDataEntity? getEntityPage(String id) {
+    return _getEntityPage(pagesProvider.getEntityByIdx(0), id);
+  }
+
+  void _initPage(CoreDataEntity aNode) {
+    listPages.add(ActionLink(aNode.value['_id_'], aNode.value['name'],
+        aNode.value['route'], ctxApp!));
+
+    var listSubPage = aNode.getManyEntity(collection, 'subPages') ?? [];
+
+    for (var aSubPage in listSubPage) {
+      _initPage(aSubPage);
+    }
+  }
+
+  void initPage() {
+    listPages.clear();
+    _initPage(pagesProvider.getEntityByIdx(0));
+  }
 
   void initWidgetLoader() {
     loaderDesigner.modeDesktop = false;

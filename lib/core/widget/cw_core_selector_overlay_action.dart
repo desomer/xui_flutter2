@@ -63,15 +63,20 @@ class SelectorActionWidget extends StatefulWidget {
   }
 
   static void setPosition(GlobalKey selectedKey, CWRec r) {
-    final Offset position =
+    final Offset? position =
         CwToolkit.getPosition(selectedKey, SelectorActionWidget.designerKey);
 
+    if (position == null) {
+      print('******************* $selectedKey');
+      return;
+    }
+
     Offset positionRefMin = CwToolkit.getPosition(
-        SelectorActionWidget.scaleKeyMin, CoreDesigner.of().designerKey);
+        SelectorActionWidget.scaleKeyMin, CoreDesigner.of().designerKey)!;
     Offset positionRef100 = CwToolkit.getPosition(
-        SelectorActionWidget.scaleKey2, CoreDesigner.of().designerKey);
+        SelectorActionWidget.scaleKey2, CoreDesigner.of().designerKey)!;
     Offset positionRefMax = CwToolkit.getPosition(
-        SelectorActionWidget.scaleKeyMax, CoreDesigner.of().designerKey);
+        SelectorActionWidget.scaleKeyMax, CoreDesigner.of().designerKey)!;
 
     double previewPixelRatio = (positionRef100.dx - positionRefMin.dx) / 100;
 
@@ -393,10 +398,10 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
               Offset positionRefMin = CwToolkit.getPosition(
                   SelectorActionWidget.scaleKeyMin,
-                  CoreDesigner.of().designerKey);
+                  CoreDesigner.of().designerKey)!;
               Offset positionRef100 = CwToolkit.getPosition(
                   SelectorActionWidget.scaleKey2,
-                  CoreDesigner.of().designerKey);
+                  CoreDesigner.of().designerKey)!;
 
               double previewPixelRatio =
                   (positionRef100.dx - positionRefMin.dx) / 100;

@@ -6,7 +6,6 @@ import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
-import '../widget/cw_app_router.dart';
 import 'application_manager.dart';
 import 'designer.dart';
 
@@ -92,12 +91,12 @@ class _DesignerPagesState extends State<DesignerPages> {
   }
 
   Widget getDrag(IndexedTreeNode<CoreDataEntity> node, Widget child) {
-    return Draggable<DragPagesCtx>(
+    return Draggable<DragEventCtx>(
         dragAnchorStrategy: dragAnchorStrategy,
         onDragStarted: () {
           // GlobalSnackBar.show(context, 'Drag started');
         },
-        data: DragPagesCtx(node.data!),
+        data: DragEventCtx(node.data!),
         feedback: Container(
             height: 30,
             width: 100,
@@ -133,6 +132,8 @@ class _DesignerPagesState extends State<DesignerPages> {
                       )))))
         ]);
       } else {
+        bool isVisible =
+            node.data?.value['route'] == CWApplication.of().currentPage!.route;
         cell = getDrag(
             node,
             Row(children: [
@@ -141,8 +142,16 @@ class _DesignerPagesState extends State<DesignerPages> {
               Padding(
                   padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
                   child: InkWell(
-                    child: const Icon(Icons.visibility),
-                    onTap: () {},
+                    child: Icon(
+                        color:
+                            isVisible ? null : Theme.of(context).disabledColor,
+                        Icons.visibility),
+                    onTap: () {
+                      CWApplication.of().goRoute(node.data?.value['route']);
+                      setState(() {
+                        // change la selection
+                      });
+                    },
                   )),
             ]));
       }
@@ -154,35 +163,31 @@ class _DesignerPagesState extends State<DesignerPages> {
         child: Row(children: [Expanded(child: cell)]));
   }
 
-  void initPage(CWApplication app, CoreDataEntity aNode) {
-    app.loaderDesigner.factory.listPages.add(
-        ActionLink(aNode.value['name'], aNode.value['route'], app.ctxApp!));
-
-    var listSubPage = aNode.getManyEntity(app.collection, 'subPages') ?? [];
-
-    for (var aSubPage in listSubPage) {
-      initPage(app, aSubPage);
-    }
-  }
-
   void addPage(IndexedTreeNode<CoreDataEntity> node) {
     var app = CWApplication.of();
 
-    var createEntityByJson =
+    var newPage =
         app.collection.createEntityByJson('PageModel', {'name': 'NewPage'});
 
-    createEntityByJson.value['route'] =
-        '/page${createEntityByJson.value['_id_']}';
+    newPage.value['route'] = '/page${newPage.value['_id_']}';
 
-    (node.data?.value['on'] as CoreDataEntity)
-        .addMany(app.loaderDesigner, 'subPages', createEntityByJson);
+    CoreDataEntity? parent = node.data?.value['on'];
+    parent?.addMany(app.loaderDesigner, 'subPages', newPage);
+
+    var conf = <String, dynamic>{};
+    conf.addAll(newPage.value);
+    conf.remove('on');
+    conf.remove(r'$type');
+    if (parent != null) {
+      conf['parent'] = parent.value['_id_'];
+    }
 
     CoreDesigner.ofLoader()
-        .addWidget('root', 'page_${provider.id}', 'CWPage', <String, dynamic>{
-      'type': 'page',
-    });
-    app.loaderDesigner.factory.listPages.clear();
-    initPage(app, app.pagesProvider.getEntityByIdx(0));
+        .addWidget('root', 'page_${newPage.value['_id_']}', 'CWPage', conf);
+
+    app.initPage();
+
+    app.ctxApp?.getCWWidget()?.repaint();
   }
 
   IndexedTreeNode<CoreDataEntity> getTreeData() {
@@ -221,7 +226,7 @@ class _DesignerPagesState extends State<DesignerPages> {
   }
 }
 
-class DragPagesCtx {
-  DragPagesCtx(this.query);
-  CoreDataEntity query;
+class DragEventCtx {
+  DragEventCtx(this.page);
+  CoreDataEntity page;
 }

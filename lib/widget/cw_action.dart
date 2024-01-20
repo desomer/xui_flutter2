@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
+import 'package:xui_flutter/designer/designer.dart';
+import 'package:xui_flutter/designer/designer_selector_pages.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
+import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_factory.dart';
+import '../designer/builder/prop_builder.dart';
+import 'cw_container.dart';
 
 mixin CWActionManager {
-  void doAction(
-      BuildContext context, CWWidget widget, Map<String, dynamic>? properties) {
+  void doAction(BuildContext? context, CWWidget widget,
+      Map<String, dynamic>? properties) {
+    var mode = widget.ctx.loader.mode;
+    if (mode == ModeRendering.design && !widget.ctx.isSelectedSince(200)) {
+      return;
+    }
+    if (CoreDesigner.of().isAltPress()) {
+      return;
+    }
+
     CWWidgetEvent ctxWE = CWWidgetEvent();
     if (properties == null) return;
     String? actionId = properties['_idAction_'];
@@ -17,12 +31,16 @@ mixin CWActionManager {
     var p = actionId.split('@');
     ctxWE.action = p[0];
     String dest = p[1];
-    CWRepository? provider = widget.ctx.loader.factory.mapRepository[dest];
-    if (provider != null) {
-      ctxWE.provider = provider;
-      ctxWE.loader = widget.ctx.loader;
-      ctxWE.buildContext = context;
-      provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
+    if (dest == 'router') {
+      CWApplication.of().goRoute(p[0]);
+    } else {
+      CWRepository? provider = widget.ctx.loader.factory.mapRepository[dest];
+      if (provider != null) {
+        ctxWE.provider = provider;
+        ctxWE.loader = widget.ctx.loader;
+        ctxWE.buildContext = context;
+        provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
+      }
     }
   }
 }
@@ -46,13 +64,14 @@ class CWActionLink extends CWWidget with CWActionManager {
   }
 }
 
-class _CWActionLinkState extends StateCW<CWActionLink> {
+class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
   @override
   Widget build(BuildContext context) {
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     String type = slotConfig?.slot?.type ?? '';
-    return styledBox.getStyledBox(getBtn(type, context));
+    return styledBox
+        .getStyledBox(getDropZoneEvent(widget.ctx, getBtn(type, context)));
   }
 
   Widget getBtn(String type, BuildContext context) {
@@ -61,6 +80,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
     } else if (type == 'navigation') {
       return getNavBtn();
     } else if (type == 'title') {
+      // label de expand panel
       return InkWell(
           onTap: () {
             widget.doAction(context, widget, widget.ctx.designEntity!.value);
@@ -149,6 +169,20 @@ class _CWActionLinkState extends StateCW<CWActionLink> {
       icon = Icon(ic);
     }
     return icon;
+  }
+
+  @override
+  void onDragEvent(DragEventCtx query) {
+    if (query.page.type == 'PageModel') {
+      CoreDataEntity prop = PropBuilder.preparePropChange(
+          widget.ctx.loader, DesignCtx().forDesign(widget.ctx));
+      prop.value['_idAction_'] = '${query.page.value['route']}@router';
+    }
+    // SlotConfig? slotConfig =
+    //     widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
+    // String type = slotConfig?.slot?.type ?? '';
+
+    // print(query);
   }
 
   // Widget getOvalBtn() {

@@ -398,10 +398,19 @@ class CWWidgetCtx {
     return CoreDesignerSelector.of().isSelectedWidget(this);
   }
 
+  bool isSelectedSince(int delay) {
+    return CoreDesignerSelector.of().isSelectedWidgetSince(this, delay);
+  }  
+
   CWWidget? getWidgetInSlot() {
     final String childXid = factory.mapChildXidByXid[xid] ?? '';
     return factory.mapWidgetByXid[childXid];
   }
+
+  CWWidget? findWidgetInSlot(id) {
+    final String childXid = factory.mapChildXidByXid[id] ?? '';
+    return factory.mapWidgetByXid[childXid];
+  }  
 
   CWWidgetCtx? findByXid(String xid) {
     return factory.mapWidgetByXid[xid]?.ctx;

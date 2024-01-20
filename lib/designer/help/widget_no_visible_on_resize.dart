@@ -1,8 +1,7 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 
-//import '../../widget/cw_frame_desktop.dart';
+
 
 class Debouncer {
   final int milliseconds;
@@ -19,7 +18,6 @@ class Debouncer {
   bool mustVisible(State state, int timeResize) {
     bool display = true;
     var millisecondsSinceEpoch2 = DateTime.now().millisecondsSinceEpoch;
-    //millisecondsSinceEpoch2 - CWFrameDesktop.timeResize <   200 || 
     if (millisecondsSinceEpoch2-timeResize<200) {
       display = false;
       run(() {
@@ -31,4 +29,24 @@ class Debouncer {
     }
     return display;
   }
+}
+
+
+class DebouncerAction {
+  final int milliseconds;
+  Timer? _timer;
+  DebouncerAction({required this.milliseconds});
+
+  void run(VoidCallback action) {
+    if (_timer != null) {
+      _timer!.cancel();
+    }
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+
+  void doAfter(Function fct) {
+      run(() {
+        fct();
+      });
+    }
 }

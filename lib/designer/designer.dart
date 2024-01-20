@@ -26,6 +26,8 @@ import 'designer_model.dart';
 import 'designer_selector_query.dart';
 import 'designer_page_editor.dart';
 import 'help/widget_hidden_box.dart';
+import 'help/widget_no_visible_on_resize.dart';
+import 'selector_manager.dart';
 import 'widget/plateform/widget_image.dart';
 import 'widget/widget_preview.dart';
 import 'designer_selector_attribut.dart';
@@ -117,6 +119,13 @@ class CoreDesigner extends StatefulWidget {
   final editor = DesignerEditor();
   late DesignerView designView = DesignerView(key: designerKey);
 
+  int ctrlTime = 0;
+  int altTime = 0;
+
+  bool isAltPress() {
+    return DateTime.now().millisecondsSinceEpoch - altTime < 200;
+  }
+
   @override
   State<CoreDesigner> createState() => _CoreDesignerState();
 }
@@ -153,6 +162,8 @@ class _CoreDesignerState extends State<CoreDesigner>
     clipboardtriggertime?.cancel();
   }
 
+  DebouncerAction alt = DebouncerAction(milliseconds: 400);
+
   @override
   Widget build(BuildContext context) {
     final NavRail nav = NavRail();
@@ -186,6 +197,34 @@ class _CoreDesignerState extends State<CoreDesigner>
             bindings: <ShortcutActivator, VoidCallback>{
               LogicalKeySet(LogicalKeyboardKey.control): () {
                 print("ctrl");
+                int n = DateTime.now().millisecondsSinceEpoch;
+                if (n - widget.ctrlTime > 200) {
+                  print("start ctl");
+                }
+                widget.ctrlTime = n;
+                alt.doAfter(() {
+                  print("end ctl");
+                });
+              },
+              LogicalKeySet(LogicalKeyboardKey.alt): () {
+                 print("alt");
+                int n = DateTime.now().millisecondsSinceEpoch;
+                if (n - widget.altTime > 200) {
+                  print("start alt");
+                  CoreDesignerSelector.of()
+                      .getSelectedWidgetContext()
+                      ?.getCWWidget()
+                      ?.repaint();
+                }
+                widget.altTime = n;
+                alt.doAfter(() {
+                  print("end alt");
+                  widget.altTime = DateTime.now().millisecondsSinceEpoch-800;
+                  CoreDesignerSelector.of()
+                      .getSelectedWidgetContext()
+                      ?.getCWWidget()
+                      ?.repaint();
+                });
               },
             },
             child: Scaffold(

@@ -221,7 +221,7 @@ class DesignActionManager {
     w?.repaint();
 
     Future.delayed(const Duration(milliseconds: 100), () {
-      CoreDesigner.emit(CDDesignEvent.reselect, redisplayProp);
+      CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
     });
 
     return cmp;

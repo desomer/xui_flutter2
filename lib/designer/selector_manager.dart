@@ -17,6 +17,7 @@ class CoreDesignerSelector {
   PropBuilder propBuilder = PropBuilder();
   StyleBuilder styleBuilder = StyleBuilder();
   String _lastSelectedPath = '';
+  int _lastTimeSelected = 0;
 
   static final CoreDesignerSelector _current = CoreDesignerSelector();
   static CoreDesignerSelector of() {
@@ -36,6 +37,7 @@ class CoreDesignerSelector {
       styleBuilder.buildWidgetProperties(ctx, 1);
       unselect();
       _lastSelectedPath = ctx.pathWidget;
+      _lastTimeSelected = DateTime.now().millisecondsSinceEpoch;
       //CoreDesigner.of().editor.controllerTabRight.index = 0;
 
       // ignore: invalid_use_of_protected_member
@@ -91,6 +93,10 @@ class CoreDesignerSelector {
 
   bool isSelectedWidget(CWWidgetCtx ctx) {
     return _lastSelectedPath == ctx.pathWidget;
+  }
+
+  bool isSelectedWidgetSince(CWWidgetCtx ctx, int delay) {
+    return _lastSelectedPath == ctx.pathWidget && (DateTime.now().millisecondsSinceEpoch-_lastTimeSelected > delay);
   }
 
   CWWidgetCtx? getSelectedWidgetContext() {

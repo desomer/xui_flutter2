@@ -20,7 +20,6 @@ import 'designer_selector_pages.dart';
 import 'designer_selector_properties.dart';
 import 'designer_selector_repository.dart';
 import 'designer_selector_query.dart';
-import 'selector_manager.dart';
 import 'widget/widget_tab.dart';
 
 final log = Logger('DesignerPageEditor');
@@ -98,7 +97,7 @@ class DesignerEditor extends StatelessWidget {
             ],
             listTabCont: [
               getComponetPanel(),
-              DesignerPages(ctx: ctxPages, key : CoreDesigner.of().pagesKey),
+              DesignerPages(ctx: ctxPages, key: CoreDesigner.of().pagesKey),
               Column(
                 children: [
                   Expanded(
@@ -262,9 +261,13 @@ class DesignerView extends StatefulWidget {
         log.fine('set mode rendering ${loader?.ctxLoader.mode}');
         rebuild();
         repaintAll();
-        Future.delayed(const Duration(milliseconds: 100), () {
-          CoreDesigner.emit(CDDesignEvent.reselect, redisplayProp);
-        });
+        if (!isPreviewMode) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            CWWidget wid =
+                CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
+            CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
+          });
+        }
       });
     }
 

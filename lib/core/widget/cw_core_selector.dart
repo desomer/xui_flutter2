@@ -119,6 +119,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
     );
   }
 
+  // lock le block (pour drag) aprés une selection
   bool isLock() {
     return SelectorActionWidget.pathLock != null &&
         widget.ctx.pathWidget.startsWith(SelectorActionWidget.pathLock!) &&
@@ -159,7 +160,7 @@ class SelectorWidgetState extends State<SelectorWidget> {
   void doRightSelection(PointerDownEvent d) {
     // ignore: unused_local_variable
     final Offset position =
-        CwToolkit.getPosition(captureKey!, SelectorActionWidget.designerKey);
+        CwToolkit.getPosition(captureKey!, SelectorActionWidget.designerKey)!;
 
     menuIsOpen = true;
     Future.delayed(const Duration(milliseconds: 200), () {

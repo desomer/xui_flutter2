@@ -82,20 +82,27 @@ class CWApp extends CWWidgetChild {
 
   @override
   void initSlot(String path) {
-    CWApplication.of().ctxApp = ctx;
+    var app = CWApplication.of();
+    app.ctxApp = ctx;
 
     addSlotPath('root', SlotConfig('root'));
 
-    var nb = nbBtnBottomNavBar();
-    if (nb == 0) nb = 1;
-    for (var i = 0; i < nb; i++) {
-      addSlotPath('$path.Body$i',
-          SlotConfig('${ctx.xid}Body$i', pathNested: '$path.AppBarAct$i'));
-      addSlotPath('$path.Nav$i', SlotConfig('${ctx.xid}Nav$i'));
-      addSlotPath('$path.AppBar$i',
-          SlotConfig('${ctx.xid}AppBar$i', pathNested: '$path.AppBarAct$i'));
+    var listPages = app.listPages;
 
-      var virtualCtx = createChildCtx(ctx, 'AppBarAct$i', null);
+    var nb = nbBtnBottomNavBar();
+    for (var i = 0; i < nb; i++) {
+      addSlotPath('$path.Nav$i', SlotConfig('${ctx.xid}Nav$i'));
+    }
+
+    for (var i = 0; i < listPages.length; i++) {
+      var id = 'Page${listPages[i].id}';
+      addSlotPath('$path.Body$id',
+          SlotConfig('${ctx.xid}Body$id', pathNested: '$path.AppBarAct$id'));
+
+      addSlotPath('$path.AppBar$id',
+          SlotConfig('${ctx.xid}AppBar$id', pathNested: '$path.AppBarAct$id'));
+
+      var virtualCtx = createChildCtx(ctx, 'AppBarAct$id', null);
       addSlotPath(
           virtualCtx.pathWidget,
           SlotConfig(virtualCtx.xid,
@@ -103,14 +110,14 @@ class CWApp extends CWWidgetChild {
               ctxVirtualSlot: virtualCtx));
 
       CWWidgetCtx? constraint =
-          ctx.factory.mapConstraintByXid['${ctx.xid}AppBarAct$i'];
+          ctx.factory.mapConstraintByXid['${ctx.xid}AppBarAct$id'];
       int nb = constraint?.designEntity?.value['nbAction'] ?? 0;
 
       for (var j = 0; j < nb; j++) {
         addSlotPath(
-            '$path.AppBarAct$i#$j',
-            SlotConfig('${ctx.xid}AppBarAct$i#$j',
-                pathNested: '$path.AppBarAct$i'));
+            '$path.AppBarAct$id#$j',
+            SlotConfig('${ctx.xid}AppBarAct$id#$j',
+                pathNested: '$path.AppBarAct$id'));
       }
     }
   }
@@ -138,11 +145,6 @@ class CWApp extends CWWidgetChild {
 
     return ctx.designEntity!.getInt(iDnbBtnBottomNavBar, 0)!;
   }
-
-  final listRoute = <StatefulShellBranch>[];
-  final listAction = <ActionLink>[];
-  // todo A mettre dans le CWAppli
-  static GoRouter? router;
 
   @override
   int getDefChild(String id) {
@@ -180,8 +182,16 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
   }
 
   Widget getRouterWithCache(BuildContext context) {
-    var nbPage = widget.nbBtnBottomNavBar();
-    if (nbPage == 0) nbPage = 1;
+    var app = CWApplication.of();
+    if (app.router == null) {
+      app.initPage();
+      app.currentPage = app.listPages[0];
+    }
+
+    //var nbPage = widget.nbBtnBottomNavBar();
+    //if (nbPage == 0) nbPage = 1;
+    var listPages = app.listPages;
+    var nbPage = listPages.length;
 
     Color mainColor = widget.getColor('color') ??
         (widget.isDark() ? Colors.grey.shade900 : Colors.white);
@@ -196,41 +206,42 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
 
     var backgroundColor = colorScheme2.background;
 
-    if (widget.listRoute.isEmpty || mustRepaint) {
+    if (app.listRoute.isEmpty || mustRepaint) {
       log.fine('create all routes');
-      widget.listRoute.clear();
+      app.listRoute.clear();
       for (var i = 0; i < nbPage; i++) {
-        var aRoute = getSubRoute(i == 0 ? '/' : '/route$i', (state) {
-          return getWidgetPage('route$i', backgroundColor);
+        var aRoute = getSubRoute(listPages[i].route, (state) {
+          //'route${listPages[i].id}'
+          return getWidgetPage('Page${listPages[i].id}', backgroundColor);
         });
 
-        widget.listRoute.add(aRoute);
+        app.listRoute.add(aRoute);
       }
     }
 
-    nbPage = widget.listAction.length;
-    widget.listAction.clear();
+    nbPage = app.listAction.length;
+    app.listAction.clear();
     for (var i = 0; i < widget.nbBtnBottomNavBar(); i++) {
-      widget.listAction
-          .add(ActionLink('link $i', i == 0 ? '/' : '/route$i', widget.ctx));
+      app.listAction.add(
+          ActionLink('id$i', '${widget.ctx.xid}Nav$i' , i == 0 ? '/' : '/route$i', widget.ctx));
     }
 
     //FocusScope.of(context).requestFocus(FocusNode());
     //*******************************************************************/
 
     if (routerWidgetCache == null ||
-        CWApp.router == null ||
-        widget.listAction.length != nbPage ||
+        app.router == null ||
+        // widget.listAction.length != nbPage ||
         mustRepaint) {
       String r = '/';
-      if (CWApp.router != null) {
-        var l = CWApp.router!.routerDelegate.currentConfiguration.uri;
+      if (app.router != null) {
+        var l = app.router!.routerDelegate.currentConfiguration.uri;
         r = l.path;
       }
       final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
       log.fine('create GoRouter instance');
-      CWApp.router = GoRouter(
+      app.router = GoRouter(
           navigatorKey: rootNavigatorKey,
           initialLocation: r,
           routes: <RouteBase>[
@@ -243,11 +254,11 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
                     StatefulNavigationShell navigationShell,
                     List<Widget> children) {
                   return ScaffoldWithNestedNavigation(
-                      listAction: widget.listAction,
+                      listAction: app.listAction,
                       navigationShell: navigationShell,
                       children: children);
                 },
-                branches: widget.listRoute)
+                branches: app.listRoute)
           ]);
 
       routerWidgetCache = MaterialApp.router(
@@ -260,7 +271,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
 
         key: widget.rootMainKey,
         title: 'ElisView',
-        routerConfig: CWApp.router,
+        routerConfig: app.router,
         theme: ThemeData(
             scaffoldBackgroundColor: mainColor,
             appBarTheme: AppBarTheme(
@@ -342,16 +353,16 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     });
   }
 
-  Widget getTitle(String idx) {
+  Widget getTitle(String id) {
     return CWSlot(
         type: 'appbar',
         key: GlobalKey(debugLabel: 'slot appbar'),
-        ctx: widget.createChildCtx(widget.ctx, 'AppBar$idx', null));
+        ctx: widget.createChildCtx(widget.ctx, 'AppBar$id', null));
   }
 
-  List<Widget> getActions(String idx) {
+  List<Widget> getActions(String id) {
     var createChildCtx =
-        widget.createChildCtx(widget.ctx, 'AppBarAct$idx', null);
+        widget.createChildCtx(widget.ctx, 'AppBarAct$id', null);
 
     CWWidgetCtx? constraint =
         widget.ctx.factory.mapConstraintByXid[createChildCtx.xid];
@@ -363,7 +374,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
       ret.add(CWSlot(
           type: 'appbar',
           key: GlobalKey(debugLabel: 'slot appbar action'),
-          ctx: widget.createChildCtx(widget.ctx, 'AppBarAct$idx#$i', null)));
+          ctx: widget.createChildCtx(widget.ctx, 'AppBarAct$id#$i', null)));
     }
 
     // if (nb==0)

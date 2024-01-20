@@ -11,6 +11,7 @@ import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
 import '../designer/designer.dart';
 import '../designer/designer_model_list.dart';
+import '../designer/designer_selector_pages.dart';
 import '../designer/designer_selector_query.dart';
 
 abstract class CWContainer extends CWWidgetChild {
@@ -164,7 +165,7 @@ class CWColumn extends CWContainer {
 }
 
 class CWColumnState extends StateCW<CWColumn>
-    with CWDroppable, CWWidgetProvider {
+    with CWDroppableQuery, CWWidgetProvider {
   @override
   Widget build(BuildContext context) {
     if (widget.isForm) {
@@ -319,7 +320,35 @@ class CWRowState extends StateCW<CWRow> {
 }
 
 ////////////////////////////////////////////////////////////////////////
-mixin CWDroppable {
+///
+
+mixin CWDroppableEvent {
+
+  Widget getDropZoneEvent(CWWidgetCtx ctx , Widget child) {
+    var mode = ctx.loader.mode;
+    if (mode == ModeRendering.view) {
+      return child;
+    }
+
+    return DragTarget<DragEventCtx>(
+        builder: (context, candidateItems, rejectedItems) {
+      return AnimatedScale(
+          scale: candidateItems.isEmpty ? 1 : 0.95,
+          duration: const Duration(milliseconds: 100),
+          child: child);
+    }, onWillAccept: (item) {
+      return true;
+    }, onAccept: (item) async {
+      onDragEvent(item);
+    });
+  }
+
+  void onDragEvent(DragEventCtx query);
+}
+
+
+
+mixin CWDroppableQuery {
   Widget getDropZone(Widget child) {
     return DragTarget<DragQueryCtx>(
         builder: (context, candidateItems, rejectedItems) {

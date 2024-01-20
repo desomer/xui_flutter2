@@ -7,7 +7,6 @@ import 'package:xui_flutter/widget/cw_switch.dart';
 import 'package:xui_flutter/widget/cw_text.dart';
 import 'package:xui_flutter/widget/cw_textfield.dart';
 
-import '../../widget/cw_app_router.dart';
 import 'cw_core_loader.dart';
 import '../../widget/cw_container.dart';
 import '../../widget/cw_decorator.dart';
@@ -117,7 +116,7 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   Map<String, String> mapXidByPath = <String, String>{};
 
   Map<String, CWRepository> mapRepository = <String, CWRepository>{};
-  List<ActionLink> listPages = [];
+
 
   void initSlot() {
     final rootWidget = mapWidgetByXid['root']!;

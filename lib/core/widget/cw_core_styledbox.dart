@@ -50,7 +50,12 @@ class CWStyledBox {
   //   return Offset(d.feedbackOffset.dx + 10, d.feedbackOffset.dy + 10);
   // }
 
-  Widget getDragPaddding(Widget w) {
+  Widget getDragPadding(Widget w) {
+    var mode = widget.ctx.loader.mode;
+    if (mode == ModeRendering.view || !CoreDesigner.of().isAltPress()) {
+      return w;
+    }
+
     return Draggable<String>(
       onDragUpdate: (details) {
         CoreDataEntity prop = PropBuilder.preparePropChange(
@@ -58,8 +63,9 @@ class CWStyledBox {
 
         Map<String, dynamic>? s = prop.value[iDStyle];
         if (s == null) {
-          prop.value[iDStyle] =
-              widget.ctx.factory.loader.collectionDataModel.createEntity('StyleModel').value;
+          prop.value[iDStyle] = widget.ctx.factory.loader.collectionDataModel
+              .createEntity('StyleModel')
+              .value;
         }
         doMoveAxe(s, 'boxAlignHorizontal', 'pleft', 'pright', details.delta.dx);
         doMoveAxe(s, 'boxAlignVertical', 'ptop', 'pbottom', details.delta.dy);
@@ -90,7 +96,7 @@ class CWStyledBox {
 
   Widget getStyledBox(Widget content) {
     if (style == null) {
-      return getDragPaddding(content);
+      return getDragPadding(content);
     }
     AlignmentDirectional? align;
     if (styleExist(['boxAlignVertical', 'boxAlignHorizontal'])) {
@@ -112,6 +118,6 @@ class CWStyledBox {
           child: content);
     }
 
-    return Container(alignment: align, child: getDragPaddding(content));
+    return Container(alignment: align, child: getDragPadding(content));
   }
 }
