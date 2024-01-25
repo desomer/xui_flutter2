@@ -188,13 +188,22 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       bottomZone.width = r.right - r.left;
       bottomZone.height = 40;
 
+      int da = -25;
+      int db = 5;
+      if (bottomZone.width! < 60) {
+        bottomZone.width = 60;
+        bottomZone.left = r.left - (60 - (r.right - r.left)) / 2;
+        da = -20;
+        db = -5;
+      }
+
       double topBtn = 10;
       double leftBtn = bottomZone.width! / 2;
 
       bottomZone.actions = [
         getAddAction(
-            topBtn, leftBtn - 25, Icons.expand_more, DesignAction.moveBottom),
-        getAddAction(topBtn, leftBtn + 5, Icons.add, DesignAction.addBottom),
+            topBtn, leftBtn + da, Icons.expand_more, DesignAction.moveBottom),
+        getAddAction(topBtn, leftBtn + db, Icons.add, DesignAction.addBottom),
       ];
     };
 
@@ -203,12 +212,22 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       topZone.left = r.left;
       topZone.width = r.right - r.left;
       topZone.height = 40;
+
+      int da = -25;
+      int db = 5;
+      if (topZone.width! < 60) {
+        topZone.width = 60;
+        topZone.left = r.left - (60 - (r.right - r.left)) / 2;
+        da = -20;
+        db = -5;
+      }
+
       double topBtn = 10;
       double leftBtn = topZone.width! / 2;
       topZone.actions = [
         getAddAction(
-            topBtn, leftBtn - 25, Icons.expand_less, DesignAction.moveTop),
-        getAddAction(topBtn, leftBtn + 5, Icons.add, DesignAction.addTop),
+            topBtn, leftBtn + da, Icons.expand_less, DesignAction.moveTop),
+        getAddAction(topBtn, leftBtn + db, Icons.add, DesignAction.addTop),
       ];
     };
 
@@ -218,9 +237,14 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       rightZone.width = 40;
       rightZone.height = r.bottom - r.top;
 
+      int da = -25;
+      int db = 5;
+
       if (rightZone.height! < 60) {
         rightZone.height = 60;
         rightZone.top = r.top - (60 - (r.bottom - r.top)) / 2;
+        da = -20;
+        db = -5;
       }
 
       double topBtn = rightZone.height! / 2;
@@ -228,8 +252,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
       rightZone.actions = [
         getAddAction(
-            topBtn - 25, leftBtn, Icons.navigate_next, DesignAction.moveRight),
-        getAddAction(topBtn + 5, leftBtn, Icons.add, DesignAction.addRight),
+            topBtn + da, leftBtn, Icons.navigate_next, DesignAction.moveRight),
+        getAddAction(topBtn + db, leftBtn, Icons.add, DesignAction.addRight),
       ];
     };
 
@@ -238,10 +262,14 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       leftZone.left = r.left - 30;
       leftZone.width = 40;
       leftZone.height = r.bottom - r.top;
+      int da = -25;
+      int db = 5;
 
       if (leftZone.height! < 60) {
         leftZone.height = 60;
         leftZone.top = r.top - (60 - (r.bottom - r.top)) / 2;
+        da = -20;
+        db = -5;
       }
 
       double topBtn = leftZone.height! / 2;
@@ -249,8 +277,8 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
       leftZone.actions = [
         getAddAction(
-            topBtn - 25, leftBtn, Icons.navigate_before, DesignAction.moveLeft),
-        getAddAction(topBtn + 5, leftBtn, Icons.add, DesignAction.addLeft),
+            topBtn + da, leftBtn, Icons.navigate_before, DesignAction.moveLeft),
+        getAddAction(topBtn + db, leftBtn, Icons.add, DesignAction.addLeft),
       ];
     };
 
@@ -269,13 +297,13 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
     };
 
     sizeZone.initPos = (CWRec r) {
-      sizeZone.top = r.bottom - 10;
-      sizeZone.left = r.right - 30;
-      sizeZone.width = 40;
-      sizeZone.height = 40;
+      sizeZone.top = r.bottom - 20;
+      sizeZone.left = r.right - 20;
+      sizeZone.width = 60;
+      sizeZone.height = 60;
 
-      double topBtn = 10;
-      double leftBtn = 10;
+      double topBtn = 15;
+      double leftBtn = 15;
 
       sizeZone.actions = [
         getAddDrag(topBtn, leftBtn, Icons.open_in_full, DesignAction.size),

@@ -82,9 +82,12 @@ class CWApplication {
         break;
       }
     }
+    Future.delayed(const Duration(milliseconds: 500), () {
+      // ignore: invalid_use_of_protected_member
+      CoreDesigner.of().pagesKey.currentState?.setState(() {});
+    });
+
     router!.go(route);
-    // ignore: invalid_use_of_protected_member
-    CoreDesigner.of().pagesKey.currentState?.setState(() {});
   }
 
   CoreDataEntity? _getEntityPage(CoreDataEntity aNode, String id) {
@@ -116,9 +119,15 @@ class CWApplication {
     }
   }
 
-  void initPage() {
+  void initRoutePage() {
     listPages.clear();
     _initPage(pagesProvider.getEntityByIdx(0));
+  }
+
+  void clearAllPage() {
+    pagesProvider.clearContent();
+    pagesProvider.addContent(collection.createEntityByJson(
+        'PageModel', {'_id_': 'home', 'route': '/', 'name': 'Home'}));
   }
 
   void initWidgetLoader() {
@@ -234,8 +243,11 @@ class CWApplication {
         .addAttr('bgColor', CDAttributType.one,
             tname: CWSelectorType.color.name)
         .addAttr('bColor', CDAttributType.one, tname: CWSelectorType.color.name)
-        .addAttr('tColor', CDAttributType.one,
-            tname: CWSelectorType.color.name);
+        .addAttr('tColor', CDAttributType.one, tname: CWSelectorType.color.name)
+        .addAttr('mtop', CDAttributType.dec)
+        .addAttr('mbottom', CDAttributType.dec)
+        .addAttr('mleft', CDAttributType.dec)
+        .addAttr('mright', CDAttributType.dec);
 
     ///////////////////////////////////////////////////////////
     collection
@@ -339,8 +351,7 @@ class CWApplication {
 
     //----------------------------------------------------------------
     loaderModel.addRepository(pagesProvider);
-    pagesProvider.addContent(collection.createEntityByJson(
-        'PageModel', {'_id_': 'home', 'route': '/', 'name': 'Home'}));
+    clearAllPage();
   }
 
   //////////////////////////////////////////////////////////////////////////

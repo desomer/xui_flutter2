@@ -114,6 +114,12 @@ class CWRepository {
     CoreGlobalCache.notifNewRow(this);
   }
 
+  void clearContent() {
+    getData().content.clear();
+    getData().idxDisplayed = -1;
+    getData().idxSelected = -1;
+  }
+
   void addAll(CWAppLoaderCtx loaderCtx, List<dynamic>? list) {
     if (list != null) {
       for (Map<String, dynamic> element in list) {

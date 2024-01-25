@@ -64,10 +64,10 @@ class StyleBuilder {
 
       //------------------------------------------------------------------
       initAlignment(aCtx, provider);
-      initPadding(aCtx, provider);
+      initMargin(aCtx, provider);
       initBorder(aCtx, provider);
       initBackground(aCtx, provider);
-      initMargin(aCtx, provider);
+      initPadding(aCtx, provider);
       initText(aCtx, provider);
 
       // ignore: invalid_use_of_protected_member
@@ -75,12 +75,12 @@ class StyleBuilder {
     }
   }
 
-  void initPadding(CWWidgetCtx ctx, CWRepository provider) {
+  void initMargin(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
     ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Padding', provider, true);
+        AttrFormLoader('rootBody0', ctxLoader, 'Margin', provider, true);
 
     CoreDataAttribut attr = CoreDataAttribut('ptop')
         .init(CDAttributType.int,
@@ -114,12 +114,12 @@ class StyleBuilder {
     listStyle.add(loader.getWidget('root', 'root'));
   }
 
-  void initMargin(CWWidgetCtx ctx, CWRepository provider) {
+  void initPadding(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
     ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Margin', provider, true);
+        AttrFormLoader('rootBody0', ctxLoader, 'Padding', provider, true);
 
     CoreDataAttribut attr = CoreDataAttribut('mtop')
         .init(CDAttributType.int,

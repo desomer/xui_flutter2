@@ -42,7 +42,7 @@ class _CWSlotState extends StateCW<CWSlot> {
 
     return LayoutBuilder(builder: (context, constraints) {
 
-      return widget.ctx.loader.mode == ModeRendering.design
+      return widget.ctx.modeRendering == ModeRendering.design
           ? getSelector(contentWidget, _SlotDesign(contentWidget, constraints))
           : contentWidget ?? Container();
       // : getSlotDesign(

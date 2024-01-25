@@ -101,6 +101,16 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
         (mode == ModeRendering.design ? def : '');
   }
 
+  String? getLabelOrNull(String? def) {
+    var bind = ctx.designEntity?.getOne('@label');
+    if (bind != null) {
+      return getMapString(provInfo: bind);
+    }
+    var mode = CWApplication.of().loaderDesigner.mode;
+    return ctx.designEntity?.getString('label') ??
+        (mode == ModeRendering.design ? def : null);
+  }
+
   Map<String, dynamic>? getIcon() {
     return ctx.designEntity?.value['icon'];
   }
@@ -329,6 +339,10 @@ class CWWidgetCtx {
     return loader.factory;
   }
 
+  ModeRendering get modeRendering {
+    return loader.mode;
+  }
+
   Key? getContentKey(bool padding) {
     var k = getKey();
     if (padding) infoSelector.withPadding = true;
@@ -338,13 +352,13 @@ class CWWidgetCtx {
 
   Key? getKey() {
     //TODO a retirer customAlphabet  mais bug affichage des attributs
-    return loader.mode == ModeRendering.design
+    return modeRendering == ModeRendering.design
         ? GlobalKey(debugLabel: xid)
         : ValueKey('$xid${customAlphabet('1234567890abcdef', 10)}');
   }
 
   Key? getSlotKey(String prefix, String change) {
-    return loader.mode == ModeRendering.design
+    return modeRendering == ModeRendering.design
         ? GlobalKey(debugLabel: '$xid$prefix')
         : ValueKey('$xid$prefix$change');
   }
@@ -400,7 +414,7 @@ class CWWidgetCtx {
 
   bool isSelectedSince(int delay) {
     return CoreDesignerSelector.of().isSelectedWidgetSince(this, delay);
-  }  
+  }
 
   CWWidget? getWidgetInSlot() {
     final String childXid = factory.mapChildXidByXid[xid] ?? '';
@@ -410,7 +424,7 @@ class CWWidgetCtx {
   CWWidget? findWidgetInSlot(id) {
     final String childXid = factory.mapChildXidByXid[id] ?? '';
     return factory.mapWidgetByXid[childXid];
-  }  
+  }
 
   CWWidgetCtx? findByXid(String xid) {
     return factory.mapWidgetByXid[xid]?.ctx;

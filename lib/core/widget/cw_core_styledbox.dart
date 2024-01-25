@@ -8,6 +8,35 @@ import 'package:xui_flutter/designer/designer.dart';
 
 const iDStyle = '_style_';
 
+class CWStyledBoxConfig {
+  AlignmentDirectional? align;
+  EdgeInsets? margin;
+  BoxDecoration? decoration;
+  BorderRadius? borderRadius;
+  BorderSide? side;
+  EdgeInsets? padding;
+  double hBorder = 0;
+  double hPadding = 0;
+  double hMargin = 0;
+
+  double? height;
+  double? width;
+
+  void clear() {
+    align = null;
+    margin = null;
+    decoration = null;
+    borderRadius = null;
+    side = null;
+    padding = null;
+    hBorder = 0;
+    hPadding = 0;
+    hMargin = 0;
+    height = null;
+    width = null;
+  }
+}
+
 class CWStyledBox {
   CWStyledBox(this.widget) {
     style = widget.ctx.designEntity?.getOne(iDStyle);
@@ -15,9 +44,9 @@ class CWStyledBox {
 
   final CWWidget widget;
   late Map<String, dynamic>? style;
+  CWStyledBoxConfig config = CWStyledBoxConfig();
 
   bool styleExist(List<String> properties) {
-    style = widget.ctx.designEntity?.getOne(iDStyle);
     for (var p in properties) {
       if (style?[p] != null) {
         return true;
@@ -50,8 +79,8 @@ class CWStyledBox {
   //   return Offset(d.feedbackOffset.dx + 10, d.feedbackOffset.dy + 10);
   // }
 
-  Widget getDragPadding(Widget w) {
-    var mode = widget.ctx.loader.mode;
+  Widget getDragMargin(Widget w) {
+    var mode = widget.ctx.modeRendering;
     if (mode == ModeRendering.view || !CoreDesigner.of().isAltPress()) {
       return w;
     }
@@ -94,30 +123,121 @@ class CWStyledBox {
     }
   }
 
-  Widget getStyledBox(Widget content) {
+  void init() {
+    style = widget.ctx.designEntity?.getOne(iDStyle);
+    config.clear();
+  }
+
+  Widget getStyledBox(Widget content, {bool? withContainer}) {
+    init();
     if (style == null) {
-      return getDragPadding(content);
+      return getDragMargin(content);
     }
-    AlignmentDirectional? align;
+
+    widget.ctx.infoSelector.withPadding = false;
+
+    setConfigPadding();
+
+    if (withContainer ?? false) {
+      setConfigBox();
+      return getStyledContainer(content);
+    } else {
+      if (config.margin != null) {
+        content = Padding(
+            key: widget.ctx.getContentKey(true),
+            padding: config.margin!,
+            child: content);
+      }
+      return Container(alignment: config.align, child: getDragMargin(content));
+    }
+  }
+
+  void setConfigPadding() {
     if (styleExist(['boxAlignVertical', 'boxAlignHorizontal'])) {
-      align = AlignmentDirectional(
+      config.align = AlignmentDirectional(
           double.parse(style!['boxAlignHorizontal'] ?? '-1'),
           double.parse(style!['boxAlignVertical'] ?? '-1'));
     }
 
-    widget.ctx.infoSelector.withPadding = false;
     if (styleExist(['pleft', 'ptop', 'pright', 'pbottom'])) {
-      EdgeInsets padding = EdgeInsets.fromLTRB(
-          getStyleDouble('pleft', 0),
-          getStyleDouble('ptop', 0),
-          getStyleDouble('pright', 0),
-          getStyleDouble('pbottom', 0));
-      content = Padding(
-          key: widget.ctx.getContentKey(true),
-          padding: padding,
-          child: content);
+      var ptop = getStyleDouble('ptop', 0);
+      var pbottom = getStyleDouble('pbottom', 0);
+      config.margin = EdgeInsets.fromLTRB(getStyleDouble('pleft', 0), ptop,
+          getStyleDouble('pright', 0), pbottom);
+      config.hMargin = ptop + pbottom;
+    }
+  }
+
+  void setConfigBox() {
+    if (styleExist(['bSize', 'bColor'])) {
+      var bSize = getStyleDouble('bSize', 1);
+      config.side = BorderSide(
+          width: bSize, color: getColor('bColor') ?? Colors.transparent);
+      config.hBorder = bSize * 2;
     }
 
-    return Container(alignment: align, child: getDragPadding(content));
+    if (styleExist(['bRadius'])) {
+      config.borderRadius =
+          BorderRadius.all(Radius.circular(getStyleDouble('bRadius', 0)));
+    }
+
+    if (config.side != null || styleExist(['bgColor', 'bRadius'])) {
+      config.decoration = BoxDecoration(
+        color: getColor('bgColor'),
+        border:
+            config.side != null ? Border.fromBorderSide(config.side!) : null,
+        borderRadius: config.borderRadius,
+      );
+    }
+
+    if (styleExist(['mleft', 'mtop', 'mright', 'mbottom'])) {
+      var mtop = getStyleDouble('mtop', 0);
+      var mbottom = getStyleDouble('mbottom', 0);
+      config.padding = EdgeInsets.fromLTRB(getStyleDouble('mleft', 0), mtop,
+          getStyleDouble('mright', 0), mbottom);
+      config.hPadding = mtop + mbottom;
+    }
+  }
+
+  Widget getClipRect(Widget content) {
+    if (config.borderRadius != null) {
+      return ClipRRect(borderRadius: config.borderRadius!, child: content);
+    }
+    return content;
+  }
+
+  Widget getStyledContainer(Widget content) {
+    if (styleExist(['elevation'])) {
+      content = Material(
+          elevation: getElevation() ?? 0,
+          borderRadius: config.borderRadius,
+          child: getClipRect(Container(
+              padding: config.padding,
+              decoration: config.decoration,
+              child: getDragMargin(content))));
+
+      if (config.margin != null) {
+        content = Padding(padding: config.margin!, child: content);
+      }
+
+      if (config.height != null || config.width != null) {
+        content = SizedBox(
+            height: config.height, width: config.width, child: content);
+      }
+
+      return content;
+    } else if (config.margin != null ||
+        config.decoration != null ||
+        config.padding != null) {
+      return Container(
+          height: config.height,
+          width: config.width,
+          margin: config.margin,
+          decoration: config.decoration,
+          padding: config.padding,
+          child: getClipRect(getDragMargin(content)));
+    } else {
+      return content;
+    }
   }
 }

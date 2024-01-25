@@ -22,7 +22,7 @@ class CWPageCtx extends CWWidgetVirtual {
 
       newPage.value['on'] = parent;
       parent?.addMany(app.loaderDesigner, 'subPages', newPage);
-      app.initPage();
+      app.initRoutePage();
     }
   }
 }

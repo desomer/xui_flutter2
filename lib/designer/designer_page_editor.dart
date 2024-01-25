@@ -223,14 +223,21 @@ class DesignerView extends StatefulWidget {
   }
 
   void clearAll() {
+    var app = CWApplication.of();
     rebuild();
     loader = null;
     isLoad = false;
-    var loaderDesigner = CWApplication.of().loaderDesigner;
+    var loaderDesigner = app.loaderDesigner;
     loaderDesigner.entityCWFactory =
         loaderDesigner.collectionWidget.createEntity('CWFactory');
     loaderDesigner.factory = WidgetFactoryEventHandler(loaderDesigner);
     loaderDesigner.setModeRendering(ModeRendering.design);
+
+    app.clearAllPage();
+    app.initRoutePage();
+    app.router = null;
+    // ignore: invalid_use_of_protected_member
+    CoreDesigner.of().pagesKey.currentState?.setState(() {});
   }
 
   void repaintAll() {

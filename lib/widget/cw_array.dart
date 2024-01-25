@@ -131,6 +131,17 @@ class _CwArrayState extends StateCW<CWArray> {
 
   Widget getArray(double w, double h, int nbCol, Row header, Widget content) {
     Widget sizedContent = content;
+
+    styledBox.init();
+    styledBox.setConfigBox();
+    styledBox.setConfigPadding();
+
+    var hC = (styledBox.config.decoration != null
+            ? styledBox.config.hBorder
+            : (heightBorder * 2)) +
+        styledBox.config.hMargin +
+        styledBox.config.hPadding;
+
     if (nbCol == 0) {
       sizedContent = ListView(
           scrollDirection: Axis.vertical,
@@ -139,40 +150,41 @@ class _CwArrayState extends StateCW<CWArray> {
           children: [getDropQuery(h)]);
     } else if (h != double.infinity) {
       sizedContent = SizedBox(
-          height: h - heightHeader - heightScroll - heightBorder * 2,
-          child: content);
+          height: h - heightHeader - heightScroll - hC, child: content);
     }
 
-    return Container(
-        decoration: BoxDecoration(
+    styledBox.config.decoration = styledBox.config.decoration ??
+        BoxDecoration(
             border: Border.all(
-                width: heightBorder, color: Theme.of(context).dividerColor)),
-        width: w,
-        height: h != double.infinity ? h : null,
-        child: MediaQuery(
+                width: heightBorder, color: Theme.of(context).dividerColor));
+
+    styledBox.config.width = w;
+    styledBox.config.height = h != double.infinity ? h : null;
+
+    return styledBox.getStyledContainer(MediaQuery(
             data: MediaQuery.of(context).removePadding(removeBottom: true),
             child: Scrollbar(
-                thumbVisibility: true,
-                trackVisibility: true,
-                controller: horizontal,
-                child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+                    thumbVisibility: true,
+                    trackVisibility: true,
                     controller: horizontal,
-                    child: SizedBox(
-                        width: w - heightBorder * 2, // 2 = border
-                        child: Column(children: [
-                          Container(
-                              color: Theme.of(context).highlightColor,
-                              child: header),
-                          Scrollbar(
-                              thumbVisibility: true,
-                              trackVisibility: true,
-                              controller: vertical,
-                              child: sizedContent),
-                          SizedBox(height: heightScroll) // zone scrollbar
-                        ])))
-                //)
-                ))
+                    child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        controller: horizontal,
+                        child: SizedBox(
+                            width: w - heightBorder * 2, // 2 = border
+                            child: Column(children: [
+                              Container(
+                                  color: Theme.of(context).highlightColor,
+                                  child: header),
+                              Scrollbar(
+                                  thumbVisibility: true,
+                                  trackVisibility: true,
+                                  controller: vertical,
+                                  child: sizedContent),
+                              SizedBox(height: heightScroll) // zone scrollbar
+                            ])))
+                    //)
+                    ))
         //)
         );
   }

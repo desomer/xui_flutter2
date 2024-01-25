@@ -185,7 +185,7 @@ class _DesignerPagesState extends State<DesignerPages> {
     CoreDesigner.ofLoader()
         .addWidget('root', 'page_${newPage.value['_id_']}', 'CWPage', conf);
 
-    app.initPage();
+    app.initRoutePage();
 
     app.ctxApp?.getCWWidget()?.repaint();
   }

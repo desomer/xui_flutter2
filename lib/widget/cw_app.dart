@@ -184,7 +184,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
   Widget getRouterWithCache(BuildContext context) {
     var app = CWApplication.of();
     if (app.router == null) {
-      app.initPage();
+      app.initRoutePage();
       app.currentPage = app.listPages[0];
     }
 
@@ -219,11 +219,11 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
       }
     }
 
-    nbPage = app.listAction.length;
+    //nbPage = app.listAction.length;
     app.listAction.clear();
     for (var i = 0; i < widget.nbBtnBottomNavBar(); i++) {
-      app.listAction.add(
-          ActionLink('id$i', '${widget.ctx.xid}Nav$i' , i == 0 ? '/' : '/route$i', widget.ctx));
+      app.listAction.add(ActionLink('id$i', '${widget.ctx.xid}Nav$i',
+          i == 0 ? '/' : '/route$i', widget.ctx));
     }
 
     //FocusScope.of(context).requestFocus(FocusNode());
@@ -272,6 +272,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
         key: widget.rootMainKey,
         title: 'ElisView',
         routerConfig: app.router,
+
         theme: ThemeData(
             scaffoldBackgroundColor: mainColor,
             appBarTheme: AppBarTheme(
@@ -294,6 +295,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     return ScaffoldResponsiveDrawer(
         appBar: AppBar(
           elevation: 0,
+          automaticallyImplyLeading: true,
           title: getTitle(id),
           actions: getActions(id),
         ),

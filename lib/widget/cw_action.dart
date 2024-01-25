@@ -13,6 +13,10 @@ import '../designer/builder/prop_builder.dart';
 import 'cw_container.dart';
 
 mixin CWActionManager {
+  bool hasAction(CWWidget widget) {
+    return widget.ctx.designEntity?.value['_idAction_'] != null ? true : false;
+  }
+
   void doAction(BuildContext? context, CWWidget widget,
       Map<String, dynamic>? properties) {
     var mode = widget.ctx.loader.mode;
@@ -70,8 +74,23 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     String type = slotConfig?.slot?.type ?? '';
-    return styledBox
-        .getStyledBox(getDropZoneEvent(widget.ctx, getBtn(type, context)));
+
+    return styledBox.getStyledBox(
+        getDropZoneEvent(widget.ctx, indicatorEvent(getBtn(type, context))));
+  }
+
+  Widget indicatorEvent(Widget child) {
+    if (widget.ctx.modeRendering==ModeRendering.view || !widget.hasAction(widget)) {
+      return child;
+    }
+
+    return Stack(fit: StackFit.loose, children: [
+      child,
+      const Positioned(
+          top: 0,
+          right: 0,
+          child: Icon(size: 15, color: Colors.deepOrangeAccent, Icons.bolt))
+    ]);
   }
 
   Widget getBtn(String type, BuildContext context) {
@@ -148,16 +167,20 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
 
   Widget getNavBtn() {
     Widget? icon = getIcon();
+    String? label = widget.getLabelOrNull(icon == null ? '[label]' : null);
+
+    var childNav = <Widget>[];
+    if (icon != null) childNav.add(icon);
+    if (label != null) {
+      childNav.add(Text(label,
+          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: IconTheme.of(context).color,
+              )));
+    }
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        icon ?? Container(), // <-- Icon
-        Text(widget.getLabel('[label]'),
-            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: IconTheme.of(context).color,
-                )),
-      ],
+      children: childNav,
     );
   }
 
@@ -177,7 +200,9 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
       CoreDataEntity prop = PropBuilder.preparePropChange(
           widget.ctx.loader, DesignCtx().forDesign(widget.ctx));
       prop.value['_idAction_'] = '${query.page.value['route']}@router';
+      setState(() {});
     }
+
     // SlotConfig? slotConfig =
     //     widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     // String type = slotConfig?.slot?.type ?? '';

@@ -175,8 +175,8 @@ class CWColumnState extends StateCW<CWColumn>
     }
   }
 
-  LayoutBuilder getWidget() {
-    return LayoutBuilder(
+  Widget getWidget() {
+    return styledBox.getStyledBox(withContainer: true, LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       final List<Widget> listStack = [];
       final List<Widget> listSlot = [];
@@ -200,7 +200,7 @@ class CWColumnState extends StateCW<CWColumn>
       }
 
       return listStack[0];
-    });
+    }));
   }
 
   double h = 0;
@@ -311,11 +311,11 @@ class CWRowState extends StateCW<CWRow> {
           canFill: true, canWidth: true, type: 'CWRow'));
     }
 
-    return Row(
+    return styledBox.getStyledBox(withContainer: true, Row(
         mainAxisAlignment: widget.getMainAxisAlignment('horizAlign'),
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: widget.getCrossAxisAlignment('verticalAlign'),
-        children: listSlot);
+        children: listSlot));
   }
 }
 
@@ -323,10 +323,8 @@ class CWRowState extends StateCW<CWRow> {
 ///
 
 mixin CWDroppableEvent {
-
-  Widget getDropZoneEvent(CWWidgetCtx ctx , Widget child) {
-    var mode = ctx.loader.mode;
-    if (mode == ModeRendering.view) {
+  Widget getDropZoneEvent(CWWidgetCtx ctx, Widget child) {
+    if (ctx.modeRendering == ModeRendering.view) {
       return child;
     }
 
@@ -345,8 +343,6 @@ mixin CWDroppableEvent {
 
   void onDragEvent(DragEventCtx query);
 }
-
-
 
 mixin CWDroppableQuery {
   Widget getDropZone(Widget child) {
