@@ -214,6 +214,16 @@ class DesignCtx {
     return this;
   }
 
+  DesignCtx forConstraint(CWWidgetCtx ctx) {
+    pathWidget = ctx.pathWidget;
+    SlotConfig? sc = ctx.factory.mapSlotConstraintByPath[pathWidget];
+    isSlot = true;
+    xid = ctx.xid;
+    ctxVirtualSlot = sc?.ctxVirtualSlot;
+    designEntity = ctx.factory.mapConstraintByXid[xid]?.designEntity;
+    return this;
+  }
+
   DesignCtx forDesign(CWWidgetCtx ctx) {
     pathWidget = ctx.pathWidget;
     var isNotSlot = ctx.designEntity != null &&

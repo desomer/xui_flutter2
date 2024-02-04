@@ -98,7 +98,7 @@ class _DesignerAttributState extends State<DesignerAttribut> {
           CWApplication.of().dataAttributProvider.getSelectedEntity()!;
       // print(attrEntity!.value);
       attrEntity.operation = CDAction.delete;
-      CoreDesigner.emit(CDDesignEvent.saveModel, null);  
+      CoreDesigner.emit(CDDesignEvent.saveModel, null);
       CWApplication.of().dataAttributProvider.doEvent(
           CWRepositoryAction.onStateDelete, CWApplication.of().loaderModel,
           repaintXid: 'rootAttrExp');
@@ -121,8 +121,9 @@ class _DesignerAttributState extends State<DesignerAttribut> {
     return Row(children: [
       SizedBox(
           width: 300,
-          child:
-              Column(children: FormBuilder().getFormWidget(provider, loader)))
+          child: Column(
+              children: FormBuilder()
+                  .getFormWidget(provider, loader, ModeForm.expand)))
     ]);
   }
 }

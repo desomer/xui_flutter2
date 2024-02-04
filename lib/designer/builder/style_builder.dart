@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
+import 'package:xui_flutter/core/widget/cw_factory.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/builder/form_builder.dart';
 
@@ -17,8 +18,6 @@ class StyleBuilder {
   List<Widget> listStyle = [];
 
   void buildWidgetProperties(CWWidgetCtx aCtx, int buttonId) {
-    //String pathWidget = ctx.pathWidget;
-
     State? state = CoreDesigner.of().styleKey.currentState;
 
     bool ok = true;
@@ -26,10 +25,11 @@ class StyleBuilder {
     // ignore: dead_code
     if (ok || state != null) {
       listStyle.clear();
-
       var app = CWApplication.of();
 
       if (aCtx.getWidgetInSlot() == null) {
+        // ignore: invalid_use_of_protected_member
+        state?.setState(() {});
         return;
       }
 
@@ -42,7 +42,9 @@ class StyleBuilder {
       DesignCtx dCtx = DesignCtx().forDesign(aCtx);
 
       designEntity ??= PropBuilder.getEmptyEntity(aCtx.loader, dCtx);
-      aCtx.designEntity = designEntity;
+      dCtx.designEntity = designEntity;
+
+      addHeader(dCtx);
 
       Map<String, dynamic>? aStyle = aCtx.designEntity?.value[iDStyle];
       CoreDataEntity styleEntity;
@@ -75,12 +77,29 @@ class StyleBuilder {
     }
   }
 
+  void addHeader(DesignCtx aCtx) {
+    String name =
+        CWWidgetCollectionBuilder.getWidgetName(aCtx.designEntity!.type);
+
+    listStyle.add(Container(
+      width: double.infinity,
+      height: 30,
+      color: Colors.deepOrange.shade300,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        child: Center(
+            child: Text(
+                style: const TextStyle(color: Colors.black), 'Style of $name')),
+      ),
+    ));
+  }
+
   void initMargin(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
     ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Margin', provider, true);
+        AttrFormLoader('rootBody0', ctxLoader, 'Margin', provider, true, mode: ModeForm.expand);
 
     CoreDataAttribut attr = CoreDataAttribut('ptop')
         .init(CDAttributType.int,
@@ -119,7 +138,7 @@ class StyleBuilder {
     ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Padding', provider, true);
+        AttrFormLoader('rootBody0', ctxLoader, 'Padding', provider, true, mode: ModeForm.expand);
 
     CoreDataAttribut attr = CoreDataAttribut('mtop')
         .init(CDAttributType.int,
@@ -158,7 +177,7 @@ class StyleBuilder {
     ctxLoader.addRepository(provider);
 
     AttrFormLoader loader = AttrFormLoader(
-        'rootBody0', ctxLoader, 'Border & Elevation', provider, true);
+        'rootBody0', ctxLoader, 'Border & Elevation', provider, true, mode: ModeForm.expand);
 
     CoreDataAttribut attr = CoreDataAttribut('elevation')
         .init(CDAttributType.int,
@@ -198,7 +217,7 @@ class StyleBuilder {
     ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Alignment', provider, true);
+        AttrFormLoader('rootBody0', ctxLoader, 'Alignment', provider, true, mode: ModeForm.expand);
 
     List listAxis = [
       {'icon': Icons.align_vertical_top, 'value': -1},
@@ -230,7 +249,7 @@ class StyleBuilder {
 
     AttrFormLoader loader = AttrFormLoader(
         'root', ctxLoader, 'Background', provider, true,
-        mode: 'col');
+        mode: ModeForm.column);
 
     CoreDataAttribut attr = CoreDataAttribut('bgColor')
         .init(CDAttributType.one,
@@ -262,7 +281,7 @@ class StyleBuilder {
     ctxLoader.addRepository(provider);
 
     AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Text', provider, true);
+        AttrFormLoader('rootBody0', ctxLoader, 'Text', provider, true, mode: ModeForm.expand);
 
     List listCross = [
       {'icon': Icons.align_horizontal_left, 'value': 'start'},

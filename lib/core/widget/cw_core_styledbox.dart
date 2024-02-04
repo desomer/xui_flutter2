@@ -128,15 +128,22 @@ class CWStyledBox {
     config.clear();
   }
 
-  Widget getStyledBox(Widget content, {bool? withContainer}) {
+  Widget getPaddingBox(Widget content) {
+    if (config.padding != null) {
+      return Padding(padding: config.padding!, child: content);
+    }
+    return content;
+  }
+
+  Widget getMarginBox(Widget content,
+      {bool? withContainer, bool? withContentKey}) {
     init();
     if (style == null) {
       return getDragMargin(content);
     }
 
     widget.ctx.infoSelector.withPadding = false;
-
-    setConfigPadding();
+    setConfigMargin();
 
     if (withContainer ?? false) {
       setConfigBox();
@@ -144,7 +151,7 @@ class CWStyledBox {
     } else {
       if (config.margin != null) {
         content = Padding(
-            key: widget.ctx.getContentKey(true),
+            key: withContentKey ?? true ? widget.ctx.getContentKey(true) : null,
             padding: config.margin!,
             child: content);
       }
@@ -152,7 +159,7 @@ class CWStyledBox {
     }
   }
 
-  void setConfigPadding() {
+  void setConfigMargin() {
     if (styleExist(['boxAlignVertical', 'boxAlignHorizontal'])) {
       config.align = AlignmentDirectional(
           double.parse(style!['boxAlignHorizontal'] ?? '-1'),
@@ -206,6 +213,19 @@ class CWStyledBox {
     return content;
   }
 
+  RoundedRectangleBorder? getRoundedRectangleBorder() {
+    if (config.borderRadius != null || config.side != null) {
+      return RoundedRectangleBorder(
+          borderRadius: getBorderRadius(),
+          side: config.side ?? BorderSide.none);
+    }
+    return null;
+  }
+
+  BorderRadius getBorderRadius() {
+    return config.borderRadius ?? const BorderRadius.all(Radius.circular(4.0));
+  }
+
   Widget getStyledContainer(Widget content) {
     if (styleExist(['elevation'])) {
       content = Material(
@@ -228,7 +248,9 @@ class CWStyledBox {
       return content;
     } else if (config.margin != null ||
         config.decoration != null ||
-        config.padding != null) {
+        config.padding != null ||
+        config.height != null ||
+        config.width != null) {
       return Container(
           height: config.height,
           width: config.width,

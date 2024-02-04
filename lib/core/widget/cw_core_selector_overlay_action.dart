@@ -49,11 +49,11 @@ class SelectorActionWidget extends StatefulWidget {
 
     // ignore: invalid_use_of_protected_member
     stateSelectorAction.setState(() {
-      setPosition(info.slotKey!, stateSelectorAction.recSlot);
+      _setPosition(info.slotKey!, stateSelectorAction.recSlot);
       stateSelectorAction.visibleContent = false;
 
       if (info.contentKey != null) {
-        setPosition(info.contentKey!, stateSelectorAction.recContent);
+        _setPosition(info.contentKey!, stateSelectorAction.recContent);
         stateSelectorAction.visibleContent =
             !stateSelectorAction.recContent.equals(stateSelectorAction.recSlot);
       }
@@ -62,7 +62,7 @@ class SelectorActionWidget extends StatefulWidget {
     });
   }
 
-  static void setPosition(GlobalKey selectedKey, CWRec r) {
+  static void _setPosition(GlobalKey selectedKey, CWRec r) {
     final Offset? position =
         CwToolkit.getPosition(selectedKey, SelectorActionWidget.designerKey);
 
@@ -141,6 +141,7 @@ class CWRec {
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////
 class SelectorActionWidgetState extends State<SelectorActionWidget> {
   CWRec recSlot = CWRec();
   CWRec recContent = CWRec();
@@ -166,6 +167,10 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
   bool isInitiaziled = false;
   bool isPreviewMode = false;
   Function(dynamic)? onPreviewFct;
+
+  void addAction(List<Widget> a, Widget? w) {
+    if (w != null) a.add(w);
+  }
 
   @override
   void initState() {
@@ -200,11 +205,17 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       double topBtn = 10;
       double leftBtn = bottomZone.width! / 2;
 
-      bottomZone.actions = [
-        getAddAction(
-            topBtn, leftBtn + da, Icons.expand_more, DesignAction.moveBottom),
-        getAddAction(topBtn, leftBtn + db, Icons.add, DesignAction.addBottom),
-      ];
+      bottomZone.actions = [];
+
+      addAction(
+          bottomZone.actions,
+          getAddAction(topBtn, leftBtn + da, Icons.expand_more,
+              DesignAction.moveBottom));
+
+      addAction(
+          bottomZone.actions,
+          getAddAction(
+              topBtn, leftBtn + db, Icons.add, DesignAction.addBottom));
     };
 
     topZone.initPos = (CWRec r) {
@@ -224,11 +235,14 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
       double topBtn = 10;
       double leftBtn = topZone.width! / 2;
-      topZone.actions = [
-        getAddAction(
-            topBtn, leftBtn + da, Icons.expand_less, DesignAction.moveTop),
-        getAddAction(topBtn, leftBtn + db, Icons.add, DesignAction.addTop),
-      ];
+      topZone.actions = [];
+
+      addAction(
+          topZone.actions,
+          getAddAction(
+              topBtn, leftBtn + da, Icons.expand_less, DesignAction.moveTop));
+      addAction(topZone.actions,
+          getAddAction(topBtn, leftBtn + db, Icons.add, DesignAction.addTop));
     };
 
     rightZone.initPos = (CWRec r) {
@@ -250,11 +264,14 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       double topBtn = rightZone.height! / 2;
       double leftBtn = 10;
 
-      rightZone.actions = [
-        getAddAction(
-            topBtn + da, leftBtn, Icons.navigate_next, DesignAction.moveRight),
-        getAddAction(topBtn + db, leftBtn, Icons.add, DesignAction.addRight),
-      ];
+      rightZone.actions = [];
+      addAction(
+          rightZone.actions,
+          getAddAction(topBtn + da, leftBtn, Icons.navigate_next,
+              DesignAction.moveRight));
+
+      addAction(rightZone.actions,
+          getAddAction(topBtn + db, leftBtn, Icons.add, DesignAction.addRight));
     };
 
     leftZone.initPos = (CWRec r) {
@@ -275,11 +292,14 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       double topBtn = leftZone.height! / 2;
       double leftBtn = 10;
 
-      leftZone.actions = [
-        getAddAction(
-            topBtn + da, leftBtn, Icons.navigate_before, DesignAction.moveLeft),
-        getAddAction(topBtn + db, leftBtn, Icons.add, DesignAction.addLeft),
-      ];
+      leftZone.actions = [];
+
+      addAction(
+          leftZone.actions,
+          getAddAction(topBtn + da, leftBtn, Icons.navigate_before,
+              DesignAction.moveLeft));
+      addAction(leftZone.actions,
+          getAddAction(topBtn + db, leftBtn, Icons.add, DesignAction.addLeft));
     };
 
     deleteZone.initPos = (CWRec r) {
@@ -291,9 +311,9 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
       double topBtn = 15;
       double leftBtn = 5;
 
-      deleteZone.actions = [
-        getAddAction(topBtn, leftBtn, Icons.delete, DesignAction.delete),
-      ];
+      deleteZone.actions = [];
+      addAction(deleteZone.actions,
+          getAddAction(topBtn, leftBtn, Icons.delete, DesignAction.delete));
     };
 
     sizeZone.initPos = (CWRec r) {
@@ -386,24 +406,26 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
 
   GlobalKey boxkey = GlobalKey();
 
-  Positioned getAddAction(
+  Positioned? getAddAction(
       double top, double left, IconData ic, DesignAction action) {
-    return Positioned(
-        top: top,
-        left: left,
-        child: SizedBox(
-            height: 20,
-            width: 20,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepOrange,
-                  padding: const EdgeInsets.all(0)),
-              child: Icon(ic, size: 15),
-              onPressed: () {
-                debugPrint('doAction $action');
-                doAction(action);
-              },
-            )));
+    return canAction(action)
+        ? Positioned(
+            top: top,
+            left: left,
+            child: SizedBox(
+                height: 20,
+                width: 20,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepOrange,
+                      padding: const EdgeInsets.all(0)),
+                  child: Icon(ic, size: 15),
+                  onPressed: () {
+                    debugPrint('doAction $action');
+                    doAction(action);
+                  },
+                )))
+        : null;
   }
 
   static bool dragInProgess = false;
@@ -478,7 +500,7 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
                       padding: const EdgeInsets.all(0)),
                   child: Icon(ic, size: 15),
                   onPressed: () {
-                    debugPrint('doAction $action');
+                    debugPrint('doAction size $action');
                     doAction(action);
                   },
                 ))));
@@ -504,6 +526,30 @@ class SelectorActionWidgetState extends State<SelectorActionWidget> {
     } else if (action == DesignAction.moveLeft) {
       DesignActionManager().moveLeft();
     }
+  }
+
+  bool canAction(DesignAction action) {
+    if (action == DesignAction.delete) {
+      //DesignActionManager().doDelete();
+      return true;
+    } else if (action == DesignAction.addBottom) {
+      return DesignActionManager().canAddBottom();
+    } else if (action == DesignAction.addTop) {
+      return DesignActionManager().canAddTop();
+    } else if (action == DesignAction.moveBottom) {
+      return DesignActionManager().canMoveBottom();
+    } else if (action == DesignAction.moveTop) {
+      return DesignActionManager().canMoveTop();
+    } else if (action == DesignAction.addRight) {
+      return DesignActionManager().canAddRight();
+    } else if (action == DesignAction.addLeft) {
+      return DesignActionManager().canAddLeft();
+    } else if (action == DesignAction.moveRight) {
+      return DesignActionManager().canMoveRight();
+    } else if (action == DesignAction.moveLeft) {
+      return DesignActionManager().canMoveLeft();
+    }
+    return false;
   }
 }
 

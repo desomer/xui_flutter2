@@ -11,7 +11,7 @@ import 'builder/prop_builder.dart';
 
 final log = Logger('CoreDesignerSelector');
 
-const redisplayProp = 'redisplayProp';
+//const redisplayProp = 'redisplayProp';
 
 class CoreDesignerSelector {
   PropBuilder propBuilder = PropBuilder();
@@ -32,9 +32,7 @@ class CoreDesignerSelector {
       ctx.refreshContext();
       log.finest('selection <${ctx.xid}> path=${ctx.pathWidget}');
       SelectorActionWidget.showActionWidget(getInfoSelector(ctx));
-
-      propBuilder.buildWidgetProperties(ctx, 1);
-      styleBuilder.buildWidgetProperties(ctx, 1);
+      CoreDesigner.emit(CDDesignEvent.displayProp, ctx);
       unselect();
       _lastSelectedPath = ctx.pathWidget;
       _lastTimeSelected = DateTime.now().millisecondsSinceEpoch;
@@ -61,19 +59,33 @@ class CoreDesignerSelector {
     //   //   }
     //   // });
     // });
+    CoreDesigner.on(CDDesignEvent.displayProp, (arg) {
+      if (arg == null) {
+        SlotConfig? config =
+            CoreDesigner.ofFactory().mapSlotConstraintByPath[_lastSelectedPath];
+        arg = config!.slot!.ctx;
+      }
+      doWidgetProperties(arg as CWWidgetCtx);
+    });
+
+    CoreDesigner.on(CDDesignEvent.over, (arg) {
+      CWWidgetCtx ctx = arg as CWWidgetCtx;
+      ctx.refreshContext();
+      log.finest('over <${ctx.xid}> path=${ctx.pathWidget}');
+      SelectorActionWidget.showActionWidget(getInfoSelector(ctx));
+    });
 
     CoreDesigner.on(CDDesignEvent.reselect, (arg) {
       if (arg is CWWidgetInfoSelector) {
         SelectorActionWidget.showActionWidget(arg);
-      } else if (arg == null || arg == redisplayProp) {
+      } else if (arg == null /*|| arg == redisplayProp*/) {
         SlotConfig? config =
             CoreDesigner.ofFactory().mapSlotConstraintByPath[_lastSelectedPath];
 
         if (config != null && config.slot != null) {
-          if (arg == redisplayProp) {
-            propBuilder.buildWidgetProperties(config.slot!.ctx, 1);
-            styleBuilder.buildWidgetProperties(config.slot!.ctx, 1);
-          }
+          // if (arg == redisplayProp) {
+          //   doWidgetProperties(config.slot!.ctx);
+          // }
           CoreDesigner.emit(
               CDDesignEvent.reselect, getInfoSelector(config.slot!.ctx));
         }
@@ -81,8 +93,17 @@ class CoreDesignerSelector {
     });
   }
 
+  void doWidgetProperties(CWWidgetCtx ctx) {
+    if (CoreDesigner.of().editor.controllerTabRight.index == 0) {
+      propBuilder.buildWidgetProperties(ctx, 1);
+    }
+    if (CoreDesigner.of().editor.controllerTabRight.index == 1) {
+      styleBuilder.buildWidgetProperties(ctx, 1);
+    }
+  }
+
   CWWidgetInfoSelector getInfoSelector(CWWidgetCtx ctx) {
-    GlobalKey k = ctx.inSlot!.key as GlobalKey;
+    GlobalKey k = ctx.inSlot?.key as GlobalKey;
     CWWidgetInfoSelector? kc = ctx.getWidgetInSlot()?.ctx.infoSelector;
     if (kc != null) {
       kc.slotKey = k;
@@ -96,7 +117,8 @@ class CoreDesignerSelector {
   }
 
   bool isSelectedWidgetSince(CWWidgetCtx ctx, int delay) {
-    return _lastSelectedPath == ctx.pathWidget && (DateTime.now().millisecondsSinceEpoch-_lastTimeSelected > delay);
+    return _lastSelectedPath == ctx.pathWidget &&
+        (DateTime.now().millisecondsSinceEpoch - _lastTimeSelected > delay);
   }
 
   CWWidgetCtx? getSelectedWidgetContext() {
@@ -110,6 +132,7 @@ class CoreDesignerSelector {
         ?.ctx;
   }
 
+  @Deprecated('plus utile')
   void unselect() {
     String old = _lastSelectedPath;
     _lastSelectedPath = '';
@@ -119,7 +142,7 @@ class CoreDesignerSelector {
       log.finest(
           'deselection <${config.xid}> path=${config.slot?.ctx.pathWidget}');
       // Future.delayed(const Duration(milliseconds: 1000), () {
-      config.slot?.repaint();
+      //config.slot?.repaint();
       // });
     }
   }

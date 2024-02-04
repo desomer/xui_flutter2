@@ -4,8 +4,8 @@ import 'selector_manager.dart';
 
 // ignore: must_be_immutable
 class DesignerStyle extends StatefulWidget {
-  DesignerStyle({super.key});
-  List<Widget> listProp = [];
+  const DesignerStyle({super.key});
+  //List<Widget> listProp = [];
 
   @override
   State<DesignerStyle> createState() => DesignerStyleState();

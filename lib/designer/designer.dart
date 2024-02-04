@@ -11,7 +11,7 @@ import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/widget/widget_debug.dart';
 import 'package:xui_flutter/designer/widget/widget_drag_file.dart';
 import 'package:xui_flutter/designer/widget/widget_tab.dart';
-import 'package:xui_flutter/widget/cw_breadcrumb.dart';
+import 'package:xui_flutter/designer/designer_breadcrumb.dart';
 
 import '../core/data/core_data_query.dart';
 import '../core/data/core_repository.dart';
@@ -33,7 +33,16 @@ import 'widget/widget_preview.dart';
 import 'designer_selector_attribut.dart';
 import 'widget_filter_builder.dart';
 
-enum CDDesignEvent { select, reselect, preview, savePage, clear, saveModel }
+enum CDDesignEvent {
+  select,
+  reselect,
+  preview,
+  savePage,
+  clear,
+  saveModel,
+  over,
+  displayProp
+}
 
 final log = Logger('CoreDesigner');
 
@@ -61,8 +70,7 @@ class CoreDesigner extends StatefulWidget {
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
       storage?.deleteData('#pages', []);
       CoreDesigner.ofView().clearAll();
-      // ignore: invalid_use_of_protected_member
-      CoreDesigner.of().designerKey.currentState?.setState(() {});
+      CoreDesigner.ofView().reBuild(false);
       Future.delayed(const Duration(milliseconds: 100), () {
         CWWidget wid =
             CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
@@ -207,7 +215,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                 });
               },
               LogicalKeySet(LogicalKeyboardKey.alt): () {
-                 print("alt");
+                print("alt");
                 int n = DateTime.now().millisecondsSinceEpoch;
                 if (n - widget.altTime > 200) {
                   print("start alt");
@@ -219,7 +227,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                 widget.altTime = n;
                 alt.doAfter(() {
                   print("end alt");
-                  widget.altTime = DateTime.now().millisecondsSinceEpoch-800;
+                  widget.altTime = DateTime.now().millisecondsSinceEpoch - 800;
                   CoreDesignerSelector.of()
                       .getSelectedWidgetContext()
                       ?.getCWWidget()

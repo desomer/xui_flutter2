@@ -16,8 +16,8 @@ import 'designer_selector_repository.dart';
 
 // ignore: must_be_immutable
 class DesignerProp extends StatefulWidget {
-  DesignerProp({super.key});
-  List<Widget> listProp = [];
+  const DesignerProp({super.key});
+  //List<Widget> listProp = [];
   @override
   State<DesignerProp> createState() => DesignerPropState();
 }
@@ -46,13 +46,17 @@ class OnMount extends CoreDataAction {
 }
 
 class OnWidgetSelect extends CoreDataAction {
-  OnWidgetSelect(this.aCtx);
+  OnWidgetSelect(this.aCtx, {this.selectStyle});
   DesignCtx aCtx;
+  bool? selectStyle;
 
   @override
   void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     SelectorActionWidget.pathLock = aCtx.widget!.ctx.pathWidget;
     CoreDesigner.emit(CDDesignEvent.select, aCtx.widget!.ctx.getSlot()!.ctx);
+    if (selectStyle??false) {
+      CoreDesigner.of().editor.controllerTabRight.index = 1;
+    }
   }
 }
 
@@ -185,8 +189,6 @@ class MapDesign extends CoreDataAction {
 
   @override
   void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
-    debugPrint('set prop on ${aCtx.xid}');
-
     PropBuilder.setDesignOn(aCtx, prop);
   }
 }

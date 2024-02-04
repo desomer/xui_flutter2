@@ -134,7 +134,7 @@ class _CwArrayState extends StateCW<CWArray> {
 
     styledBox.init();
     styledBox.setConfigBox();
-    styledBox.setConfigPadding();
+    styledBox.setConfigMargin();
 
     var hC = (styledBox.config.decoration != null
             ? styledBox.config.hBorder
@@ -164,27 +164,27 @@ class _CwArrayState extends StateCW<CWArray> {
     return styledBox.getStyledContainer(MediaQuery(
             data: MediaQuery.of(context).removePadding(removeBottom: true),
             child: Scrollbar(
-                    thumbVisibility: true,
-                    trackVisibility: true,
+                thumbVisibility: true,
+                trackVisibility: true,
+                controller: horizontal,
+                child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
                     controller: horizontal,
-                    child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        controller: horizontal,
-                        child: SizedBox(
-                            width: w - heightBorder * 2, // 2 = border
-                            child: Column(children: [
-                              Container(
-                                  color: Theme.of(context).highlightColor,
-                                  child: header),
-                              Scrollbar(
-                                  thumbVisibility: true,
-                                  trackVisibility: true,
-                                  controller: vertical,
-                                  child: sizedContent),
-                              SizedBox(height: heightScroll) // zone scrollbar
-                            ])))
-                    //)
-                    ))
+                    child: SizedBox(
+                        width: w - heightBorder * 2, // 2 = border
+                        child: Column(children: [
+                          Container(
+                              color: Theme.of(context).highlightColor,
+                              child: header),
+                          Scrollbar(
+                              thumbVisibility: true,
+                              trackVisibility: true,
+                              controller: vertical,
+                              child: sizedContent),
+                          SizedBox(height: heightScroll) // zone scrollbar
+                        ])))
+                //)
+                ))
         //)
         );
   }
@@ -355,7 +355,7 @@ class ColumnAction extends SlotAction {
 
   @override
   bool canAddBottom() {
-    return true;
+    return false;
   }
 
   @override
@@ -365,12 +365,12 @@ class ColumnAction extends SlotAction {
 
   @override
   bool canAddTop() {
-    return true;
+    return false;
   }
 
   @override
   bool canMoveBottom() {
-    return true;
+    return false;
   }
 
   @override
@@ -380,7 +380,7 @@ class ColumnAction extends SlotAction {
 
   @override
   bool canMoveTop() {
-    return true;
+    return false;
   }
 
   @override
@@ -400,22 +400,22 @@ class ColumnAction extends SlotAction {
 
   @override
   bool canAddLeft() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override
   bool canAddRight() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override
   bool canMoveLeft() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override
   bool canMoveRight() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override

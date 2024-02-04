@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/widget/cw_expand_panel.dart';
 import '../../core/data/core_data.dart';
 import '../../core/data/core_repository.dart';
 import '../application_manager.dart';
 import '../designer.dart';
 
-class FormBuilder {
-  //static const String providerName = "Form";
+enum ModeForm
+{
+   column,
+   expand,
+   style,
+   form
+}
 
-  List<Widget> getFormWidget(CWRepository provider, CWAppLoaderCtx ctxLoader) {
+class FormBuilder {
+
+  List<Widget> getFormWidget(
+      CWRepository provider, CWAppLoaderCtx ctxLoader, ModeForm mode) {
     var listWidget = <Widget>[];
     CoreDataEntity entity = provider.getEntityByIdx(0);
 
@@ -20,13 +29,13 @@ class FormBuilder {
 
     ctxLoader.factory.disposePath('root');
 
-    AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, entity.type, provider, true);
-    var allAttribut = builder!.getAllAttribut();
+    AttrFormLoader loader = AttrFormLoader(
+        'rootBody0', ctxLoader, builder!.label ?? entity.type, provider, true,
+        mode: mode);
+    var allAttribut = builder.getAllAttribut();
     for (final CoreDataAttribut attr in allAttribut) {
       if (attr.type == CDAttributType.one) {
         //if (src[attr.name] != null) {
-
         loader.addAttr(attr);
         //}
       } else if (attr.type == CDAttributType.many) {
@@ -52,16 +61,15 @@ class FormBuilder {
     //provider.getData().idxSelected = 0;
     provider.getData().idxDisplayed = 0;
 
-    _createDesign(widget.ctx.loader, provider, widget.ctx.xid,
+    _createFormDesign(widget.ctx.loader, provider, widget.ctx.xid,
         widget.ctx.pathWidget, true);
 
-    CoreDesigner.ofView().rebuild();
-    // ignore: invalid_use_of_protected_member
-    CoreDesigner.of().designerKey.currentState?.setState(() {});
+    CoreDesigner.ofView().prepareReBuild();
+    CoreDesigner.ofView().reBuild(true);
     widget.repaint();
   }
 
-  void _createDesign(CWAppLoaderCtx loaderCtx, CWRepository provider,
+  void _createFormDesign(CWAppLoaderCtx loaderCtx, CWRepository provider,
       String xid, String path, bool designOnly) {
     final CoreDataObjectBuilder builder =
         loaderCtx.collectionDataModel.getClass(provider.type)!;
@@ -71,7 +79,7 @@ class FormBuilder {
     Map<String, dynamic> src = entity.value;
 
     AttrFormLoader loader =
-        AttrFormLoader(xid, loaderCtx, entity.type, provider, !designOnly);
+        AttrFormLoader(xid, loaderCtx, entity.type, provider, !designOnly, mode: ModeForm.form);
 
     List<CoreDataEntity> listMdel =
         CWApplication.of().dataModelProvider.content;
@@ -118,10 +126,10 @@ class FormBuilder {
 class AttrFormLoader extends CWWidgetLoader {
   AttrFormLoader(this.xid, CWAppLoaderCtx ctxLoader, this.nameForm,
       this.provider, this.isRoot,
-      {this.mode})
+      {required this.mode})
       : super(ctxLoader) {
     if (isRoot) {
-      if (mode == 'col') {
+      if (mode == ModeForm.column) {
         setRoot('root', 'CWColumn');
         tagCol = 'Cont';
       } else {
@@ -138,7 +146,7 @@ class AttrFormLoader extends CWWidgetLoader {
   bool isRoot;
   String tagCol = 'Col0Cont';
   String xid;
-  String? mode;
+  ModeForm mode;
 
   void addAttr(CoreDataAttribut attribut) {
     String name = attribut.label ?? attribut.name;
@@ -208,7 +216,8 @@ class AttrFormLoader extends CWWidgetLoader {
     } else {
       addWidget(inSlot, '${xid}attr$nbAttr', 'CWTextfield', <String, dynamic>{
         'label': name,
-        'type': attribut.type.name.toUpperCase(),
+        'vstyle': mode == ModeForm.form ? 'border' : 'list',
+        '_type_': attribut.type.name.toUpperCase(),
         '@bind': {iDBind: attribut.name, iDProviderName: provider.id}
       });
     }
@@ -218,16 +227,34 @@ class AttrFormLoader extends CWWidgetLoader {
   @override
   CoreDataEntity initCWFactory() {
     if (isRoot) {
-      if (mode == 'col') {
+      if (mode == ModeForm.column) {
         setProp(
             'root',
             ctxLoader.collectionWidget.createEntityByJson(
                 'CWColumn', <String, dynamic>{iDCount: nbAttr, 'fill': false}));
       } else {
+        // gestion properties
         setProp(
             'root',
-            ctxLoader.collectionWidget.createEntityByJson(
-                'CWExpandPanel', <String, dynamic>{iDCount: 1}));
+            ctxLoader.collectionWidget
+                .createEntityByJson('CWExpandPanel', <String, dynamic>{
+              iDCount: 1,
+            }));
+
+        // ajout btn add
+        if (mode == ModeForm.style) {
+          var action = ctxLoader.collectionWidget.createEntityByJson(
+              'CWExpandAction', {
+            '_idAction_': 'showStyle@properProvider',
+            'icon': Icons.style_rounded
+          });
+
+          var constraintTitle = ctxLoader.collectionWidget
+              .createEntityByJson('CWExpandConstraint', {
+            CWExpandAction.btnHeader.toString(): [action.value]
+          });
+          setConstraint('rootTitle0', constraintTitle);
+        }
 
         // le titre
         addWidget('rootTitle0', 'title0', 'CWActionLink', <String, dynamic>{

@@ -38,6 +38,8 @@ class DesignActionManager {
     SlotAction? slotAction = ctx?.inSlot?.slotAction;
     if (slotAction != null) {
       slotAction.addBottom(ctx!);
+    } else {
+      debugPrint('no slotAction');
     }
   }
 
@@ -46,6 +48,8 @@ class DesignActionManager {
     SlotAction? slotAction = ctx?.inSlot?.slotAction;
     if (slotAction != null) {
       slotAction.moveTop(ctx!);
+    } else {
+      debugPrint('no slotAction');
     }
   }
 
@@ -62,6 +66,8 @@ class DesignActionManager {
     SlotAction? slotAction = ctx?.inSlot?.slotAction;
     if (slotAction != null) {
       slotAction.addTop(ctx!);
+    } else {
+      debugPrint('no slotAction');
     }
   }
 
@@ -70,6 +76,8 @@ class DesignActionManager {
     SlotAction? slotAction = ctx?.inSlot?.slotAction;
     if (slotAction != null) {
       slotAction.addRight(ctx!);
+    } else {
+      debugPrint('no slotAction');
     }
   }
 
@@ -78,6 +86,8 @@ class DesignActionManager {
     SlotAction? slotAction = ctx?.inSlot?.slotAction;
     if (slotAction != null) {
       slotAction.moveRight(ctx!);
+    } else {
+      debugPrint('no slotAction');
     }
   }
 
@@ -86,6 +96,8 @@ class DesignActionManager {
     SlotAction? slotAction = ctx?.inSlot?.slotAction;
     if (slotAction != null) {
       slotAction.moveLeft(ctx!);
+    } else {
+      debugPrint('no slotAction');
     }
   }
 
@@ -94,6 +106,8 @@ class DesignActionManager {
     SlotAction? slotAction = ctx?.inSlot?.slotAction;
     if (slotAction != null) {
       slotAction.addLeft(ctx!);
+    } else {
+      debugPrint('no slotAction');
     }
   }
 
@@ -324,21 +338,36 @@ class DesignActionManager {
   }
 
   ////////////////////////////////////////////////////////////////////////
-  bool doDeleteSlot(CWWidgetCtx ctx, String tag, String countTag) {
-    int i = ctx.pathWidget.lastIndexOf('.$tag');
-    int idxChild = int.parse(ctx.pathWidget.substring(i + tag.length + 1));
+  bool doDeleteSlot(CWWidgetCtx ctx, DesignActionConfig config) {
+    int i = ctx.pathWidget.lastIndexOf('.${config.tag}');
+    int idxChild =
+        int.parse(ctx.pathWidget.substring(i + config.tag.length + 1));
     CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
-    int nbChild = parent.getNbChild(countTag, parent.getDefChild(countTag));
 
-    CoreDataEntity prop = PropBuilder.preparePropChange(
-        ctx.loader, DesignCtx().forDesign(parent.ctx));
-    prop.value[countTag] = nbChild - 1;
+    int nbChild = 0;
+    if (config.ctxConstraint == null) {
+      nbChild = parent.getNbChild(
+          config.countTag, parent.getDefChild(config.countTag));
+      CoreDataEntity prop = PropBuilder.preparePropChange(
+          ctx.loader, DesignCtx().forDesign(parent.ctx));
+      prop.value[config.countTag] = nbChild - 1;
+    } else {
+      nbChild = config.ctxConstraint?.designEntity?.value[config.countTag] ?? 1;
+
+      var aCtxConstraint = DesignCtx().forConstraint(config.ctxConstraint!);
+      CoreDataEntity prop =
+          PropBuilder.preparePropChange(ctx.loader, aCtxConstraint);
+      prop.value[config.countTag] = nbChild - 1;
+      if (prop.value[config.countTag] < config.minChild) {
+        prop.value[config.countTag] = config.minChild;
+      }
+    }
 
     if (idxChild < nbChild - 1) {
       for (var i = idxChild + 1; i < nbChild; i++) {
         debugPrint('move $i');
-        String path = '${parent.ctx.pathWidget}.$tag$i';
-        String pathTo = '${parent.ctx.pathWidget}.$tag${i - 1}';
+        String path = '${parent.ctx.pathWidget}.${config.tag}$i';
+        String pathTo = '${parent.ctx.pathWidget}.${config.tag}${i - 1}';
         var v = ctx.findWidgetByPath(path);
         var v2 = ctx.findSlotByPath(pathTo);
         if (v != null) {
@@ -352,27 +381,43 @@ class DesignActionManager {
     return true;
   }
 
-  bool addBeforeOrAfter(
-      CWWidgetCtx ctx, String tag, bool before, String countTag) {
-    int ic = ctx.pathWidget.lastIndexOf('.$tag');
-    int idxChild = int.parse(ctx.pathWidget.substring(ic + tag.length + 1));
-    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
-    int nbChild = parent.getNbChild(countTag, parent.getDefChild(countTag));
+  bool addBeforeOrAfter(CWWidgetCtx ctx, DesignActionConfig config) {
+    int ic = ctx.pathWidget.lastIndexOf('.${config.tag}');
+    int idxChild =
+        int.parse(ctx.pathWidget.substring(ic + config.tag.length + 1));
 
-    CoreDataEntity prop = PropBuilder.preparePropChange(
-        ctx.loader, DesignCtx().forDesign(parent.ctx));
-    prop.value[countTag] = nbChild + 1;
+    int nbChild = 0;
+    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+
+    if (config.ctxConstraint == null) {
+      nbChild = parent.getNbChild(
+          config.countTag, parent.getDefChild(config.countTag));
+
+      CoreDataEntity prop = PropBuilder.preparePropChange(
+          ctx.loader, DesignCtx().forDesign(parent.ctx));
+      prop.value[config.countTag] = nbChild + 1;
+    } else {
+      nbChild = config.ctxConstraint?.designEntity?.value[config.countTag] ?? 1;
+
+      var aCtxConstraint = DesignCtx().forConstraint(config.ctxConstraint!);
+      CoreDataEntity prop =
+          PropBuilder.preparePropChange(ctx.loader, aCtxConstraint);
+      prop.value[config.countTag] = nbChild + 1;
+    }
+
     parent
       ..repaint()
       ..select();
 
     // delay pour avoir les nouveaux slot dans les findSlotByPath
     Future.delayed(const Duration(milliseconds: 1), () {
-      if (idxChild < nbChild - 1 + (before ? 1 : 0)) {
-        for (var i = nbChild - 1; i > (idxChild - (before ? 1 : 0)); i--) {
+      if (idxChild < nbChild - 1 + (config.before ? 1 : 0)) {
+        for (var i = nbChild - 1;
+            i > (idxChild - (config.before ? 1 : 0));
+            i--) {
           debugPrint('move $i');
-          String path = '${parent.ctx.pathWidget}.$tag$i';
-          String pathTo = '${parent.ctx.pathWidget}.$tag${i + 1}';
+          String path = '${parent.ctx.pathWidget}.${config.tag}$i';
+          String pathTo = '${parent.ctx.pathWidget}.${config.tag}${i + 1}';
           var v = ctx.findWidgetByPath(path);
           var v2 = ctx.findSlotByPath(pathTo);
           if (v != null) {
@@ -381,31 +426,132 @@ class DesignActionManager {
         }
       }
     });
-
     return true;
   }
 
-  bool moveBeforeOrAfter(
-      CWWidgetCtx ctx, String tag, bool before, String countTag) {
-    int ic = ctx.pathWidget.lastIndexOf('.$tag');
-    int idxChild = int.parse(ctx.pathWidget.substring(ic + tag.length + 1));
-    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
-    int nbChild = parent.getNbChild(countTag, parent.getDefChild(countTag));
+  bool moveBeforeOrAfter(CWWidgetCtx ctx, DesignActionConfig config) {
+    int ic = ctx.pathWidget.lastIndexOf('.${config.tag}');
 
-    var boolBottom = before == false && (idxChild < nbChild - 1);
-    var boolTop = before == true && (idxChild > 0);
+    int idxChild =
+        int.parse(ctx.pathWidget.substring(ic + config.tag.length + 1));
+    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+
+    int nbChild = 0;
+    if (config.ctxConstraint == null) {
+      nbChild = parent.getNbChild(
+          config.countTag, parent.getDefChild(config.countTag));
+    } else {
+      nbChild = config.ctxConstraint?.designEntity?.value[config.countTag] ?? 1;
+    }
+
+    var boolBottom = config.before == false && (idxChild < nbChild - 1);
+    var boolTop = config.before == true && (idxChild > 0);
 
     if (boolBottom || boolTop) {
       debugPrint('move $idxChild');
-      String path = '${parent.ctx.pathWidget}.$tag$idxChild';
+      String path = '${parent.ctx.pathWidget}.${config.tag}$idxChild';
       String pathTo =
-          '${parent.ctx.pathWidget}.$tag${idxChild + 1 + (before ? -2 : 0)}';
+          '${parent.ctx.pathWidget}.${config.tag}${idxChild + 1 + (config.before ? -2 : 0)}';
       var v = ctx.findWidgetByPath(path);
       var v2 = ctx.findSlotByPath(pathTo);
       if (v != null) {
         DesignActionManager().doSwap(v.ctx.getSlot()!.ctx, v2!.ctx);
       }
     }
+
     return true;
   }
+  //////////////////////////////////////////////
+  bool canMoveBottom() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canMoveBottom();
+    } else {
+      return false;
+    }
+  }
+
+  bool canMoveTop() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canMoveTop();
+    } else {
+      return false;
+    }
+  }
+
+  bool canMoveLeft() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canMoveLeft();
+    } else {
+      return false;
+    }
+  }
+
+  bool canMoveRight() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canMoveRight();
+    } else {
+      return false;
+    }
+  }  
+
+  //////////////////////////////////////////////
+
+  bool canAddBottom() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canAddBottom();
+    } else {
+      return false;
+    }
+  }
+
+  bool canAddTop() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canAddTop();
+    } else {
+      return false;
+    }
+  }
+
+  bool canAddLeft() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canAddLeft();
+    } else {
+      return false;
+    }
+  }
+
+  bool canAddRight() {
+    CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
+    SlotAction? slotAction = ctx?.inSlot?.slotAction;
+    if (slotAction != null) {
+      return slotAction.canAddRight();
+    } else {
+      return false;
+    }
+  }  
+}
+
+class DesignActionConfig {
+  DesignActionConfig(this.tag, this.countTag, this.before,
+      {this.ctxConstraint});
+
+  final String tag;
+  final bool before;
+  final String countTag;
+  CWWidgetCtx? ctxConstraint;
+  int minChild = 1;
 }

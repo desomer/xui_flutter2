@@ -44,6 +44,8 @@ mixin CWActionManager {
         ctxWE.loader = widget.ctx.loader;
         ctxWE.buildContext = context;
         provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
+      } else {
+        print("provider $dest inconnu");
       }
     }
   }
@@ -75,12 +77,13 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     String type = slotConfig?.slot?.type ?? '';
 
-    return styledBox.getStyledBox(
+    return styledBox.getMarginBox(
         getDropZoneEvent(widget.ctx, indicatorEvent(getBtn(type, context))));
   }
 
   Widget indicatorEvent(Widget child) {
-    if (widget.ctx.modeRendering==ModeRendering.view || !widget.hasAction(widget)) {
+    if (widget.ctx.modeRendering == ModeRendering.view ||
+        !widget.hasAction(widget)) {
       return child;
     }
 
@@ -106,34 +109,46 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
           },
           child: Text(widget.getLabel('[label]')));
     } else {
-      Widget? icon = getIcon();
+      return getElevatedBtn(context);
+    }
+  }
 
-      ButtonStyle? style;
-      BorderSide? side;
-      OutlinedBorder? border;
+  ElevatedButton getElevatedBtn(BuildContext context) {
+    Widget? icon = getIcon();
 
-      if (styledBox.styleExist(['bSize', 'bColor'])) {
-        side = BorderSide(
-            width: styledBox.getStyleDouble('bSize', 1),
-            color: styledBox.getColor('bColor') ?? Colors.transparent);
-      }
-      if (styledBox.styleExist(['bRadius'])) {
-        border = RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-                Radius.circular(styledBox.getStyleDouble('bRadius', 0))),
-            side: side ?? BorderSide.none);
-      } else if (side != null) {
-        border = StadiumBorder(side: side);
-      }
+    ButtonStyle? style;
+    BorderSide? side;
+    OutlinedBorder? border;
+    styledBox.init();
+    styledBox.setConfigBox();
 
-      if (styledBox.styleExist(['elevation', 'bgColor'])) {
-        style = ElevatedButton.styleFrom(
-            shape: border,
-            elevation: styledBox.getElevation(),
-            backgroundColor: styledBox.getColor('bgColor'));
-      }
+    if (styledBox.styleExist(['bSize', 'bColor'])) {
+      side = BorderSide(
+          width: styledBox.getStyleDouble('bSize', 1),
+          color: styledBox.getColor('bColor') ?? Colors.transparent);
+    }
+    if (styledBox.styleExist(['bRadius'])) {
+      border = RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+              Radius.circular(styledBox.getStyleDouble('bRadius', 0))),
+          side: side ?? BorderSide.none);
+    } else if (side != null) {
+      border = StadiumBorder(side: side);
+    }
 
-      if (icon != null) {
+    if (styledBox.config.padding != null ||
+        styledBox.styleExist(['elevation', 'bgColor'])) {
+      style = ElevatedButton.styleFrom(
+          shape: border,
+          padding: styledBox.config.padding,
+          elevation: styledBox.getElevation(),
+          backgroundColor: styledBox.getColor('bgColor'));
+    }
+
+    String? label = widget.getLabelOrNull('[label]');
+
+    if (icon != null) {
+      if (label != null) {
         return ElevatedButton.icon(
             key: widget.ctx.getContentKey(false),
             style: style,
@@ -141,17 +156,25 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
               widget.doAction(context, widget, widget.ctx.designEntity?.value);
             },
             icon: icon,
-            label: Text(widget.getLabel('[label]')));
+            label: Text(label));
       } else {
         return ElevatedButton(
-          key: widget.ctx.getContentKey(false),
-          style: style,
-          onPressed: () {
-            widget.doAction(context, widget, widget.ctx.designEntity?.value);
-          },
-          child: Text(widget.getLabel('[label]')),
-        );
+            key: widget.ctx.getContentKey(false),
+            style: style,
+            onPressed: () {
+              widget.doAction(context, widget, widget.ctx.designEntity?.value);
+            },
+            child: FittedBox(fit: BoxFit.fitWidth, child: icon));
       }
+    } else {
+      return ElevatedButton(
+        key: widget.ctx.getContentKey(false),
+        style: style,
+        onPressed: () {
+          widget.doAction(context, widget, widget.ctx.designEntity?.value);
+        },
+        child: Text(widget.getLabel('[label]')),
+      );
     }
   }
 

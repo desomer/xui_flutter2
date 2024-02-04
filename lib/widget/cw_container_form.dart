@@ -22,6 +22,11 @@ class CWForm extends CWColumn {
         .withAction(AttrActionDefault(0))
         .addAttr('fill', CDAttributType.bool)
         .withAction(AttrActionDefault(false))
-        .addAttr(iDProviderName, CDAttributType.text, tname: 'provider');
+        .addAttr(iDProviderName, CDAttributType.text, tname: 'provider')
+        .addAttr('runSpacing', CDAttributType.int)
+        .withAction(AttrActionDefault(8))
+        .addAttr('_style_', CDAttributType.one, tname: 'StyleModel')
+        .withAction(AttrActionDefault( { 'bSize' : 8.0 }))
+    ;
   }
 }

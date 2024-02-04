@@ -23,10 +23,14 @@ class CWLoaderTest extends CWWidgetLoader {
     if (loadEmpty) {
       loadEmpty = false;
       setRoot('root', 'CWApp');
-      setProp(
-          'root',
+      // setProp(
+      //     'root',
+      //     ctxLoader.collectionWidget.createEntityByJson(
+      //         'CWApp', <String, dynamic>{}));      
+      setConstraint(
+          'rootPagePagehome',
           ctxLoader.collectionWidget.createEntityByJson(
-              'CWApp', <String, dynamic>{'fill': true}));
+              'CWPageConstraint', <String, dynamic>{'fill': true}));
     }
 
     //------------------------------------------------------------------

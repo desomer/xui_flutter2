@@ -21,6 +21,10 @@ abstract class CWContainer extends CWWidgetChild {
     return ctx.designEntity?.getBool('fill', def) ?? def;
   }
 
+  int? getRunspacing() {
+    return ctx.designEntity?.getInt('runSpacing', null);
+  }
+
   Widget getCell(int i, bool defFill,
       {required bool canFill,
       bool? canHeight,
@@ -37,7 +41,7 @@ abstract class CWContainer extends CWWidgetChild {
     //print("getCell -------- ${slot.ctx.xid} $constraint");
 
     int flex = constraint?.designEntity?.value['flex'] ?? 1;
-    bool loose = constraint?.designEntity?.value['tight/loose'] ?? false;
+    bool tight = constraint?.designEntity?.value['tight/loose'] ?? false;
     int? height = constraint?.designEntity?.value['height'];
     int? width = constraint?.designEntity?.value['width'];
 
@@ -56,7 +60,7 @@ abstract class CWContainer extends CWWidgetChild {
       return SizedBox(width: width.toDouble(), child: slot);
     } else if (isFill(defFill) && canFill) {
       return Flexible(
-          flex: flex, fit: loose ? FlexFit.loose : FlexFit.tight, child: slot);
+          flex: flex, fit: tight ? FlexFit.tight : FlexFit.loose, child: slot);
     } else {
       return slot;
     }
@@ -145,10 +149,11 @@ class CWColumn extends CWContainer {
         .addAttr('verticalAlign', CDAttributType.text, tname: 'toogle')
         .addCustomValue('bindValue', listAxis)
         .addAttr('horizAlign', CDAttributType.text, tname: 'toogle')
-        .addCustomValue('bindValue', listCross);
+        .addCustomValue('bindValue', listCross)
+        .addAttr('runSpacing', CDAttributType.int);
 
     c.collection
-        .addObject('CWColConstraint')
+        .addObject('CWColConstraint', label: 'Cell constraint')
         .addAttr('flex', CDAttributType.int)
         .addAttr('tight/loose', CDAttributType.bool)
         .addAttr('height', CDAttributType.int);
@@ -176,10 +181,12 @@ class CWColumnState extends StateCW<CWColumn>
   }
 
   Widget getWidget() {
-    return styledBox.getStyledBox(withContainer: true, LayoutBuilder(
+    return styledBox.getMarginBox(withContainer: true, LayoutBuilder(
         builder: (BuildContext context, BoxConstraints viewportConstraints) {
       final List<Widget> listStack = [];
       final List<Widget> listSlot = [];
+
+      int? runSpacing = widget.getRunspacing();
 
       final nb = widget.getNbChild(iDCount, widget.getDefChild(iDCount));
       for (var i = 0; i < nb; i++) {
@@ -187,6 +194,10 @@ class CWColumnState extends StateCW<CWColumn>
             canHeight: true,
             canFill: viewportConstraints.hasBoundedHeight,
             type: 'CWColumn'));
+        if (runSpacing!=null && i < nb-1)
+        {
+          listSlot.add(SizedBox(height: runSpacing.toDouble()));
+        }
       }
 
       listStack.add(Column(
@@ -306,16 +317,23 @@ class CWRowState extends StateCW<CWRow> {
   Widget build(BuildContext context) {
     final List<Widget> listSlot = [];
     final nb = widget.getNbChild(iDCount, widget.getDefChild(iDCount));
-    for (var i = 0; i < nb; i++) {
-      listSlot.add(widget.getCell(i, true,
-          canFill: true, canWidth: true, type: 'CWRow'));
-    }
 
-    return styledBox.getStyledBox(withContainer: true, Row(
-        mainAxisAlignment: widget.getMainAxisAlignment('horizAlign'),
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: widget.getCrossAxisAlignment('verticalAlign'),
-        children: listSlot));
+    return styledBox.getMarginBox(withContainer: true, LayoutBuilder(
+      builder: (context, viewportConstraints) {
+        for (var i = 0; i < nb; i++) {
+          listSlot.add(widget.getCell(i, true,
+              canFill: viewportConstraints.hasBoundedWidth,
+              canWidth: true,
+              type: 'CWRow'));
+        }
+
+        return Row(
+            mainAxisAlignment: widget.getMainAxisAlignment('horizAlign'),
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: widget.getCrossAxisAlignment('verticalAlign'),
+            children: listSlot);
+      },
+    ));
   }
 }
 
@@ -403,7 +421,8 @@ class SlotContainerAction extends SlotAction {
 
   @override
   bool doDelete(CWWidgetCtx ctx) {
-    return DesignActionManager().doDeleteSlot(ctx, 'Cont', iDCount);
+    return DesignActionManager()
+        .doDeleteSlot(ctx, DesignActionConfig('Cont', iDCount, false));
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -412,7 +431,7 @@ class SlotContainerAction extends SlotAction {
   bool addBottom(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
       return DesignActionManager()
-          .addBeforeOrAfter(ctx, 'Cont', false, iDCount);
+          .addBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, false));
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont0');
       return true;
@@ -422,7 +441,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addTop(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
-      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', true, iDCount);
+      return DesignActionManager()
+          .addBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, true));
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWColumn', 'Cont1');
       return true;
@@ -438,7 +458,7 @@ class SlotContainerAction extends SlotAction {
   bool moveBottom(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
       return DesignActionManager()
-          .moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
+          .moveBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, false));
     } else {
       return false;
     }
@@ -448,7 +468,7 @@ class SlotContainerAction extends SlotAction {
   bool moveTop(CWWidgetCtx ctx) {
     if (type == 'CWColumn') {
       return DesignActionManager()
-          .moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
+          .moveBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, true));
     } else {
       return false;
     }
@@ -462,7 +482,8 @@ class SlotContainerAction extends SlotAction {
   @override
   bool addLeft(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
-      return DesignActionManager().addBeforeOrAfter(ctx, 'Cont', true, iDCount);
+      return DesignActionManager()
+          .addBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, true));
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont1');
       return true;
@@ -473,7 +494,7 @@ class SlotContainerAction extends SlotAction {
   bool addRight(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
       return DesignActionManager()
-          .addBeforeOrAfter(ctx, 'Cont', false, iDCount);
+          .addBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, false));
     } else {
       DesignActionManager().doWrapWith(ctx, 'CWRow', 'Cont0');
       return true;
@@ -482,29 +503,29 @@ class SlotContainerAction extends SlotAction {
 
   @override
   bool canAddLeft() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool canAddRight() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool canMoveLeft() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool canMoveRight() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool moveLeft(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
       return DesignActionManager()
-          .moveBeforeOrAfter(ctx, 'Cont', true, iDCount);
+          .moveBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, true));
     } else {
       return false;
     }
@@ -514,7 +535,7 @@ class SlotContainerAction extends SlotAction {
   bool moveRight(CWWidgetCtx ctx) {
     if (type == 'CWRow') {
       return DesignActionManager()
-          .moveBeforeOrAfter(ctx, 'Cont', false, iDCount);
+          .moveBeforeOrAfter(ctx, DesignActionConfig('Cont', iDCount, false));
     } else {
       return false;
     }

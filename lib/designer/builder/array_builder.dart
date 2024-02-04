@@ -39,9 +39,8 @@ class ArrayBuilder {
 
     _createDesign(provider, type, widget.ctx.xid, widget.ctx.pathWidget, false);
 
-    CoreDesigner.ofView().rebuild();
-    // ignore: invalid_use_of_protected_member
-    CoreDesigner.of().designerKey.currentState?.setState(() {});
+    CoreDesigner.ofView().prepareReBuild();
+    CoreDesigner.ofView().reBuild(true);
     widget.repaint();
   }
 

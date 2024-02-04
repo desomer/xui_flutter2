@@ -21,7 +21,8 @@ abstract class CoreDataLoader {
   void reload();
   void setFilter(CWRepository provider, CoreDataFilter? aFilter);
   CoreDataFilter? getFilter();
-  void setCacheViewID(String cacheID, {required String onTable});
+  void setCacheViewID(CWRepository provider);
+  String? getCacheViewID();
 }
 
 final log = Logger('CoreDataLoaderMap');
@@ -29,13 +30,16 @@ final log = Logger('CoreDataLoaderMap');
 class CoreDataLoaderMap extends CoreDataLoader {
   final CWAppLoaderCtx _loader;
 
+  String? _filterID;
   String? _cacheViewId;
   String? _table;
-  final String _dataContainerAttribut;
+
 
   final Map<String, CoreDataFilter> _dicoFilter = {};
   final Map<String, Future<List<CoreDataEntity>>> _currentLoading = {};
+
   final Map<String, CoreDataEntity> _dicoDataContainerEntity;
+  final String _dataContainerAttribut;
 
   CoreDataLoaderMap(
       this._loader, this._dicoDataContainerEntity, this._dataContainerAttribut);
@@ -49,10 +53,11 @@ class CoreDataLoaderMap extends CoreDataLoader {
 
   @override
   Future<List<CoreDataEntity>> getDataAsync(CWWidgetCtx ctx) async {
+    var f = _dicoFilter[_filterID];
     log.fine(
-        'get async data table <$_table> idView=$_cacheViewId by ${ctx.pathWidget}');
-    _currentLoading[_cacheViewId!] = _currentLoading[_cacheViewId] ??
-        _getFuturData(_dicoFilter[_cacheViewId]?.dataFilter);
+        'loader get async table <$_table> idView=$_cacheViewId by ${ctx.pathWidget} with query h=${f.hashCode}');
+    _currentLoading[_cacheViewId!] =
+        _currentLoading[_cacheViewId] ?? _getFuturData(f?.dataFilter);
     return _currentLoading[_cacheViewId]!;
   }
 
@@ -91,6 +96,8 @@ class CoreDataLoaderMap extends CoreDataLoader {
       dynamic items;
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
 
+      log.finest('get query with filter h=${filters.hashCode}');
+
       if (storage != null) {
         items = await storage.getJsonData(_table!, filters);
       }
@@ -107,9 +114,9 @@ class CoreDataLoaderMap extends CoreDataLoader {
             .createEntityByJson('DataContainer', items);
       }
       log.finest(
-          'getDataFromQuery viewId=<$_cacheViewId> = ${_dicoDataContainerEntity[_cacheViewId]!}');
+          'getData FromQuery viewId=<$_cacheViewId> = ${_dicoDataContainerEntity[_cacheViewId]!}');
     } else {
-      log.finest('getDataFromCache viewId=<$_cacheViewId>');
+      log.finest('getData FromCache viewId=<$_cacheViewId>');
     }
     var ret = _dicoDataContainerEntity[_cacheViewId]!;
     return ret;
@@ -135,9 +142,12 @@ class CoreDataLoaderMap extends CoreDataLoader {
   }
 
   @override
-  void setCacheViewID(String cacheID, {required String onTable}) {
+  void setCacheViewID(CWRepository provider) {
+    _filterID = provider.type;
+    var cacheID = provider.getRepositoryCacheID();
     _cacheViewId = cacheID;
-    _table = onTable;
+    _table = provider.type;
+    log.finest('set loader on loader <$_table> cacheID=$cacheID');
   }
 
   @override
@@ -169,18 +179,26 @@ class CoreDataLoaderMap extends CoreDataLoader {
   @override
   void setFilter(CWRepository provider, CoreDataFilter? aFilter) {
     if (aFilter == null) {
-      _dicoFilter.remove(_cacheViewId);
-    } else if (_cacheViewId != null) {
-      var providerCacheID = provider.getRepositoryCacheID(aFilter: aFilter);
-      _dicoFilter[providerCacheID] = aFilter;
-      log.fine('set filter on $providerCacheID');
+      _dicoFilter.remove(_filterID);
+    } else {
+      // if (_cacheViewId != null)
+      _filterID = provider.type;
+      //provider.getRepositoryCacheID(aFilter: aFilter);
+      _dicoFilter[_filterID!] = aFilter;
+      log.fine(
+          'set filter on $_filterID id=${provider.id} h=${aFilter.hashCode}');
     }
   }
 
   @override
   CoreDataFilter? getFilter() {
-    if (_cacheViewId == null) return null;
-    return _dicoFilter[_cacheViewId!];
+    if (_filterID == null) return null;
+    return _dicoFilter[_filterID!];
+  }
+
+  @override
+  String? getCacheViewID() {
+    return _cacheViewId;
   }
 }
 
@@ -277,5 +295,11 @@ class CoreDataLoaderNested extends CoreDataLoader {
   }
 
   @override
-  void setCacheViewID(String cacheID, {required String onTable}) {}
+  void setCacheViewID(CWRepository provider) {}
+
+  @override
+  String? getCacheViewID() {
+    // TODO: implement getCacheViewID
+    throw UnimplementedError();
+  }
 }

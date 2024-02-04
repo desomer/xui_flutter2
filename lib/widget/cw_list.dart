@@ -153,7 +153,7 @@ class _CwListState extends StateCW<CWList> {
       widget.setIdx(index);
 
       var rowState = InheritedStateContainer(
-          key: GlobalKey(),
+          key: GlobalKey(),  // nouvelle row key
           index: index,
           arrayState: this,
           child: CWSlot(
@@ -177,25 +177,28 @@ class _CwListState extends StateCW<CWList> {
 
     //////////////////////////////////////////////////////
 
-    return widget.getReorder()
-        ? ReorderableListView.builder(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: nbRow,
-            itemBuilder: itemBuilder,
-            onReorder: (int oldIndex, int newIndex) {
-              setState(() {
-                provider!.loader!.reorder(oldIndex, newIndex);
-              });
-            },
-          )
-        : ListView.builder(
-            controller: controller,
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: nbRow,
-            itemBuilder: itemBuilder,
-          );
+    if (widget.getReorder()) {
+      return ReorderableListView.builder(
+        buildDefaultDragHandles: true,
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemCount: nbRow,
+        itemBuilder: itemBuilder,
+        onReorder: (int oldIndex, int newIndex) {
+          setState(() {
+            provider!.loader!.reorder(oldIndex, newIndex);
+          });
+        },
+      );
+    } else {
+      return ListView.builder(
+        controller: controller,
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        itemCount: nbRow,
+        itemBuilder: itemBuilder,
+      );
+    }
   }
 
   @override
@@ -319,7 +322,7 @@ class SlotListAction extends SlotAction {
 
   @override
   bool canAddBottom() {
-    return true;
+    return false;
   }
 
   @override
@@ -329,12 +332,12 @@ class SlotListAction extends SlotAction {
 
   @override
   bool canAddTop() {
-    return true;
+    return false;
   }
 
   @override
   bool canMoveBottom() {
-    return true;
+    return false;
   }
 
   @override
@@ -344,7 +347,7 @@ class SlotListAction extends SlotAction {
 
   @override
   bool canMoveTop() {
-    return true;
+    return false;
   }
 
   @override
@@ -364,22 +367,22 @@ class SlotListAction extends SlotAction {
 
   @override
   bool canAddLeft() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override
   bool canAddRight() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override
   bool canMoveLeft() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override
   bool canMoveRight() {
-    throw UnimplementedError();
+    return false;
   }
 
   @override

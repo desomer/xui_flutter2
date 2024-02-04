@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:flutter_material_color_picker/flutter_material_color_picker.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/db_icon_icons.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/widget/cw_container_form.dart';
 
@@ -344,7 +345,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
                   isDense: true,
                   labelText: 'Provider',
                   contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 0))))
-    ];
+    , const Spacer(), const Icon(DBIcon.database, size: 20,)];
   }
 
   List<Widget> getSliderContent() {

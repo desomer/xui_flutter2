@@ -5,7 +5,6 @@ import 'package:xui_flutter/designer/application_manager.dart';
 import 'package:xui_flutter/designer/designer.dart';
 
 import '../core/data/core_data_filter.dart';
-import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_repository.dart';
 import '../core/store/driver.dart';
@@ -18,52 +17,51 @@ enum FilterBuilderMode { data, query, selector }
 ////////////////////////////////////////////////////////////////////////////////
 // ignore: must_be_immutable
 class WidgetFilterbuilder extends StatefulWidget {
+  CoreDataFilter? filterDisplayed;
+  FilterBuilderMode mode;
+  final CWBindWidget? bindWidget;
+
   WidgetFilterbuilder({required this.mode, super.key, this.bindWidget}) {
     if (bindWidget != null) {
       bindWidget!.fctBindNested = (CoreDataEntity item) {
         if (mode == FilterBuilderMode.data) {
           String? idModel = item.getString('_id_');
-          setFilterOnData(idModel);
+          filterDisplayed = getFilterFromCache(idModel);
         }
         if (mode == FilterBuilderMode.query) {
           var aFilter = CoreDataFilter();
           aFilter.createFilterWithData(item.value);
-          filter = aFilter;
+          filterDisplayed = aFilter;
         }
       };
     }
   }
 
-  CoreDataFilter? filter;
-  FilterBuilderMode mode;
-  final CWBindWidget? bindWidget;
+  CoreDataFilter getFilterFromCache(String? idModel) {
+    if (idModel != null) {
+      CWRepository providerData = CWApplication.of().dataProvider;
+
+      providerData.setLoaderTable(idModel);
+
+      if (providerData.getFilter() == null) {
+        var aFilter = CoreDataFilter();
+        aFilter.createFilter(idModel, 'preview');
+        var group = aFilter.addGroup(aFilter.dataFilter);
+        aFilter.addClause(group);
+        providerData.setFilter(aFilter);
+      }
+      providerData.initFilter();
+      return providerData.getFilter()!;
+    } else {
+      return CoreDataFilter()..createFilter('?', '?');
+    }
+  }
 
   @override
   State<WidgetFilterbuilder> createState() => _WidgetFilterbuilderState();
-
-  void setFilterOnData(String? idModel) {
-    if (idModel != null) {
-      CWRepository providerData = CWApplication.of().dataProvider;
-      providerData.type = idModel;
-      CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-      dataLoader.setCacheViewID(providerData.getRepositoryCacheID(),
-          onTable: idModel); // choix de la map a afficher
-      if (providerData.loader!.getFilter() == null) {
-        var aFilter = CoreDataFilter();
-        aFilter.createFilter(idModel, 'preview');
-        filter = aFilter;
-        var group = filter!.addGroup(aFilter.dataFilter);
-        filter!.addClause(group);
-        providerData.setFilter(filter);
-      }
-      filter = providerData.loader!.getFilter();
-      providerData.setFilter(filter);
-    } else {
-      filter = CoreDataFilter()..createFilter('?', '?');
-    }
-  }
 }
 
+///////////////////////////////////////////////////////////////////////////////////
 class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
   @override
   void initState() {
@@ -75,14 +73,18 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
   Widget build(BuildContext context) {
     widget.bindWidget?.nestedWidgetState = this;
     CoreDataCollection c = CWApplication.of().collection;
-    CoreDataPath? listGroup = widget.filter?.dataFilter.getPath(c, 'listGroup');
+    CoreDataPath? listGroup =
+        widget.filterDisplayed?.dataFilter.getPath(c, 'listGroup');
 
     List<Widget> listGroupWidget = [];
     int i = 0;
 
     for (Map<String, dynamic> r in listGroup?.value ?? []) {
       listGroupWidget.add(WidgetQueryGroup(
-          key: ValueKey(r.hashCode), widget.filter!, 'listGroup[$i]', 0));
+          key: ValueKey(r.hashCode),
+          widget.filterDisplayed!,
+          'listGroup[$i]',
+          0));
       i++;
     }
 
@@ -109,21 +111,28 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
               visible: listGroupWidget.isNotEmpty,
               child: IconButton(
                   onPressed: () async {
-                    var app = CWApplication.of();
-                    await CoreGlobalCache.saveCache(app.dataProvider);
-                    await CoreGlobalCache.saveCache(app.dataModelProvider);
-                    app.refreshData();
+                    await saveAndRefreshData();
                   },
                   icon: const Icon(Icons.search_rounded)))
         ]));
   }
 
+  Future<void> saveAndRefreshData() async {
+    var app = CWApplication.of();
+    await CoreGlobalCache.saveCache(app.dataProvider);
+    await CoreGlobalCache.saveCache(app.dataModelProvider);
+    Future.delayed(const Duration(milliseconds: 100), () {
+      app.refreshData();
+    });
+  }
+
   Future<void> saveFilter(BuildContext context) async {
-    CWApplication.of().mapFilters[widget.filter!.dataFilter.value['_id_']] =
-        widget.filter!;
+    CWApplication.of()
+            .mapFilters[widget.filterDisplayed!.dataFilter.value['_id_']] =
+        widget.filterDisplayed!;
 
     StoreDriver? storage = await StoreDriver.getDefautDriver('main');
-    storage!.setData('filters', widget.filter!.dataFilter.value);
+    storage!.setData('filters', widget.filterDisplayed!.dataFilter.value);
   }
 
   Future<void> saveNewFilter(BuildContext context) {
@@ -159,7 +168,7 @@ class _WidgetFilterbuilderState extends State<WidgetFilterbuilder> {
               child: const Text('Create'),
               onPressed: () async {
                 Navigator.of(context).pop();
-                widget.filter!.dataFilter.value['name'] = ctrl.text;
+                widget.filterDisplayed!.dataFilter.value['name'] = ctrl.text;
 
                 await saveFilter(context);
 
@@ -348,7 +357,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
     super.initState();
     _controller.addListener(() {
       path.getLastEntity().value['value1'] = _controller.text;
-      //print("filter ${widget.filter.filter.value}");
+      print("change filter ${widget.filter.hashCode}");
     });
   }
 
@@ -478,7 +487,8 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
 
   Widget getValueSimple() {
     MaskConfig mask = MaskConfig(
-        type: 'TEXT',
+        bindType: 'TEXT',
+        visualType: 'list',
         inArray: true,
         controller: _controller,
         focus: aFocus,

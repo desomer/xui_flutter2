@@ -21,6 +21,7 @@ import 'cw_app_router.dart';
 final log = Logger('CWApp');
 
 const String iDnbBtnBottomNavBar = '_nbBtnBottomNavBar_';
+const String iDnbBtnHeader = '_nbBtnHeader_';
 
 class CWAppInfo {
   double lastHeight = -1;
@@ -67,7 +68,6 @@ class CWApp extends CWWidgetChild {
     c
         .addWidget(
             'CWApp', (CWWidgetCtx ctx) => CWApp(key: ctx.getKey(), ctx: ctx))
-        .addAttr('fill', CDAttributType.bool)
         .addAttr('color', CDAttributType.one, tname: 'color')
         .addAttr('dark', CDAttributType.bool)
         .addAttr('withBottomBar', CDAttributType.bool)
@@ -75,9 +75,11 @@ class CWApp extends CWWidgetChild {
         .withAction(AttrActionDefault(0));
 
     c.collection
-        .addObject('CWPageConstraint')
-        .addAttr('nbAction', CDAttributType.int)
-        .withAction(AttrActionDefault(0));
+        .addObject('CWPageConstraint', label: 'Page constraint')
+        .addAttr('fill', CDAttributType.bool)
+        .withAction(AttrActionDefault(true))
+        .addAttr(iDnbBtnHeader, CDAttributType.int)
+        .withAction(AttrActionDefault(1));
   }
 
   @override
@@ -97,12 +99,12 @@ class CWApp extends CWWidgetChild {
     for (var i = 0; i < listPages.length; i++) {
       var id = 'Page${listPages[i].id}';
       addSlotPath('$path.Body$id',
-          SlotConfig('${ctx.xid}Body$id', pathNested: '$path.AppBarAct$id'));
+          SlotConfig('${ctx.xid}Body$id', pathNested: '$path.Page$id'));
 
       addSlotPath('$path.AppBar$id',
-          SlotConfig('${ctx.xid}AppBar$id', pathNested: '$path.AppBarAct$id'));
+          SlotConfig('${ctx.xid}AppBar$id', pathNested: '$path.Page$id'));
 
-      var virtualCtx = createChildCtx(ctx, 'AppBarAct$id', null);
+      var virtualCtx = createChildCtx(ctx, 'Page$id', null);
       addSlotPath(
           virtualCtx.pathWidget,
           SlotConfig(virtualCtx.xid,
@@ -110,40 +112,49 @@ class CWApp extends CWWidgetChild {
               ctxVirtualSlot: virtualCtx));
 
       CWWidgetCtx? constraint =
-          ctx.factory.mapConstraintByXid['${ctx.xid}AppBarAct$id'];
-      int nb = constraint?.designEntity?.value['nbAction'] ?? 0;
+          ctx.factory.mapConstraintByXid['${ctx.xid}Page$id'];
+      int nb = constraint?.designEntity?.value[iDnbBtnHeader] ?? 1;
+      if (nb == 0) nb = 1;
 
       for (var j = 0; j < nb; j++) {
         addSlotPath(
-            '$path.AppBarAct$id#$j',
-            SlotConfig('${ctx.xid}AppBarAct$id#$j',
-                pathNested: '$path.AppBarAct$id'));
+            '$path.Page$id#$j',
+            SlotConfig(
+              '${ctx.xid}Page$id#$j',
+              pathNested: '$path.Page$id',
+            ));
       }
     }
   }
 
-  bool isFill() {
-    return ctx.designEntity!.getBool('fill', false);
+  bool isFill(String idPage) {
+    var ctxPage = createChildCtx(ctx, 'Page$idPage', null);
+    CWWidgetCtx? constraintPage = ctx.factory.mapConstraintByXid[ctxPage.xid];
+
+    return constraintPage?.designEntity?.getBool('fill', true) ?? true;
   }
 
   bool isDark() {
-    return ctx.designEntity!.getBool('dark', false);
+    return ctx.designEntity?.getBool('dark', false) ?? false;
   }
 
   int nbBtnBottomNavBar() {
-    bool withBottom = ctx.designEntity!.getBool('withBottomBar', false);
-    if (withBottom && ctx.designEntity!.value[iDnbBtnBottomNavBar] < 2) {
+    bool withBottom =
+        ctx.designEntity?.getBool('withBottomBar', false) ?? false;
+    int nbNav = ctx.designEntity?.value[iDnbBtnBottomNavBar] ?? 0;
+    if (withBottom && nbNav < 2) {
       CoreDataEntity prop =
           PropBuilder.preparePropChange(ctx.loader, DesignCtx().forDesign(ctx));
       prop.value[iDnbBtnBottomNavBar] = 2;
-    } else if (!withBottom &&
-        ctx.designEntity!.value[iDnbBtnBottomNavBar] > 0) {
+      nbNav = 2;
+    } else if (!withBottom && nbNav > 0) {
       CoreDataEntity prop =
           PropBuilder.preparePropChange(ctx.loader, DesignCtx().forDesign(ctx));
       prop.value[iDnbBtnBottomNavBar] = 0;
+      nbNav = 0;
     }
 
-    return ctx.designEntity!.getInt(iDnbBtnBottomNavBar, 0)!;
+    return nbNav;
   }
 
   @override
@@ -231,14 +242,15 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
 
     if (routerWidgetCache == null ||
         app.router == null ||
-        // widget.listAction.length != nbPage ||
         mustRepaint) {
       String r = '/';
       if (app.router != null) {
         var l = app.router!.routerDelegate.currentConfiguration.uri;
         r = l.path;
       }
-      final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
+      final rootNavigatorKey =
+          GlobalKey<NavigatorState>(debugLabel: 'rootNavigatorState');
 
       log.fine('create GoRouter instance');
       app.router = GoRouter(
@@ -291,19 +303,20 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     return routerWidgetCache!;
   }
 
-  ScaffoldResponsiveDrawer getWidgetPage(String id, Color backgroundColor) {
+  ScaffoldResponsiveDrawer getWidgetPage(String idPage, Color backgroundColor) {
     return ScaffoldResponsiveDrawer(
         appBar: AppBar(
           elevation: 0,
           automaticallyImplyLeading: true,
-          title: getTitle(id),
-          actions: getActions(id),
+          title: getTitle(idPage),
+          actions: getActions(idPage),
         ),
         body: ClipRRect(
             borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             child: Container(
-                color: backgroundColor, child: Material(child: getBody(id)))));
+                color: backgroundColor,
+                child: Material(child: getBody(idPage)))));
   }
 
   @override
@@ -362,21 +375,24 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
         ctx: widget.createChildCtx(widget.ctx, 'AppBar$id', null));
   }
 
-  List<Widget> getActions(String id) {
-    var createChildCtx =
-        widget.createChildCtx(widget.ctx, 'AppBarAct$id', null);
+  List<Widget> getActions(String idPage) {
+    var createChildCtx = widget.createChildCtx(widget.ctx, 'Page$idPage', null);
 
-    CWWidgetCtx? constraint =
+    CWWidgetCtx? constraintPage =
         widget.ctx.factory.mapConstraintByXid[createChildCtx.xid];
-    int nb = constraint?.designEntity?.value['nbAction'] ?? 0;
+
+    int nbAction = constraintPage?.designEntity?.value[iDnbBtnHeader] ?? 1;
+    if (nbAction == 0) nbAction = 1;
 
     List<Widget> ret = [];
 
-    for (var i = 0; i < nb; i++) {
+    for (var i = 0; i < nbAction; i++) {
       ret.add(CWSlot(
           type: 'appbar',
           key: GlobalKey(debugLabel: 'slot appbar action'),
-          ctx: widget.createChildCtx(widget.ctx, 'AppBarAct$id#$i', null)));
+          ctx: widget.createChildCtx(widget.ctx, 'Page$idPage#$i', null),
+          slotAction: SlotNavAction('Page$idPage#', iDnbBtnHeader,
+              ctxConstraint: constraintPage ?? createChildCtx)));
     }
 
     // if (nb==0)
@@ -384,20 +400,20 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     //   ret.add(CWSlot(
     //       type: 'appbar',
     //       key: GlobalKey(debugLabel: 'slot appbar action'),
-    //       ctx: widget.createChildCtx(widget.ctx, 'AppBarAct$idx', null)));
+    //       ctx: widget.createChildCtx(widget.ctx, 'Page$idx', null)));
     // }
 
     return ret;
   }
 
-  Widget getBody(String id) {
-    if (widget.isFill()) {
+  Widget getBody(String idPage) {
+    if (widget.isFill(idPage)) {
       return Column(children: [
         Expanded(
             child: CWSlot(
                 type: 'body',
                 key: GlobalKey(debugLabel: 'slot body'),
-                ctx: widget.createChildCtx(widget.ctx, 'Body$id', null),
+                ctx: widget.createChildCtx(widget.ctx, 'Body$idPage', null),
                 slotAction: SlotBodyAction()))
       ]);
     } else {
@@ -412,7 +428,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
               CWSlot(
                   type: 'body',
                   key: GlobalKey(debugLabel: 'slot body'),
-                  ctx: widget.createChildCtx(widget.ctx, 'Body$id', null),
+                  ctx: widget.createChildCtx(widget.ctx, 'Body$idPage', null),
                   slotAction: SlotBodyAction())
             ]),
           ));

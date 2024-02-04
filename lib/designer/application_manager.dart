@@ -143,7 +143,7 @@ class CWApplication {
     loaderModel.collectionWidget = loaderDesigner.collectionWidget;
     loaderModel.createFactory();
 
-    // ajouter l'action de delete
+    // ajouter l'action de delete table
     var c = loaderModel.collectionWidget;
     loaderModel.collectionDataModel = c;
     loaderModel
@@ -285,8 +285,8 @@ class CWApplication {
           repaintXid: 'rootModelCol0');
       // supprime les datas
       CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
-      dataLoader.setCacheViewID('AllData_${selectedEntity.value['_id_']}',
-          onTable: selectedEntity.value['_id_']); // choix de la map a afficher
+      // dataLoader.setCacheViewID('AllData_${selectedEntity.value['_id_']}',
+      //     onTable: selectedEntity.value['_id_']); // choix de la map a afficher
       dataLoader.deleteAll();
     }
 
@@ -304,8 +304,9 @@ class CWApplication {
         CWRepositoryAction.onRowSelected, OnSelectModel());
 
     dataModelProvider.getData().dataloader =
-        CoreDataLoaderMap(loaderModel, cacheMapModel, 'listData')
-          ..setCacheViewID('models', onTable: 'models');
+        CoreDataLoaderMap(loaderModel, cacheMapModel, 'listData');
+
+    dataModelProvider.setLoaderTable('models', model: 'DataModel');
 
     loaderModel.addRepository(dataModelProvider);
     //----------------------------------------------
@@ -394,6 +395,11 @@ class CWApplication {
     }
   }
 
+  CoreDataAttribut? getAttrById(String table, String attrName) {
+    var builder = loaderModel.collectionDataModel.getClass(table);
+    return builder?.getAttrById(attrName);
+  }
+
   CoreDataEntity? getCurrentAttributById(String id) {
     var v = getAttributValueById(dataModelProvider.getSelectedEntity()!, id);
     if (v != null) {
@@ -427,7 +433,22 @@ class CWApplication {
 
     CoreDataObjectBuilder data = loader.collectionDataModel.addObject(name);
     for (var element in listAttr ?? []) {
-      data.addAttribut(element['_id_'], CDAttributType.text);
+      CDAttributType type = CDAttributType.text;
+      switch (element['type']) {
+        case 'INT':
+        case 'INTEGER':
+          type = CDAttributType.int;
+          break;
+        case 'DEC':
+        case 'DOUBLE':
+          type = CDAttributType.dec;
+          break;
+        case 'DATE':
+          type = CDAttributType.date;
+          break;
+      }
+
+      data.addAttribut(element['_id_'], type);
     }
     data.addGroup(loader.collectionDataModel.getClass('DataEntity')!);
   }
@@ -437,10 +458,11 @@ class CWApplication {
     var label = tableEntity.value['name'];
     var idData = tableEntity.value['_id_'];
 
-    dataProvider.type = idData;
-    CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
-    dataLoader.setCacheViewID(dataProvider.getRepositoryCacheID(),
-        onTable: idData); // choix de la map a afficher
+    dataProvider.setLoaderTable(idData);
+    //dataProvider.type = idData;
+    // CoreDataLoaderMap dataLoader = dataProvider.loader as CoreDataLoaderMap;
+    // dataLoader.setCacheViewID(dataProvider,
+    //     onTable: idData); // choix de la map a afficher
     dataProvider.header!.value['label'] = label;
 
     dataProvider.getData().idxSelected = 0;
@@ -466,9 +488,10 @@ class CWApplication {
         CWRepositoryDataSelector(dataLoaderFinal, dataLoaderDesign, loader));
 
     var aFilter = (filter?.isFilter() ?? false) ? filter : null;
-    var providerCacheID = designData.getRepositoryCacheID(aFilter: aFilter);
-    coreDataLoaderMap.setCacheViewID(providerCacheID, onTable: type);
+    //var providerCacheID = designData.getRepositoryCacheID(aFilter: aFilter);
+    designData.setLoaderTable(type);
     designData.setFilter(aFilter);
+    // coreDataLoaderMap.setCacheViewID(designData, onTable: type);
 
     designData.type = type;
     // une ligne par défaut
@@ -480,10 +503,11 @@ class CWApplication {
   void refreshData() {
     CWRepository provider = CWApplication.of().dataProvider;
 
+    provider.initFilter();
     String idCache = provider.getRepositoryCacheID();
     CoreGlobalCache.cacheNbData.remove(idCache);
     provider.loader!.reload();
 
-    CWApplication.of().loaderData.findWidgetByXid('rootData')!.repaint();
+    CWApplication.of().loaderData.findWidgetByXid('rootData')?.repaint();
   }
 }

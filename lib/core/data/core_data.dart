@@ -14,10 +14,11 @@ class CoreDataCollection {
   final Map<String, CoreDataObjectBuilder> objects =
       <String, CoreDataObjectBuilder>{};
 
-  CoreDataObjectBuilder addObject(String name) {
+  CoreDataObjectBuilder addObject(String name, {String? label}) {
     log.fine('add CoreDataObject [$name]');
     final CoreDataObjectBuilder ret = CoreDataObjectBuilder(name);
     objects[name] = ret;
+    ret.label = label;
     return ret;
   }
 
@@ -41,7 +42,9 @@ enum CDActionData { defValue }
 class CoreDataObjectBuilder {
   CoreDataObjectBuilder(this.name);
 
-  late String name;
+  final String name;
+  String? label;
+
   final List<CoreDataAttribut> _attributs = <CoreDataAttribut>[];
   final Map<String, CoreDataAttribut> attributsByName =
       <String, CoreDataAttribut>{};
@@ -67,6 +70,17 @@ class CoreDataObjectBuilder {
   CoreDataObjectBuilder addObjectAction(String name, Function action) {
     actions[name] = CoreDataActionGetter(action);
     return this;
+  }
+
+  CoreDataAttribut? getAttrById(String attrName) {
+    CoreDataAttribut? attr = attributsByName[attrName];
+    if (attr == null) {
+      for (var group in groupAttributs) {
+        attr = group.attributsByName[attrName];
+        if (attr != null) return attr;
+      }
+    }
+    return attr;
   }
 
   CoreDataAttribut addAttribut(String name, CDAttributType type,
@@ -214,14 +228,7 @@ class CoreDataEntity {
         loader.collectionDataModel.getClass(type) ??
             loader.collectionWidget.getClass(type);
 
-    CoreDataAttribut? attr = builder?.attributsByName[attrName];
-    if (builder != null && attr == null) {
-      for (var group in builder.groupAttributs) {
-        attr = group.attributsByName[attrName];
-        if (attr != null) return attr;
-      }
-    }
-    return attr;
+    return builder?.getAttrById(attrName);
   }
 
   CoreDataEntity setOne(

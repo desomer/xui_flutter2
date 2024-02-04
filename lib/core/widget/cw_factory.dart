@@ -9,7 +9,7 @@ import 'package:xui_flutter/widget/cw_textfield.dart';
 
 import 'cw_core_loader.dart';
 import '../../widget/cw_container.dart';
-import '../../widget/cw_decorator.dart';
+import '../../widget/cw_card.dart';
 import '../../widget/cw_dropdown.dart';
 import '../../widget/cw_expand_panel.dart';
 import '../data/core_data.dart';
@@ -23,6 +23,10 @@ import '../data/core_repository.dart';
 import 'cw_core_widget.dart';
 
 class CWWidgetCollectionBuilder {
+  static String getWidgetName(String type) {
+    return type.substring(2);
+  }
+
   CWWidgetCollectionBuilder() {
     _initCollection();
     _initWidget();
@@ -52,7 +56,7 @@ class CWWidgetCollectionBuilder {
     CWArray.initFactory(this);
     CWActionLink.initFactory(this);
     CWSelector.initFactory(this);
-    CWDecorator.initFactory(this);
+    CWCard.initFactory(this);
     CWToogle.initFactory(this);
     CWDropdown.initFactory(this);
   }
@@ -88,7 +92,9 @@ class CWWidgetCollectionBuilder {
   }
 
   CoreDataObjectBuilder addWidget(String type, Function f) {
-    return collection.addObject(type).addObjectAction('BuildWidget', f);
+    return collection
+        .addObject(type, label: getWidgetName(type))
+        .addObjectAction('BuildWidget', f);
   }
 }
 
@@ -116,7 +122,6 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   Map<String, String> mapXidByPath = <String, String>{};
 
   Map<String, CWRepository> mapRepository = <String, CWRepository>{};
-
 
   void initSlot() {
     final rootWidget = mapWidgetByXid['root']!;
@@ -243,14 +248,17 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
     }
   }
 
+  // affecte le design du composant  
   void initWidgetDesign(String xid, String path, CoreDataEntity? prop) async {
     CWWidget? wid = mapWidgetByXid[xid];
     CWWidgetVirtual? widVir = mapWidgetVirtualByXid[xid];
 
-    wid?.ctx.pathDataDesign = path;
-    widVir?.ctx.pathDataDesign = path;
+
 
     if (prop != null) {
+      wid?.ctx.pathDataDesign = path;
+      widVir?.ctx.pathDataDesign = path;
+
       wid?.ctx.designEntity = prop;
       widVir?.ctx.designEntity = prop;
 

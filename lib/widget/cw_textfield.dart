@@ -25,6 +25,13 @@ class CWTextfield extends CWWidgetMapValue {
   void initSlot(String path) {}
 
   static void initFactory(CWWidgetCollectionBuilder c) {
+    List visualStyle = [
+      {'icon': Icons.tablet_outlined, 'value': 'border'},
+      {'icon': Icons.rectangle_rounded, 'value': 'fill'},
+      {'icon': Icons.horizontal_rule, 'value': 'under'},
+      {'icon': Icons.format_list_bulleted, 'value': 'list'},
+    ];
+
     c
         .addWidget('CWTextfield',
             (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
@@ -33,7 +40,9 @@ class CWTextfield extends CWWidgetMapValue {
         .withAction(AttrActionDefault(true))
         .addAttr('label', CDAttributType.text)
         .addCustomValue('bindEnable', true)
-        .addAttr('type', CDAttributType.text);
+        .addAttr('vstyle', CDAttributType.text, tname: 'toogle')
+        .addCustomValue('bindValue', visualStyle)
+        .addAttr('_type_', CDAttributType.text);
   }
 
   String? getLabelNull() {
@@ -42,8 +51,12 @@ class CWTextfield extends CWWidgetMapValue {
         : null;
   }
 
-  String getType() {
-    return ctx.designEntity?.getString('type', def: 'TEXT') ?? 'TEXT';
+  String getBindType() {
+    return ctx.designEntity?.getString('_type_', def: 'TEXT') ?? 'TEXT';
+  }
+
+  String getVisualStyle() {
+    return ctx.designEntity?.getString('vstyle', def: 'border') ?? 'border';
   }
 }
 
@@ -172,29 +185,58 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     if (row != null) widget.setDisplayRow(row);
 
     String? label = widget.getLabelNull();
-    String type = widget.getType();
+    String type = widget.getBindType();
+    String visualType = widget.getVisualStyle();
 
     var bind = widget.ctx.designEntity?.getOne('@bind');
     mapValue = widget.getMapString(provInfo: bind);
     _controller.text = mapValue!;
     bool inArray = row != null;
 
-    if (mask == null || mask?.type != type || mask?.label != label) {
-      if (type == 'INTEGER' || type == 'INT') {
+    initMask(visualType, type, label, inArray);
+
+    styledBox.init();
+    styledBox.setConfigBox();
+    styledBox.setConfigMargin();
+    styledBox.config.height =
+        inArray ? CWArrayRow.getHeightRow(widget) : CWForm.getHeightRow(widget);
+
+    bool withUnderline = visualType == 'list';
+
+    styledBox.config.decoration ??= inArray || !withUnderline
+        ? null
+        : BoxDecoration(
+            // dans un formulaire
+            border: Border(
+                bottom: BorderSide(
+                    width: 0.5, color: Theme.of(context).dividerColor)));
+
+    return styledBox.getStyledContainer(getCell(type));
+  }
+
+  void initMask(
+      String visualType, String bindType, String? label, bool inArray) {
+
+    var maskChanged = mask == null || mask?.bindType != bindType || mask?.label != label || mask?.visualType !=visualType;
+    
+    if (maskChanged) {
+      if (bindType == 'INTEGER' || bindType == 'INT') {
         mask = MaskConfig(
             inArray: inArray,
             ctx: widget.ctx,
-            type: type,
+            bindType: 'INT',
+            visualType: visualType,
             controller: _controller,
             focus: _focus,
             label: label,
             formatter: [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))],
             textInputType: TextInputType.number);
-      } else if (type == 'DOUBLE') {
+      } else if (bindType == 'DOUBLE' || bindType == 'DEC') {
         mask = MaskConfig(
             inArray: inArray,
             ctx: widget.ctx,
-            type: type,
+            bindType: 'DOUBLE',
+            visualType: visualType,
             controller: _controller,
             focus: _focus,
             label: label,
@@ -202,11 +244,12 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
               FilteringTextInputFormatter.allow(RegExp(r'(^-?\d*\.?\d*)'))
             ],
             textInputType: TextInputType.number);
-      } else if (type == 'DATE') {
+      } else if (bindType == 'DATE') {
         mask = MaskConfig(
             inArray: inArray,
             ctx: widget.ctx,
-            type: type,
+            bindType: bindType,
+            visualType: visualType,
             controller: _controller,
             focus: _focus,
             label: label,
@@ -242,30 +285,18 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
         mask = MaskConfig(
             inArray: inArray,
             ctx: widget.ctx,
-            type: type,
+            bindType: bindType,
+            visualType: visualType,
             controller: _controller,
             focus: _focus,
             label: label);
       }
     }
-
-    return Container(
-        height: inArray
-            ? CWArrayRow.getHeightRow(widget)
-            : CWForm.getHeightRow(widget),
-        decoration: inArray
-            ? null
-            : BoxDecoration(
-                // dans un formulaire
-                border: Border(
-                    bottom: BorderSide(
-                        width: 0.5, color: Theme.of(context).dividerColor))),
-        child: getCell(type));
   }
 
-  Widget getCell(String type) {
+  Widget getCell(String bindType) {
     Widget content;
-    if (type == 'DATE') {
+    if (bindType == 'DATE') {
       content = getDatePicker(mask!.getTextfield());
     } else {
       content = mask!.getTextfield();
@@ -347,7 +378,8 @@ class MaskConfig {
 
   FocusNode focus;
   TextEditingController controller;
-  String type;
+  String bindType;
+  String visualType;
   bool inArray;
 
   MaskConfig(
@@ -360,13 +392,48 @@ class MaskConfig {
       this.hint,
       this.label,
       this.textInputType,
-      required this.type});
+      required this.bindType,
+      required this.visualType});
 
   TextField getTextfield() {
     var enable = (ctx?.loader.mode ?? ModeRendering.view) == ModeRendering.view;
 
     double topMargin = label == null ? (inArray ? 5 : 15) : 0;
+    bool isNum = bindType == 'INT' || bindType == 'DOUBLE';
 
+    InputDecoration? inputDecoration;
+    if (visualType == 'list') {
+      inputDecoration = InputDecoration(
+          hintText: hint,
+          errorText: error,
+          labelText: label,
+          border: InputBorder.none,
+          isDense: true,
+          // labelStyle: const TextStyle(color: Colors.white70),
+          contentPadding: EdgeInsets.fromLTRB(5, topMargin, 5, 0));
+    } else if (visualType == 'border') {
+      inputDecoration = InputDecoration(
+        hintText: hint,
+        errorText: error,
+        labelText: label,
+        // prefixIcon: Icon(Icons.search),
+        // suffixIcon: Icon(Icons.clear),
+        border: const OutlineInputBorder(),
+      );
+    } else if (visualType == 'fill') {
+      inputDecoration = InputDecoration(
+        hintText: hint,
+        errorText: error,
+        labelText: label,
+        filled: true,
+        // prefixIcon: Icon(Icons.search),
+        // suffixIcon: Icon(Icons.clear),
+       // border: const OutlineInputBorder(),
+      );
+    }
+     else {
+      inputDecoration = const InputDecoration();
+    }
     return TextField(
       //onTap: controller.selectAll,
       focusNode: focus,
@@ -378,14 +445,8 @@ class MaskConfig {
       // scrollPadding: const EdgeInsets.all(0),
       inputFormatters: formatter ?? [],
       autocorrect: false,
-      decoration: InputDecoration(
-          hintText: hint,
-          errorText: error,
-          border: InputBorder.none,
-          isDense: true,
-          labelText: label,
-          // labelStyle: const TextStyle(color: Colors.white70),
-          contentPadding: EdgeInsets.fromLTRB(5, topMargin, 5, 0)),
+      textAlign: isNum ? TextAlign.right : TextAlign.start,
+      decoration: inputDecoration,
       //autofocus: true,
     );
   }

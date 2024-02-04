@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
-import '../core/data/core_data.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_factory.dart';
 
-class CWDecorator extends CWWidget {
-  const CWDecorator({super.key, required super.ctx});
+class CWCard extends CWWidget {
+  const CWCard({super.key, required super.ctx});
 
   @override
-  State<CWDecorator> createState() => _CWDecoratorState();
+  State<CWCard> createState() => _CWCardState();
 
   @override
   void initSlot(String path) {
@@ -17,28 +16,30 @@ class CWDecorator extends CWWidget {
   }
 
   static void initFactory(CWWidgetCollectionBuilder c) {
-    c
-        .addWidget('CWDecorator',
-            (CWWidgetCtx ctx) => CWDecorator(key: ctx.getKey(), ctx: ctx))
-        .addAttr('elevation', CDAttributType.int);
+    c.addWidget(
+        'CWCard', (CWWidgetCtx ctx) => CWCard(key: ctx.getKey(), ctx: ctx));
   }
 }
 
-class _CWDecoratorState extends StateCW<CWDecorator> {
+class _CWCardState extends StateCW<CWCard> {
   @override
   Widget build(BuildContext context) {
-    return Card(
-        margin: const EdgeInsets.all(5),
-        elevation: widget.getInt('elevation', null)?.toDouble(),
+    styledBox.init();
+    styledBox.setConfigBox();
+
+    return styledBox.getMarginBox(withContentKey: false, Card(
+        key: widget.ctx.getContentKey(true), 
+        shape: styledBox.getRoundedRectangleBorder(),
+        elevation: styledBox.getElevation(),
+        //  margin: styledBox.config.margin,
+        color: styledBox.config.decoration?.color,
         child: InkWell(
-            borderRadius: BorderRadius.circular(12.0),
-            onTap: () {},
-            child: Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: CWSlot(
-                    type: 'body',
-                    key: widget.ctx.getSlotKey('Cont', ''),
-                    ctx: widget.createChildCtx(widget.ctx, 'Cont', null)))));
+            borderRadius: styledBox.getBorderRadius(),
+            //onTap: () {},
+            child: styledBox.getPaddingBox(CWSlot(
+                type: 'body',
+                key: widget.ctx.getSlotKey('Cont', ''),
+                ctx: widget.createChildCtx(widget.ctx, 'Cont', null))))));
   }
 
   Widget getDecorator() {

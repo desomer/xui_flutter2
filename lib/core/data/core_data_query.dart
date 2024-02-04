@@ -17,7 +17,19 @@ class CoreGlobalCache {
       saveCache(provider);
     } else {
       log.finer('set cache nbrow <$idCache> with $nbrow rows');
+      provider.lockId = null;
     }
+  }
+
+  static int getCacheNbRow(CWRepository provider) {
+    String idCache = provider.getRepositoryCacheID();
+    var cacheNbRow = cacheNbData[idCache];
+    if (cacheNbRow != null && cacheNbRow != -1) {
+      var result = cacheDataValue[idCache];
+      provider.content = result!;
+      return cacheNbRow;
+    }
+    return -1;
   }
 
   static Future<void> saveCache(CWRepository provider) async {

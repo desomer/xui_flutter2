@@ -6,11 +6,13 @@ import '../../core/widget/cw_core_loader.dart';
 import '../../core/widget/cw_core_widget.dart';
 import '../designer.dart';
 import '../designer_selector_properties.dart';
+import '../help/widget_over_cmp.dart';
 import 'form_builder.dart';
 
 class PropBuilder {
   List<Widget> listProp = [];
   List<DesignCtx> listPath = [];
+  List<Widget> currentProp = [];
 
   //Map<String, DesignCtx> mapEntityByPath = <String, DesignCtx>{};
   // Map<String, CoreDataEntity> mapEntityWidgetByPath =
@@ -27,19 +29,25 @@ class PropBuilder {
       listProp.clear();
       listPath.clear();
 
+      currentProp.clear();
       while (pathWidget.isNotEmpty) {
         DesignCtx aCtx = DesignCtx().forDesignByPath(ctx, pathWidget, null);
 
         if (aCtx.widget == null) {
           //debugPrint('>>> $pathWidget as empty slot');
         } else {
-          _addWidgetProp(aCtx, ctx, pathWidget);
+          _addWidgetProperties(aCtx, ctx, pathWidget);
           listPath.insert(0, aCtx);
         }
 
         _addSlotConstraint(aCtx, ctx, pathWidget);
         //_addSlotVirtualConstraint(pathWidget, aCtx, ctx);
 
+        listProp.add(WidgetOverCmp(
+            path: pathWidget, child: Column(children: [...currentProp])));
+        currentProp.clear();
+
+        // next path
         int i = pathWidget.lastIndexOf('.');
         if (i < 0) break;
         pathWidget = pathWidget.substring(0, i);
@@ -48,6 +56,8 @@ class PropBuilder {
         }
         pathWidget = pathWidget.substring(0, i);
       }
+      listProp.add(WidgetOverCmp(
+          path: pathWidget, child: Column(children: [...currentProp])));
 
       // ignore: invalid_use_of_protected_member
       state?.setState(() {});
@@ -62,7 +72,8 @@ class PropBuilder {
   //   }
   // }
 
-  void _addWidgetProp(DesignCtx aCtx, CWWidgetCtx ctx, String pathWidget) {
+  void _addWidgetProperties(
+      DesignCtx aCtx, CWWidgetCtx ctx, String pathWidget) {
     CoreDataEntity? designEntity = aCtx.designEntity;
     if (designEntity?.operation == CDAction.inherit) {
       designEntity?.operation = CDAction.read;
@@ -79,15 +90,15 @@ class PropBuilder {
         CWRepositoryAction.onStateNone2Create, MapDesign(aCtx, designEntity));
     provider.addAction(CWRepositoryAction.onValueChanged, RefreshDesign(aCtx));
 
-    // provider.addAction(
-    //     CWProviderAction.onFactoryMountWidget, OnMount(aCtx, pathWidget));
     provider.addUserAction('onTapHeader', OnWidgetSelect(aCtx));
     provider.addUserAction('onTapLink', OnLinkSelect(aCtx, pathWidget));
+    provider.addUserAction(
+        'showStyle', OnWidgetSelect(aCtx, selectStyle: true));
 
     CWAppLoaderCtx loader = CWAppLoaderCtx().from(ctx.loader);
-    provider.header = loader.collectionDataModel.createEntityByJson(
-        'DataHeader', {'label': designEntity.type.substring(2)});
-    listProp.addAll(FormBuilder().getFormWidget(provider, loader));
+
+    var formWidget = FormBuilder().getFormWidget(provider, loader, ModeForm.style);
+    currentProp.addAll(formWidget);
   }
 
   void _addSlotConstraint(
@@ -121,7 +132,7 @@ class PropBuilder {
 
       CWAppLoaderCtx loader = CWAppLoaderCtx().from(slotCtx.loader);
       // ajoute les composant du loader
-      listProp.addAll(FormBuilder().getFormWidget(provider, loader));
+      currentProp.addAll(FormBuilder().getFormWidget(provider, loader, ModeForm.expand));
     }
 
     if (sc != null && sc.pathNested != null) {
@@ -140,7 +151,7 @@ class PropBuilder {
     //  soit la height de l'enfant
     //  soit le parent
 
-    var prop = aCtx.widget!.ctx.designEntity;
+    var prop = aCtx.widget?.ctx.designEntity;
     if (prop == null) {
       prop = getEmptyEntity(loader, aCtx);
       setDesignOn(aCtx, prop);
@@ -182,8 +193,11 @@ class PropBuilder {
           .setConstraint(aCtx.xid!, prop, path: ctx2.pathDataDesign);
     } else {
       aCtx.widget?.ctx.designEntity = prop;
+      debugPrint(
+          'set prop on ${aCtx.xid} path design = ${aCtx.widget?.ctx.pathDataDesign}');
       aCtx.widget?.ctx.pathDataDesign = CoreDesigner.ofLoader()
           .setProp(aCtx.xid!, prop, path: aCtx.widget?.ctx.pathDataDesign);
+      debugPrint('set result path design = ${aCtx.widget?.ctx.pathDataDesign}');
     }
   }
 }

@@ -208,7 +208,7 @@ class ScaffoldWithNavigationBar extends StatelessWidget with CWSlotManager {
         type: 'navigation',
         key: GlobalKey(debugLabel: 'slot ${element.ctxApp.xid}Nav$i'),
         ctx: createChildCtx(element.ctxApp, 'Nav', i),
-        slotAction: SlotNavAction(),
+        slotAction: SlotNavAction('Nav', iDnbBtnBottomNavBar),
       );
 
       listBtn.add(BottomNavigationBarItem(label: '', icon: slot));
@@ -259,7 +259,7 @@ class ScaffoldWithNavigationRail extends StatelessWidget with CWSlotManager {
         type: 'navigation',
         key: GlobalKey(debugLabel: 'slot ${element.ctxApp.xid}Nav$i'),
         ctx: createChildCtx(element.ctxApp, 'Nav', i),
-        slotAction: SlotNavAction(),
+        slotAction: SlotNavAction('Nav', iDnbBtnBottomNavBar),
       );
 
       actions.add(NavigationRailDestination(
@@ -328,6 +328,12 @@ class AnimatedBranchContainer extends StatelessWidget {
 }
 
 class SlotNavAction extends SlotAction {
+  SlotNavAction(this.tag, this.varTag, {this.ctxConstraint});
+
+  final String tag;
+  final String varTag;
+  final CWWidgetCtx? ctxConstraint;
+
   @override
   bool canDelete() {
     return true;
@@ -335,7 +341,8 @@ class SlotNavAction extends SlotAction {
 
   @override
   bool doDelete(CWWidgetCtx ctx) {
-    return DesignActionManager().doDeleteSlot(ctx, 'Nav', iDnbBtnBottomNavBar);
+    return DesignActionManager().doDeleteSlot(ctx,
+        DesignActionConfig(tag, varTag, false, ctxConstraint: ctxConstraint));
   }
 
   @override
@@ -380,14 +387,14 @@ class SlotNavAction extends SlotAction {
 
   @override
   bool addLeft(CWWidgetCtx ctx) {
-    return DesignActionManager()
-        .addBeforeOrAfter(ctx, 'Nav', true, iDnbBtnBottomNavBar);
+    return DesignActionManager().addBeforeOrAfter(ctx,
+        DesignActionConfig(tag, varTag, true, ctxConstraint: ctxConstraint));
   }
 
   @override
   bool addRight(CWWidgetCtx ctx) {
-    return DesignActionManager()
-        .addBeforeOrAfter(ctx, 'Nav', false, iDnbBtnBottomNavBar);
+    return DesignActionManager().addBeforeOrAfter(ctx,
+        DesignActionConfig(tag, varTag, false, ctxConstraint: ctxConstraint));
   }
 
   @override
@@ -412,13 +419,13 @@ class SlotNavAction extends SlotAction {
 
   @override
   bool moveLeft(CWWidgetCtx ctx) {
-    return DesignActionManager()
-        .moveBeforeOrAfter(ctx, 'Nav', true, iDnbBtnBottomNavBar);
+    return DesignActionManager().moveBeforeOrAfter(ctx,
+        DesignActionConfig(tag, varTag, true, ctxConstraint: ctxConstraint));
   }
 
   @override
   bool moveRight(CWWidgetCtx ctx) {
-    return DesignActionManager()
-        .moveBeforeOrAfter(ctx, 'Nav', false, iDnbBtnBottomNavBar);
+    return DesignActionManager().moveBeforeOrAfter(ctx,
+        DesignActionConfig(tag, varTag, false, ctxConstraint: ctxConstraint));
   }
 }

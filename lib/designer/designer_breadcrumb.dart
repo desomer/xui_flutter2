@@ -1,9 +1,11 @@
 import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:xui_flutter/core/widget/cw_factory.dart';
 
 import '../core/widget/cw_core_loader.dart';
-import '../designer/designer_selector_properties.dart';
-import '../designer/selector_manager.dart';
+import 'designer_selector_properties.dart';
+import 'help/widget_over_cmp.dart';
+import 'selector_manager.dart';
 
 class BreadCrumbNavigator extends StatefulWidget {
   const BreadCrumbNavigator({super.key});
@@ -15,15 +17,16 @@ class BreadCrumbNavigator extends StatefulWidget {
 }
 
 class _BreadCrumbNavigatorState extends State {
+
   @override
   Widget build(BuildContext context) {
     List<Route> currentRouteStack = [];
 
     List<DesignCtx> listPath = CoreDesignerSelector.of().propBuilder.listPath;
     for (var element in listPath) {
-      currentRouteStack.add(RouteTest(
+      currentRouteStack.add(RouteCmp(
           settings:
-              RouteSettings(name: element.designEntity?.type.substring(2))));
+              RouteSettings(name: CWWidgetCollectionBuilder.getWidgetName(element.designEntity!.type))));
     }
 
     return RowSuper(
@@ -34,26 +37,26 @@ class _BreadCrumbNavigatorState extends State {
           .map(
             (index, value) => MapEntry(
                 index,
-                GestureDetector(
-                    onTap: () {
-                      OnWidgetSelect(listPath[index]).execute(null, null);
-                      //debugPrint('RowSuper $index');
-                      // Navigator.popUntil(context,
-                      //     (route) => route == currentRouteStack[index]);
-                    },
-                    child: _BreadButton(
-                        index == 0
-                            ? 'Page'
-                            : currentRouteStack[index].settings.name!,
-                        index == 0))),
+                WidgetOverCmp(path:listPath[index].pathWidget, mode: index == 0?'1clip':'clip',
+                    child: GestureDetector(
+                        onTap: () {
+                          OnWidgetSelect(listPath[index]).execute(null, null);
+                        },
+                        child: _BreadButton(
+                            index == 0
+                                ? 'Page'
+                                : currentRouteStack[index].settings.name!,
+                            index == 0)))),
           )
           .values),
     );
   }
 }
 
-class RouteTest extends Route {
-  RouteTest({super.settings});
+
+
+class RouteCmp extends Route {
+  RouteCmp({super.settings});
 }
 
 class _BreadButton extends StatelessWidget {
@@ -65,7 +68,7 @@ class _BreadButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipPath(
-      clipper: _TriangleClipper(!isFirstButton),
+      clipper: TriangleClipper(!isFirstButton),
       child: Container(
         color: Theme.of(context).highlightColor,
         child: Padding(
@@ -81,10 +84,10 @@ class _BreadButton extends StatelessWidget {
   }
 }
 
-class _TriangleClipper extends CustomClipper<Path> {
+class TriangleClipper extends CustomClipper<Path> {
   final bool twoSideClip;
 
-  _TriangleClipper(this.twoSideClip);
+  TriangleClipper(this.twoSideClip);
 
   @override
   Path getClip(Size size) {

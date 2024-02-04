@@ -74,7 +74,7 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
   }
 
   void repaint() {
-    ctx.state.repaint();
+    ctx.state?.repaint();
   }
 
   void select() {
@@ -213,11 +213,8 @@ mixin class CWWidgetProvider {
         provider.loader != null &&
         !provider.loader!.isSync()) {
       isSync = false;
-      String idCache = provider.getRepositoryCacheID();
-      var cacheNbRow = CoreGlobalCache.cacheNbData[idCache];
-      if (cacheNbRow != null && cacheNbRow != -1) {
-        var result = CoreGlobalCache.cacheDataValue[idCache];
-        provider.content = result!;
+      int cacheNbRow = CoreGlobalCache.getCacheNbRow(provider);
+      if (cacheNbRow != -1) {
         return cacheNbRow;
       }
     }
@@ -332,7 +329,7 @@ class CWWidgetCtx {
   String? pathDataCreate;
   CWSlot? inSlot;
   dynamic lastEvent;
-  late StateCW state;
+  StateCW? state;
   CWWidgetInfoSelector infoSelector = CWWidgetInfoSelector();
 
   WidgetFactoryEventHandler get factory {
@@ -397,6 +394,7 @@ class CWWidgetCtx {
     return factory.mapSlotConstraintByPath[pathWidget]?.slot;
   }
 
+  // reaffect le inSlot aprés un ajout de cmp
   CWWidgetCtx refreshContext() {
     CWWidget? wid = factory.mapWidgetByXid[xid];
     if (wid == null) {

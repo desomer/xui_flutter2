@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../../data/core_data.dart';
 import '../../data/core_data_filter.dart';
@@ -74,7 +75,7 @@ class SupabaseDriver extends StoreDriver {
   Future<dynamic> _getJsonPages() async {
     var query = client['main']!
         .from('ListApp')
-        .select('json')
+        .select('datajson')
         .eq('idData', 'Home')
         .eq('idCustomer', idCustomer)
         .eq('idNamespace', idNamespace);
@@ -83,7 +84,7 @@ class SupabaseDriver extends StoreDriver {
     var result = [];
     if (ret.isNotEmpty) {
       for (var r in ret) {
-        result.add(r['json']);
+        result.add(r['datajson']);
       }
     } else {
       return null;
@@ -94,7 +95,7 @@ class SupabaseDriver extends StoreDriver {
   dynamic _getJsonDataModel(String idTable, CoreDataEntity? filters) async {
     PostgrestFilterBuilder query = client['main']!
             .from('ListModel')
-            .select('json')
+            .select('datajson')
             .eq('idTable', idTable)
             .eq('idCustomer', idCustomer)
             .eq('idNamespace', idNamespace)
@@ -104,6 +105,7 @@ class SupabaseDriver extends StoreDriver {
 
     if (filters != null) {
       CoreDataFilter f = CoreDataFilter();
+
       f.dataFilter = filters;
       List listGroup = f.getListGroup();
       for (var group in listGroup) {
@@ -114,7 +116,14 @@ class SupabaseDriver extends StoreDriver {
           var operator = clause['operator'];
           var value1 = clause['value1'];
           if (colId != null) {
-            query = query.filter('json->>$colId', _mapOpe[operator]!, value1);
+            CoreDataAttribut? attr =
+                CWApplication.of().getAttrById(idTable, colId);
+            String typeCol = 'datajson->>';
+            if (attr?.type == CDAttributType.int ||
+                attr?.type == CDAttributType.dec) {
+              typeCol = 'datajson->';
+            }
+            query = query.filter('$typeCol$colId', _mapOpe[operator]!, value1);
           }
         }
       }
@@ -126,7 +135,7 @@ class SupabaseDriver extends StoreDriver {
       if (ret.isNotEmpty) {
         var result = [];
         for (var r in ret) {
-          result.add(r['json']);
+          result.add(r['datajson']);
         }
         return {
           r'$type': 'DataContainer',
@@ -148,7 +157,7 @@ class SupabaseDriver extends StoreDriver {
           'idCustomer': idCustomer,
           'idNamespace': idNamespace,
           'idData': 'Home',
-          'json': data
+          'datajson': data
         }
       ]);
     } else if (idTable == 'filters') {
@@ -158,7 +167,7 @@ class SupabaseDriver extends StoreDriver {
           'idCustomer': idCustomer,
           'idNamespace': idNamespace,
           'idData': '${data['_id_']}',
-          'json': data
+          'datajson': data
         }
       ]);
     } else if (data[CoreDataEntity.cstTypeAttr] == 'DataContainer') {
@@ -173,7 +182,7 @@ class SupabaseDriver extends StoreDriver {
               'idCustomer': idCustomer,
               'idNamespace': idNamespace,
               'idData': element['_id_'],
-              'json': element // json.encode(element)
+              'datajson': element // json.encode(element)
             }
           ]); //.select('json').eq("idTable", idTable);
         }

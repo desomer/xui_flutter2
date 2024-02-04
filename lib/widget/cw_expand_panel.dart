@@ -10,7 +10,7 @@ import '../core/widget/cw_core_widget.dart';
 import '../core/widget/cw_factory.dart';
 import '../designer/help/widget_no_visible_on_resize.dart';
 
-enum CWExpandAction { actions }
+enum CWExpandAction { actions, btnHeader }
 
 class CWExpandPanel extends CWWidget {
   const CWExpandPanel({super.key, required super.ctx});
@@ -18,7 +18,8 @@ class CWExpandPanel extends CWWidget {
   static void initFactory(CWWidgetCollectionBuilder c) {
     c.collection
         .addObject('CWExpandConstraint')
-        .addAttr(CWExpandAction.actions.toString(), CDAttributType.many);
+        .addAttr(CWExpandAction.actions.toString(), CDAttributType.many)
+        .addAttr(CWExpandAction.btnHeader.toString(), CDAttributType.many);
 
     c.collection
         .addObject('CWExpandAction')
@@ -57,7 +58,7 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
   final debouncer = Debouncer(milliseconds: 200);
   int timeResize = 0;
   double lastHeight = 0;
-  
+
   @override
   Widget build(BuildContext context) {
     List<ExpandInfo> listInfo = [];
@@ -122,6 +123,8 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
         widget.ctx.factory.mapConstraintByXid[step.title.ctx.xid];
     List<dynamic>? actions =
         constraint?.designEntity?.value[CWExpandAction.actions.toString()];
+    List<dynamic>? btnHeader =
+        constraint?.designEntity?.value[CWExpandAction.btnHeader.toString()];
 
     List<Widget> header = [
       GestureDetector(
@@ -143,6 +146,20 @@ class CWExpandPanelState extends StateCW<CWExpandPanel> with CWActionManager {
           )),
       Expanded(child: step.title),
     ];
+    if (btnHeader != null) {
+      for (Map<String, dynamic> btn in btnHeader) {
+        header.add(Padding(
+            padding: const EdgeInsets.fromLTRB(0,0,10,0),
+            child: InkResponse(
+                onTapDown: (e) {
+                  doAction(context, widget, btn);
+                },
+                child: Icon(
+                    size: 18,
+                    color: Theme.of(context).hintColor,
+                    btn['icon'] as IconData))));
+      }
+    }
     if (actions != null) {
       header.add(InkResponse(
           onTapDown: (e) {

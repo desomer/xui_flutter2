@@ -48,6 +48,7 @@ class DesignerModel extends StatelessWidget {
             app.loaderModel.findWidgetByXid('rootAttr2Exp')?.ctx.state;
       };
     }
+    
 
     return Container(
       color: Colors.black26,
@@ -153,7 +154,7 @@ class OnBuildEdit extends CoreDataAction {
     for (var element in editName) {
       if (element == attr.name || element == '*') {
         event.ret = event.loader!.collectionWidget.createEntityByJson(
-            'CWTextfield', {'withLabel': false, 'type': infoAttr['type']});
+            'CWTextfield', {'withLabel': false, 'vstyle':'list',  '_type_': infoAttr['type']});
         return;
       }
     }

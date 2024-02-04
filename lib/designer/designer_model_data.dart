@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:xui_flutter/core/data/core_data_filter.dart';
-import 'package:xui_flutter/core/data/core_data_loader.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
@@ -18,20 +17,24 @@ class DesignerData extends StatefulWidget {
   DesignerData({super.key, required this.bindWidget}) {
     bindWidget.fctBindNested = (CoreDataEntity item) {
       var app = CWApplication.of();
-      CoreDataFilter filter = CoreDataFilter()..setFilterData(item);
-      var modelID = filter.getModelID();
+      CoreDataFilter filterConfig = CoreDataFilter()..setFilterData(item);
+      var modelID = filterConfig.getModelID();
       tableEntity = app.getTableModelByID(modelID);
-      CWRepository providerData = app.dataProvider;
-      if (filter.isFilter()) {
-        providerData.type = modelID;
-        CoreDataLoaderMap dataLoader = providerData.loader as CoreDataLoaderMap;
-        dataLoader.setCacheViewID(providerData.getRepositoryCacheID(),
-            onTable: modelID); // choix de la map a afficher
-        providerData.setFilter(filter);
-      } else {
-        providerData.setFilter(null);
+
+      if (bindWidget.id == 'bindFilter2Data') {
+        CWRepository providerData = app.dataProvider;
+        if (filterConfig.isFilter()) {
+          providerData.setLoaderTable(modelID);
+          providerData.setFilter(filterConfig);
+        } else if (filterConfig.isTable()) {
+          //filter
+          // pas de filtre sur les table
+          providerData.setFilter(null);
+          providerData.setLoaderTable(modelID);
+        }
       }
 
+      // creation du tableau
       CWAppLoaderCtx loader = CWApplication.of().loaderData;
       CWApplication.of().initDataModelWithAttr(loader, tableEntity!);
       CWRepository provider =

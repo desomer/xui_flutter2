@@ -54,13 +54,17 @@ class CWRepository {
     if (aFilter != null) {
       return '$id#id=$type;fl=${aFilter.getQueryKey()}';
     }
-    return '$id#id=$type;fl=${getFilter()?.getQueryKey() ?? 'null'}';
+    if (lockId != null) {
+      print("return lock $lockId");
+      return lockId!;
+    }
+    return '$id#id=$type;fl=${getFilter()?.getQueryKey() ?? ''}';
   }
 
   String getQueryName() {
     var app = CWApplication.of();
 
-    var filter = dataSelector.finalData.dataloader?.getFilter();
+    var filter = getFilter();
     if (filter?.isFilter() == true) {
       return 'filter ${filter!.dataFilter.value['name']}';
     } else {
@@ -89,11 +93,29 @@ class CWRepository {
     return dataSelector.getData().dataloader;
   }
 
+  void initFilter() {
+    var filter = getFilter();
+    if (filter != null) {
+      setFilter(filter);
+    }
+  }
+
   void setFilter(CoreDataFilter? aFilter) {
-    dataSelector.finalData.dataloader?.setCacheViewID(
-        getRepositoryCacheID(aFilter: aFilter),
-        onTable: aFilter?.getModelID() ?? type); // choix de la map a afficher
     dataSelector.finalData.dataloader?.setFilter(this, aFilter);
+
+    dataSelector.finalData.dataloader
+        ?.setCacheViewID(this); // choix de la map a afficher
+  }
+
+  void setLoaderTable(String idTable, {String? model}) {
+    type = idTable;
+    if (loader is CoreDataLoaderMap) {
+      CoreDataLoaderMap dataLoader = loader as CoreDataLoaderMap;
+      dataLoader.setCacheViewID(this);
+    }
+    if (model != null) {
+      type = model;
+    }
   }
 
   CoreDataFilter? getFilter() {
@@ -187,6 +209,8 @@ class CWRepository {
       for (var act in getData().userActions[idAction]!) {
         act.execute(ctx, event);
       }
+    } else {
+      print('doUserAction $idAction inconnu');
     }
     return this;
   }
@@ -257,10 +281,12 @@ class CWRepository {
     return setValueOf(ctx, event, ctx.designEntity!.getString(propName)!, val);
   }
 
+  String? lockId;
+
   Future<int> getItemsCount(CWWidgetCtx ctx) async {
     if (getData().dataloader != null) {
+      initFilter();
       var result = await getData().dataloader!.getDataAsync(ctx);
-      // debugPrint('set getItemsCount ${getData().hashCode} content $result');
       getData().content = result;
       CoreGlobalCache.setCacheValue(this, getData().content);
     }

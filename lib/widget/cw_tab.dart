@@ -202,27 +202,27 @@ class SlotTabAction extends SlotAction {
 
   @override
   bool canAddLeft() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool canAddRight() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool canMoveLeft() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool canMoveRight() {
-    throw UnimplementedError();
+    return true;
   }
 
   @override
   bool moveLeft(CWWidgetCtx ctx) {
-    throw UnimplementedError();
+     throw UnimplementedError();
   }
 
   @override

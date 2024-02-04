@@ -11,7 +11,7 @@ class ComponentDesc {
         ComponentDesc('Column', Icons.table_rows_rounded, 'CWColumn'),
         ComponentDesc('Row', Icons.view_week, 'CWRow'),
         ComponentDesc('Tab', Icons.tab, 'CWTab'),
-        ComponentDesc('Card', Icons.border_style, 'CWDecorator')
+        ComponentDesc('Card', Icons.border_style, 'CWCard')
       ]),
       CardComponents('Array, Form & List', [
         ComponentDesc('Array', Icons.table_chart, 'CWArray'),

@@ -191,6 +191,11 @@ class DesignerEditor extends StatelessWidget {
         heightTab: 40,
         onController: (TabController a) {
           controllerTabRight = a;
+          controllerTabRight.addListener(() {
+            if (controllerTabRight.indexIsChanging) {
+              CoreDesigner.emit(CDDesignEvent.displayProp, null);
+            }
+          });
         },
         listTab: listTab,
         listTabCont: listTabCont);
@@ -216,15 +221,25 @@ class DesignerView extends StatefulWidget {
 
   Widget? rootWidget;
 
-  void rebuild() {
+  void prepareReBuild() {
     rootWidget = null;
     state?.stackDesigner = null;
     loader?.ctxLoader.factory.mapWidgetByXid.clear();
   }
 
+  void reBuild(bool redisplayProp) {
+    // ignore: invalid_use_of_protected_member
+    CoreDesigner.of().designerKey.currentState?.setState(() {});
+    if (redisplayProp) {
+      Future.delayed(const Duration(milliseconds: 200), () {
+        CoreDesigner.emit(CDDesignEvent.displayProp, null);
+      });
+    }
+  }
+
   void clearAll() {
     var app = CWApplication.of();
-    rebuild();
+    prepareReBuild();
     loader = null;
     isLoad = false;
     var loaderDesigner = app.loaderDesigner;
@@ -266,13 +281,15 @@ class DesignerView extends StatefulWidget {
         loader?.ctxLoader.setModeRendering(
             isPreviewMode ? ModeRendering.view : ModeRendering.design);
         log.fine('set mode rendering ${loader?.ctxLoader.mode}');
-        rebuild();
+        prepareReBuild();
         repaintAll();
         if (!isPreviewMode) {
           Future.delayed(const Duration(milliseconds: 100), () {
             CWWidget wid =
                 CoreDesigner.of().designView.factory.mapWidgetByXid['root']!;
             CoreDesigner.emit(CDDesignEvent.select, wid.ctx);
+            // corrige le bug focus en relancant la construction du router
+            CWApplication.of().ctxApp?.getCWWidget()?.repaint();
           });
         }
       });
@@ -288,7 +305,7 @@ class DesignerView extends StatefulWidget {
 
     if (rootWidget == null) {
       log.fine('create root widget by browsing Json');
-      rootWidget = loader!.getWidget('root', 'root');
+      rootWidget = loader!.getWidget('root', 'root'); 
       var app = CWApplication.of();
       // init les data models
       log.fine('init dataModels Provider for design');
