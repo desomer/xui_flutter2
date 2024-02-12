@@ -71,7 +71,7 @@ class CWArrayRowState extends State<CWArrayRow> {
   Widget build(BuildContext context) {
     List<Widget> listSlot = widget.getRowBuilder(this);
 
-    var rowState = InheritedStateContainer(
+    var rowState = InheritedRow(
         key: ValueKey(widget.rowIdx),
         index: widget.rowIdx,
         arrayState: widget.stateArray,

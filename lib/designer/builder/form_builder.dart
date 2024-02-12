@@ -7,16 +7,9 @@ import '../../core/data/core_repository.dart';
 import '../application_manager.dart';
 import '../designer.dart';
 
-enum ModeForm
-{
-   column,
-   expand,
-   style,
-   form
-}
+enum ModeForm { column, expand, style, form }
 
 class FormBuilder {
-
   List<Widget> getFormWidget(
       CWRepository provider, CWAppLoaderCtx ctxLoader, ModeForm mode) {
     var listWidget = <Widget>[];
@@ -45,7 +38,7 @@ class FormBuilder {
       }
     }
 
-    loader.ctxLoader.addRepository(provider);
+    loader.ctxLoader.addRepository(provider, isEntity: true);
 
     listWidget.add(loader.getWidget('root', 'root'));
     return listWidget;
@@ -58,7 +51,7 @@ class FormBuilder {
 
     CWRepository provider = app.getRepositoryFromQuery(query, widget);
 
-    //provider.getData().idxSelected = 0;
+    provider.getData().idxSelected = 0;
     provider.getData().idxDisplayed = 0;
 
     _createFormDesign(widget.ctx.loader, provider, widget.ctx.xid,
@@ -78,8 +71,9 @@ class FormBuilder {
 
     Map<String, dynamic> src = entity.value;
 
-    AttrFormLoader loader =
-        AttrFormLoader(xid, loaderCtx, entity.type, provider, !designOnly, mode: ModeForm.form);
+    AttrFormLoader loader = AttrFormLoader(
+        xid, loaderCtx, entity.type, provider, !designOnly,
+        mode: ModeForm.form);
 
     List<CoreDataEntity> listMdel =
         CWApplication.of().dataModelProvider.content;
@@ -111,7 +105,7 @@ class FormBuilder {
       }
       //if (loader.nbAttr > 0) break;
     }
-    loader.ctxLoader.addRepository(provider);
+    loader.ctxLoader.addRepository(provider, isEntity: true);
 
     loader.addWidget('root', 'provider_${provider.id}', 'CWProvider',
         <String, dynamic>{'type': provider.type, iDProviderName: provider.id});

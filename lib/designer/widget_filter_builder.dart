@@ -357,7 +357,7 @@ class _WidgetQueryClauseState extends State<WidgetQueryClause> {
     super.initState();
     _controller.addListener(() {
       path.getLastEntity().value['value1'] = _controller.text;
-      print("change filter ${widget.filter.hashCode}");
+      print('change filter ${widget.filter.hashCode}');
     });
   }
 
@@ -541,15 +541,26 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
       setState(() {
         var c = CWApplication.of().collection;
         var tableEntity =
-            CWApplication.of().getTableModelByID(widget.filter.getModelID());
-        var listAttr = tableEntity.value['listAttr'];
+            CWApplication.of().getTableEntityByID(widget.filter.getModelID());
+        List listAttr = tableEntity.value['listAttr'];
 
-        attribut =
-            c.createEntityByJson('ModelAttributs', listAttr[item.idxCol]);
+        if (listAttr.length <= item.idxCol) {
+          // gestion de _id_, _created_, etc...
+          var listAttribut = CWApplication.of()
+              .getTableAllAttrByID(widget.filter.getModelID());
+          attribut = c.createEntityByJson('ModelAttributs', {
+            '_id_': listAttribut[item.idxCol].name,
+            'name': listAttribut[item.idxCol].name,
+            'type': 'Text'
+          });
+        } else {
+          attribut =
+              c.createEntityByJson('ModelAttributs', listAttr[item.idxCol]);
+        }
 
         var vd = widget.filter.dataFilter.getPath(c, widget.pathFilter);
         vd.getLastEntity().value['colId'] = attribut!.value['_id_'];
-        vd.getLastEntity().value['type'] = attribut!.value['type'];
+        vd.getLastEntity().value['typeCol'] = attribut!.value['type'];
       });
       widget.groupState.setState(() {});
     });
@@ -575,13 +586,19 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
     String? colId = vd.getLastEntity().value['colId'];
     String idTable = widget.filter.getModelID();
 
+    String name = 'Drag column name';
+    bool isEmpty = true;
     if (colId != null) {
       attribut = CWApplication.of().getAttributById(idTable, colId);
+      if (attribut == null) {
+        name = colId;
+      } else {
+        name = attribut?.value['name'];
+      }
+      isEmpty = false;
     } else {
       attribut = null;
     }
-
-    String name = attribut?.value['name'] ?? 'Drag column name';
 
     return Container(
         padding:
@@ -589,10 +606,10 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
         width: 200,
         height: 28,
         child: getDropZone(getBorder(
-            attribut == null,
+            isEmpty,
             Text(
                 style: TextStyle(
-                    color: (attribut?.value['name'] == null
+                    color: (isEmpty
                         ? Colors.white30
                         : Colors.white)),
                 name))));

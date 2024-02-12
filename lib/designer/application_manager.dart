@@ -16,7 +16,6 @@ import '../widget/cw_expand_panel.dart';
 import '../widget/cw_selector.dart';
 import '../core/widget/cw_factory.dart';
 import 'designer.dart';
-import 'designer_model_data.dart';
 import 'designer_model.dart';
 
 class CWApplication {
@@ -268,7 +267,7 @@ class CWApplication {
         .addObject('DataFilterClause')
         .addAttr('model', CDAttributType.text)
         .addAttr('colId', CDAttributType.text)
-        .addAttr('type', CDAttributType.text)
+        .addAttr('typeCol', CDAttributType.text)
         .addAttr('operator', CDAttributType.text)
         .addAttr('value1', CDAttributType.dynamic)
         .addAttr('value2', CDAttributType.dynamic);
@@ -296,8 +295,8 @@ class CWApplication {
     dataModelProvider.header =
         collection.createEntityByJson('DataHeader', {'label': 'Entity'});
 
-    dataModelProvider.addAction(
-        CWRepositoryAction.onStateNone, OnInsertModel(loaderModel));
+    // dataModelProvider.addAction(
+    //     CWRepositoryAction.onStateNone, OnInsertModel(loaderModel));
     dataModelProvider.addAction(
         CWRepositoryAction.onMapWidget, OnBuildEdit(['name'], false));
     dataModelProvider.addAction(
@@ -308,7 +307,7 @@ class CWApplication {
 
     dataModelProvider.setLoaderTable('models', model: 'DataModel');
 
-    loaderModel.addRepository(dataModelProvider);
+    loaderModel.addRepository(dataModelProvider, isEntity: true);
     //----------------------------------------------
     // loader de type nested
     dataAttributProvider = CWRepository(
@@ -344,14 +343,9 @@ class CWApplication {
 
     dataProvider.addAction(
         CWRepositoryAction.onMapWidget, OnBuildEdit(['*'], true));
-    dataProvider.addAction(CWRepositoryAction.onStateNone, OnInsertData());
-    dataProvider.addAction(
-        CWRepositoryAction.onStateNone2Create, SetDate('_createAt_'));
-    dataProvider.addAction(
-        CWRepositoryAction.onValueChanged, SetDate('_updateAt_'));
 
     //----------------------------------------------------------------
-    loaderModel.addRepository(pagesProvider);
+    loaderModel.addRepository(pagesProvider, isEntity: false);
     clearAllPage();
   }
 
@@ -377,15 +371,21 @@ class CWApplication {
     return provider;
   }
 
-  CoreDataEntity getTableModelByID(String id) {
+  CoreDataEntity getTableEntityByID(String table) {
     List<CoreDataEntity> listTableEntity = dataModelProvider.content;
     var tableEntity = listTableEntity
-        .firstWhere((CoreDataEntity element) => element.value['_id_'] == id);
+        .firstWhere((CoreDataEntity element) => element.value['_id_'] == table);
     return tableEntity;
   }
 
+  List<CoreDataAttribut> getTableAllAttrByID(String table) {
+    CoreDataObjectBuilder? data =
+        loaderModel.collectionDataModel.getClass(table);
+    return data!.getAllAttribut();
+  }
+
   CoreDataEntity? getAttributById(String table, String id) {
-    var v = getAttributValueById(getTableModelByID(table), id);
+    var v = getAttributValueById(getTableEntityByID(table), id);
     if (v != null) {
       var ent = collection.createEntity(v[r'$type']);
       ent.value = v;

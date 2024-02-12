@@ -253,6 +253,8 @@ class DesignerView extends StatefulWidget {
     app.router = null;
     // ignore: invalid_use_of_protected_member
     CoreDesigner.of().pagesKey.currentState?.setState(() {});
+    // ignore: invalid_use_of_protected_member
+    CoreDesigner.of().providerKey.currentState?.setState(() {});
   }
 
   void repaintAll() {

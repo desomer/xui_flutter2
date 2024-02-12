@@ -7,6 +7,7 @@ import 'package:xui_flutter/db_icon_icons.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_data_filter.dart';
 import '../core/data/core_repository.dart';
+import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
@@ -248,7 +249,3 @@ class _DesignerQueryState extends State<DesignerQuery> {
   //   ]);
 }
 
-class DragQueryCtx {
-  DragQueryCtx(this.query);
-  CoreDataEntity query;
-}

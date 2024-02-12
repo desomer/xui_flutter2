@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
+import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
 import 'application_manager.dart';
@@ -90,13 +91,13 @@ class _DesignerPagesState extends State<DesignerPages> {
     return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy - 5);
   }
 
-  Widget getDrag(IndexedTreeNode<CoreDataEntity> node, Widget child) {
+  Widget getDragWidget(IndexedTreeNode<CoreDataEntity> node, Widget child) {
     return Draggable<DragEventCtx>(
         dragAnchorStrategy: dragAnchorStrategy,
         onDragStarted: () {
           // GlobalSnackBar.show(context, 'Drag started');
         },
-        data: DragEventCtx(node.data!),
+        data: DragPageCtx(node.data!),
         feedback: Container(
             height: 30,
             width: 100,
@@ -134,7 +135,7 @@ class _DesignerPagesState extends State<DesignerPages> {
       } else {
         bool isVisible =
             node.data?.value['route'] == CWApplication.of().currentPage!.route;
-        cell = getDrag(
+        cell = getDragWidget(
             node,
             Row(children: [
               Text('${node.data?.value['name']}'),
@@ -226,7 +227,3 @@ class _DesignerPagesState extends State<DesignerPages> {
   }
 }
 
-class DragEventCtx {
-  DragEventCtx(this.page);
-  CoreDataEntity page;
-}

@@ -91,13 +91,14 @@ class PropBuilder {
     provider.addAction(CWRepositoryAction.onValueChanged, RefreshDesign(aCtx));
 
     provider.addUserAction('onTapHeader', OnWidgetSelect(aCtx));
-    provider.addUserAction('onTapLink', OnLinkSelect(aCtx, pathWidget));
+    provider.addUserAction('onTapLink', OnBindAction(aCtx, pathWidget));
     provider.addUserAction(
         'showStyle', OnWidgetSelect(aCtx, selectStyle: true));
 
     CWAppLoaderCtx loader = CWAppLoaderCtx().from(ctx.loader);
 
-    var formWidget = FormBuilder().getFormWidget(provider, loader, ModeForm.style);
+    var formWidget =
+        FormBuilder().getFormWidget(provider, loader, ModeForm.style);
     currentProp.addAll(formWidget);
   }
 
@@ -132,7 +133,8 @@ class PropBuilder {
 
       CWAppLoaderCtx loader = CWAppLoaderCtx().from(slotCtx.loader);
       // ajoute les composant du loader
-      currentProp.addAll(FormBuilder().getFormWidget(provider, loader, ModeForm.expand));
+      currentProp.addAll(
+          FormBuilder().getFormWidget(provider, loader, ModeForm.expand));
     }
 
     if (sc != null && sc.pathNested != null) {

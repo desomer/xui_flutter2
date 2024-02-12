@@ -106,14 +106,15 @@ class _WidgetDeleteBtnState extends State<WidgetDeleteBtn> {
         child: Icon(Icons.delete_forever, size: 20),
       ),
       onTap: () {
-        var r =
-            context.getInheritedWidgetOfExactType<InheritedStateContainer>();
+        var r = context.getInheritedWidgetOfExactType<InheritedRow>();
 
         var provider = CWRepository.of(r!.arrayState.widget.ctx);
         provider!.content[r.index!].operation = CDAction.delete;
         provider.doEvent(
-            CWRepositoryAction.onStateDelete, r.arrayState.widget.ctx.loader);
-        r.repaintRow(r.arrayState.widget.ctx);
+            CWRepositoryAction.onStateDelete, r.arrayState.widget.ctx.loader, row: r);
+        provider.doEvent(
+            CWRepositoryAction.onValidateEntity, r.arrayState.widget.ctx.loader, row: r);            
+        //r.repaintRow(r.arrayState.widget.ctx);
       },
     );
   }

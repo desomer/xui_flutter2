@@ -4,8 +4,8 @@ import 'package:xui_flutter/designer/application_manager.dart';
 
 import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
+import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_widget.dart';
-import 'designer_selector_query.dart';
 
 class DesignerRepository extends CWWidgetMapRepository {
   const DesignerRepository({super.key, required super.ctx, this.bindWidget});
@@ -18,7 +18,8 @@ class DesignerRepository extends CWWidgetMapRepository {
   void initSlot(String path) {}
 }
 
-class _DesignerProviderState extends State<DesignerRepository> {
+class _DesignerProviderState extends State<DesignerRepository>
+    with DraggableWidget {
   TreeViewController? _controller;
   late IndexedTreeNode<CWRepository> nodesRemovedIndexedTree;
   // late CWProvider provider;
@@ -78,24 +79,8 @@ class _DesignerProviderState extends State<DesignerRepository> {
         });
   }
 
-  Offset dragAnchorStrategy(
-      Draggable<Object> d, BuildContext context, Offset point) {
-    return Offset(d.feedbackOffset.dx + 25, d.feedbackOffset.dy - 5);
-  }
-
   Widget getDrag(IndexedTreeNode<CWRepository> node, Widget child) {
-    return Draggable<DragQueryCtx>(
-        dragAnchorStrategy: dragAnchorStrategy,
-        onDragStarted: () {
-          // GlobalSnackBar.show(context, 'Drag started');
-        },
-        data: DragQueryCtx(node.data!.getCoreDataEntity()),
-        feedback: Container(
-            height: 30,
-            width: 100,
-            color: Colors.grey,
-            child: const Center(child: Icon(Icons.abc))),
-        child: child);
+    return getDraggable(DragQueryCtx(node.data!.getCoreDataEntity()), child);
   }
 
   Container getCell(IndexedTreeNode<CWRepository> node) {
@@ -106,10 +91,35 @@ class _DesignerProviderState extends State<DesignerRepository> {
       cell = getDrag(node, Text(node.data!.getQueryName()));
     }
 
+    List<Widget> children2 = [
+      Expanded(child: cell),
+    ];
+
+    if (node.level != 0) {
+      children2.add(getCrudBtn('Create@${node.data!.id}', 'C'));
+      children2.add(getCrudBtn('<Read@${node.data!.id}', '<R'));
+      children2.add(getCrudBtn('Read>@${node.data!.id}', 'R>'));
+      children2.add(getCrudBtn('Update@${node.data!.id}', 'U'));
+      children2.add(getCrudBtn('Delete@${node.data!.id}', 'D'));
+    }
+
     return Container(
         margin: const EdgeInsets.fromLTRB(25, 0, 0, 0),
         constraints: const BoxConstraints(minHeight: 25),
-        child: Row(children: [Expanded(child: cell)]));
+        child: Row(children: children2));
+  }
+
+  Widget getCrudBtn(String id, String text) {
+    return getDraggable(
+        DragRepositoryEventCtx(id),
+        InkWell(
+            onTap: () {},
+            child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                decoration: BoxDecoration(
+                    border: Border.all(color: Theme.of(context).disabledColor)),
+                child: Text(text))));
   }
 
   IndexedTreeNode<CWRepository> getTreeData() {

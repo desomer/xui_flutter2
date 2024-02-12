@@ -2,6 +2,8 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import 'package:xui_flutter/core/data/core_data.dart';
+
 class AttributDesc {
   static List<Widget> get getListAttr {
     return [
@@ -18,13 +20,25 @@ class AttributDesc {
     ];
   }
 
-  AttributDesc(this.name, this.icon, String attr) {
-    impl = attr;
+  static CDAttributType toAttrType(String id) {
+    switch (id) {
+      case 'Text':
+        return CDAttributType.text;
+      case 'Integer':
+        return CDAttributType.int;
+      case 'Double':
+        return CDAttributType.dec;
+      case 'Date':
+        return CDAttributType.date;          
+    }
+    return CDAttributType.text;
   }
+
+  AttributDesc(this.name, this.icon, this.impl);
 
   String name;
   IconData icon;
-  late String impl;
+  String impl;
 }
 
 // ignore: must_be_immutable

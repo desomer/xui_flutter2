@@ -1,18 +1,16 @@
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:xui_flutter/core/widget/cw_core_slot.dart';
-import 'package:xui_flutter/core/widget/cw_factory.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
+import '../core/widget/cw_core_link.dart';
+import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_future.dart';
+import '../core/widget/cw_core_slot.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../core/widget/cw_factory.dart';
 import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
 import '../designer/designer.dart';
-import '../designer/designer_model_list.dart';
-import '../designer/designer_selector_pages.dart';
-import '../designer/designer_selector_query.dart';
 
 abstract class CWContainer extends CWWidgetChild {
   const CWContainer({super.key, required super.ctx});
@@ -105,10 +103,13 @@ abstract class CWContainer extends CWWidgetChild {
   }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+
 // ignore: must_be_immutable
 class CWColumn extends CWContainer {
   CWColumn({super.key, required super.ctx});
   bool isForm = false;
+  final CWSynchonizedManager synchonizedManager = CWSynchonizedManager();
 
   @override
   State<CWColumn> createState() => CWColumnState();
@@ -194,8 +195,7 @@ class CWColumnState extends StateCW<CWColumn>
             canHeight: true,
             canFill: viewportConstraints.hasBoundedHeight,
             type: 'CWColumn'));
-        if (runSpacing!=null && i < nb-1)
-        {
+        if (runSpacing != null && i < nb - 1) {
           listSlot.add(SizedBox(height: runSpacing.toDouble()));
         }
       }
@@ -231,8 +231,9 @@ class CWColumnState extends StateCW<CWColumn>
     dynamic getContent(int ok) {
       CWRepository? provider = CWRepository.of(widget.ctx);
       setProviderDataOK(provider, ok);
-      provider?.addAction(
-          CWRepositoryAction.onRowSelected, ActionRepaint(widget.ctx));
+
+      widget.synchonizedManager.initRepaintOnSelected(widget, provider);
+
       return getWidget();
     }
 
@@ -337,67 +338,6 @@ class CWRowState extends StateCW<CWRow> {
   }
 }
 
-////////////////////////////////////////////////////////////////////////
-///
-
-mixin CWDroppableEvent {
-  Widget getDropZoneEvent(CWWidgetCtx ctx, Widget child) {
-    if (ctx.modeRendering == ModeRendering.view) {
-      return child;
-    }
-
-    return DragTarget<DragEventCtx>(
-        builder: (context, candidateItems, rejectedItems) {
-      return AnimatedScale(
-          scale: candidateItems.isEmpty ? 1 : 0.95,
-          duration: const Duration(milliseconds: 100),
-          child: child);
-    }, onWillAccept: (item) {
-      return true;
-    }, onAccept: (item) async {
-      onDragEvent(item);
-    });
-  }
-
-  void onDragEvent(DragEventCtx query);
-}
-
-mixin CWDroppableQuery {
-  Widget getDropZone(Widget child) {
-    return DragTarget<DragQueryCtx>(
-        builder: (context, candidateItems, rejectedItems) {
-      return AnimatedScale(
-          scale: candidateItems.isEmpty ? 1 : 0.95,
-          duration: const Duration(milliseconds: 100),
-          child: child);
-    }, onWillAccept: (item) {
-      return true;
-    }, onAccept: (item) async {
-      onDragQuery(item);
-    });
-  }
-
-  void onDragQuery(DragQueryCtx query);
-
-  static const double borderDrag = 10;
-
-  Widget getDropQuery(double h) {
-    return getDropZone(Container(
-        margin: const EdgeInsets.fromLTRB(
-            borderDrag, borderDrag, borderDrag, borderDrag),
-        height: h,
-        child: DottedBorder(
-            color: Colors.grey,
-            dashPattern: const <double>[6, 4],
-            strokeWidth: 2,
-            child: const Center(
-                child: IntrinsicWidth(
-                    child: Row(children: [
-              Text('Drag query or result or param here'),
-              Icon(Icons.filter_alt)
-            ]))))));
-  }
-}
 
 //////////////////////////////////////////////////////////////////////////////
 class SlotContainerAction extends SlotAction {

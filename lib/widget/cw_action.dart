@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_iconpicker/flutter_iconpicker.dart';
-import 'package:xui_flutter/core/widget/cw_core_widget.dart';
-import 'package:xui_flutter/designer/application_manager.dart';
-import 'package:xui_flutter/designer/designer.dart';
-import 'package:xui_flutter/designer/designer_selector_pages.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
+import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_loader.dart';
+import '../core/widget/cw_core_widget.dart';
 import '../core/widget/cw_factory.dart';
+import '../designer/application_manager.dart';
 import '../designer/builder/prop_builder.dart';
-import 'cw_container.dart';
+import '../designer/designer.dart';
+import 'cw_list.dart';
 
 mixin CWActionManager {
   bool hasAction(CWWidget widget) {
@@ -51,7 +51,7 @@ mixin CWActionManager {
   }
 }
 
-class CWActionLink extends CWWidget with CWActionManager {
+class CWActionLink extends CWWidget with CWActionManager, CWWidgetInheritRow {
   const CWActionLink({super.key, required super.ctx});
 
   @override
@@ -71,8 +71,18 @@ class CWActionLink extends CWWidget with CWActionManager {
 }
 
 class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
+  InheritedRow? row;
+
+  @override
+  void initState() {
+    super.initState();
+    row = widget.getRowState(context);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (row != null) widget.setRepositoryDisplayRow(row);
+
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     String type = slotConfig?.slot?.type ?? '';
@@ -105,11 +115,20 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
       // label de expand panel
       return InkWell(
           onTap: () {
-            widget.doAction(context, widget, widget.ctx.designEntity!.value);
+            doAction();
           },
           child: Text(widget.getLabel('[label]')));
     } else {
       return getElevatedBtn(context);
+    }
+  }
+
+  void doAction() {
+    if (row != null) {
+      row!.selected(widget.ctx);
+    }
+    if (widget.ctx.designEntity != null) {
+      widget.doAction(context, widget, widget.ctx.designEntity!.value);
     }
   }
 
@@ -145,7 +164,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
           backgroundColor: styledBox.getColor('bgColor'));
     }
 
-    String? label = widget.getLabelOrNull('[label]');
+    String? label = widget.getLabelOrNull(null);
 
     if (icon != null) {
       if (label != null) {
@@ -153,7 +172,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
             key: widget.ctx.getContentKey(false),
             style: style,
             onPressed: () {
-              widget.doAction(context, widget, widget.ctx.designEntity?.value);
+              doAction();
             },
             icon: icon,
             label: Text(label));
@@ -162,7 +181,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
             key: widget.ctx.getContentKey(false),
             style: style,
             onPressed: () {
-              widget.doAction(context, widget, widget.ctx.designEntity?.value);
+              doAction();
             },
             child: FittedBox(fit: BoxFit.fitWidth, child: icon));
       }
@@ -171,7 +190,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
         key: widget.ctx.getContentKey(false),
         style: style,
         onPressed: () {
-          widget.doAction(context, widget, widget.ctx.designEntity?.value);
+          doAction();
         },
         child: Text(widget.getLabel('[label]')),
       );
@@ -183,7 +202,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
     return IconButton(
       icon: icon ?? const Icon(Icons.abc),
       onPressed: () {
-        widget.doAction(context, widget, widget.ctx.designEntity?.value);
+        doAction();
       },
     );
   }
@@ -211,7 +230,10 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
     Map<String, dynamic>? v = widget.getIcon();
     Widget? icon;
     if (v != null) {
-      IconData? ic = deserializeIcon(v);
+      IconData? ic = deserializeIcon(
+        v,
+        iconPack: IconPack.allMaterial,
+      );
       icon = Icon(ic);
     }
     return icon;
@@ -219,10 +241,16 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
 
   @override
   void onDragEvent(DragEventCtx query) {
-    if (query.page.type == 'PageModel') {
+    if (query is DragPageCtx && query.page.type == 'PageModel') {
       CoreDataEntity prop = PropBuilder.preparePropChange(
           widget.ctx.loader, DesignCtx().forDesign(widget.ctx));
       prop.value['_idAction_'] = '${query.page.value['route']}@router';
+      setState(() {});
+    }
+    if (query is DragRepositoryEventCtx) {
+      CoreDataEntity prop = PropBuilder.preparePropChange(
+          widget.ctx.loader, DesignCtx().forDesign(widget.ctx));
+      prop.value['_idAction_'] = query.id;
       setState(() {});
     }
 

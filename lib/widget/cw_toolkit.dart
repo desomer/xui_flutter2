@@ -17,18 +17,22 @@ class CwToolkit {
     return position;
   }
 
-  static Rect getPositionRect(GlobalKey key, GlobalKey origin) {
+  static Rect? getPositionRect(GlobalKey key, GlobalKey origin) {
     // ignore: cast_nullable_to_non_nullable
-    final RenderBox box = key.currentContext!.findRenderObject() as RenderBox;
+    final RenderObject? box = key.currentContext?.findRenderObject();
 
-    // ignore: cast_nullable_to_non_nullable
-    final RenderBox rootBox =
-        origin.currentContext!.findRenderObject() as RenderBox;
+    if (box is RenderBox) {
+      // ignore: cast_nullable_to_non_nullable
+      final RenderBox rootBox =
+          origin.currentContext!.findRenderObject() as RenderBox;
 
-    final Offset position = box.localToGlobal(Offset.zero,
-        ancestor: rootBox); //this is global position
+      final Offset position = box.localToGlobal(Offset.zero,
+          ancestor: rootBox); //this is global position
 
-    return Rect.fromLTWH(
-        position.dx, position.dy, box.size.width, box.size.height);
+      return Rect.fromLTWH(
+          position.dx, position.dy, box.size.width, box.size.height);
+    }
+
+    return null;
   }
 }

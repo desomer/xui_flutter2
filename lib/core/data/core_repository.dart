@@ -3,6 +3,7 @@ import 'package:logging/logging.dart';
 import 'package:xui_flutter/core/data/core_data_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
+import 'package:xui_flutter/widget/cw_list.dart';
 
 import '../widget/cw_core_widget.dart';
 import 'core_data.dart';
@@ -16,8 +17,9 @@ enum CWRepositoryAction {
   onStateNone2Create,
   onStateDelete,
   onValueChanged,
+  onValidateEntity,
   onRowSelected,
-  onTapHeader
+  onTapHeader,
 }
 
 const String iDProviderName = 'providerName';
@@ -32,9 +34,16 @@ class CWRepository {
   String id;
   CoreDataEntity? header;
   String type;
+  // affiche le display (array) ou le selected (form)
   DisplayRenderingMode displayRenderingMode = DisplayRenderingMode.displayed;
 
   late CWRepositoryDataSelector dataSelector;
+
+  CoreDataEntity? getEntity() {
+    return displayRenderingMode == DisplayRenderingMode.selected
+        ? getSelectedEntity()
+        : getDisplayedEntity();
+  }
 
   CoreDataEntity getCoreDataEntity() {
     var tableModel = getTableModel();
@@ -68,13 +77,13 @@ class CWRepository {
     if (filter?.isFilter() == true) {
       return 'filter ${filter!.dataFilter.value['name']}';
     } else {
-      var tableEntity = app.getTableModelByID(type);
+      var tableEntity = app.getTableEntityByID(type);
       return 'all ${tableEntity.value['name']}';
     }
   }
 
   CoreDataEntity getTableModel() {
-    return CWApplication.of().getTableModelByID(type);
+    return CWApplication.of().getTableEntityByID(type);
   }
 
   CWRepositoryData getData() {
@@ -125,6 +134,7 @@ class CWRepository {
   void addContent(CoreDataEntity add) {
     getData().content.add(add);
     if (getData().idxDisplayed == -1) getData().idxDisplayed = 0;
+    if (getData().idxSelected == -1) getData().idxSelected = 0;
   }
 
   void addNew(CoreDataEntity newRow) {
@@ -177,10 +187,15 @@ class CWRepository {
     return getData().content[getData().idxSelected];
   }
 
-  CWRepository addAction(CWRepositoryAction idAction, CoreDataAction action) {
+  CoreDataAction addAction(CWRepositoryAction idAction, CoreDataAction action) {
     if (getData().actions[idAction] == null) getData().actions[idAction] = [];
     getData().actions[idAction]!.add(action);
-    return this;
+    return action;
+  }
+
+  bool removeAction(CWRepositoryAction idAction, CoreDataAction? action) {
+    if (action == null || getData().actions[idAction] == null) return false;
+    return getData().actions[idAction]!.remove(action);
   }
 
   CWRepository addUserAction(String idAction, CoreDataAction action) {
@@ -202,9 +217,23 @@ class CWRepository {
     return this;
   }
 
-  CWRepository doUserAction(
-      CWWidgetCtx? ctx, CWWidgetEvent? event, String idAction) {
+  Future<CWRepository> doUserAction(
+      CWWidgetCtx? ctx, CWWidgetEvent? event, String idAction) async {
     event?.widgetCtx = ctx;
+
+    switch (idAction) {
+      case '<Read':
+        doPrev(event, ctx);
+        return this;
+      case 'Read>':
+        doNext(event, ctx);
+        return this;
+      case 'Update':
+        await CoreGlobalCache.saveCache(this);
+        return this;
+      default:
+    }
+
     if (getData().userActions[idAction] != null) {
       for (var act in getData().userActions[idAction]!) {
         act.execute(ctx, event);
@@ -213,6 +242,26 @@ class CWRepository {
       print('doUserAction $idAction inconnu');
     }
     return this;
+  }
+
+  void doNext(CWWidgetEvent? event, CWWidgetCtx? ctx) {
+    var data = getData();
+    if (data.idxSelected + 1 < data.getCount()) {
+      data.idxSelected++;
+      event!.payload = data.idxSelected;
+      displayRenderingMode = DisplayRenderingMode.selected;
+      doAction(ctx, event, CWRepositoryAction.onRowSelected);
+    }
+  }
+
+  void doPrev(CWWidgetEvent? event, CWWidgetCtx? ctx) {
+    var data = getData();
+    if (data.idxSelected > 0) {
+      data.idxSelected--;
+      event!.payload = data.idxSelected;
+      displayRenderingMode = DisplayRenderingMode.selected;
+      doAction(ctx, event, CWRepositoryAction.onRowSelected);
+    }
   }
 
   static CWRepository? of(CWWidgetCtx ctx, {String? id}) {
@@ -228,26 +277,22 @@ class CWRepository {
 
   /////////////////////////////////////////////////////////////////////////
   String getStringValueOf(CWWidgetCtx ctx, String propName) {
-    var val =
-        getDisplayedEntity()?.value[ctx.designEntity?.getString(propName)];
+    var val = getEntity()?.value[ctx.designEntity?.getString(propName)];
     return val?.toString() ?? '';
   }
 
   bool getBoolValueOf(CWWidgetCtx ctx, String propName) {
-    var val =
-        getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    var val = getEntity()!.value[ctx.designEntity?.getString(propName)];
     return val ?? false;
   }
 
   double? getDoubleValueOf(CWWidgetCtx ctx, String propName) {
-    var val =
-        getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    var val = getEntity()!.value[ctx.designEntity?.getString(propName)];
     return val;
   }
 
   Map<String, dynamic>? getMapValueOf(CWWidgetCtx ctx, String propName) {
-    var val =
-        getDisplayedEntity()!.value[ctx.designEntity?.getString(propName)];
+    var val = getEntity()!.value[ctx.designEntity?.getString(propName)];
     return val;
   }
 
@@ -255,7 +300,7 @@ class CWRepository {
       CWWidgetCtx ctx, CWWidgetEvent? event, String attrName, dynamic val) {
     dynamic v = val;
 
-    var displayedEntity = getDisplayedEntity();
+    var displayedEntity = getEntity();
 
     CoreDataAttribut? attr =
         displayedEntity!.getAttrByName(ctx.loader, attrName);
@@ -303,11 +348,12 @@ class CWRepository {
   }
 
   void doEvent(CWRepositoryAction event, CWAppLoaderCtx loader,
-      {String? repaintXid}) {
+      {InheritedRow? row, String? repaintXid}) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = event.toString();
     ctxWE.provider = this;
     ctxWE.loader = loader;
+    ctxWE.payload = row;
     doAction(null, ctxWE, event);
     if (repaintXid != null) {
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -327,6 +373,10 @@ class CWRepositoryData {
   Map<CWRepositoryAction, List<CoreDataAction>> actions = {};
   Map<String, List<CoreDataAction>> userActions = {};
   CoreDataLoader? dataloader;
+
+  int getCount() {
+    return content.length;
+  }
 }
 
 class CWRepositoryDataSelector {
@@ -375,14 +425,14 @@ class CWRepositoryCtx extends CWWidgetVirtual {
       provider.setFilter(CWApplication.of().mapFilters[filterID]);
       log.fine(
           'init appli provider <${provider.id}> [${provider.type}] hash = ${provider.getData().hashCode}');
-      ctx.loader.addRepository(provider);
+      ctx.loader.addRepository(provider, isEntity: true);
     }
   }
 
   static CWRepository createFromTable(String idModel, CWWidgetCtx ctx,
       {String? idProvider, CoreDataFilter? filter}) {
     var app = CWApplication.of();
-    var tableEntity = app.getTableModelByID(idModel);
+    var tableEntity = app.getTableEntityByID(idModel);
     app.initDataModelWithAttr(ctx.loader, tableEntity);
     CWRepository provider = app.getDesignDataRepository(
         ctx.loader, tableEntity, idProvider,

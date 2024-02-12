@@ -62,7 +62,7 @@ class StyleBuilder {
       provider.addAction(CWRepositoryAction.onValueChanged,
           MapDesignStyle(dCtx, designEntity, styleEntity));
       provider.addAction(
-          CWRepositoryAction.onValueChanged, RefreshDesign(dCtx));
+          CWRepositoryAction. onValueChanged, RefreshDesign(dCtx));
 
       //------------------------------------------------------------------
       initAlignment(aCtx, provider);
@@ -96,10 +96,11 @@ class StyleBuilder {
 
   void initMargin(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addRepository(provider);
+    ctxLoader.addRepository(provider, isEntity: false);
 
-    AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Margin', provider, true, mode: ModeForm.expand);
+    AttrFormLoader loader = AttrFormLoader(
+        'rootBody0', ctxLoader, 'Margin', provider, true,
+        mode: ModeForm.expand);
 
     CoreDataAttribut attr = CoreDataAttribut('ptop')
         .init(CDAttributType.int,
@@ -135,10 +136,11 @@ class StyleBuilder {
 
   void initPadding(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addRepository(provider);
+    ctxLoader.addRepository(provider, isEntity: false);
 
-    AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Padding', provider, true, mode: ModeForm.expand);
+    AttrFormLoader loader = AttrFormLoader(
+        'rootBody0', ctxLoader, 'Padding', provider, true,
+        mode: ModeForm.expand);
 
     CoreDataAttribut attr = CoreDataAttribut('mtop')
         .init(CDAttributType.int,
@@ -174,10 +176,11 @@ class StyleBuilder {
 
   void initBorder(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addRepository(provider);
+    ctxLoader.addRepository(provider, isEntity: false);
 
     AttrFormLoader loader = AttrFormLoader(
-        'rootBody0', ctxLoader, 'Border & Elevation', provider, true, mode: ModeForm.expand);
+        'rootBody0', ctxLoader, 'Border & Elevation', provider, true,
+        mode: ModeForm.expand);
 
     CoreDataAttribut attr = CoreDataAttribut('elevation')
         .init(CDAttributType.int,
@@ -214,10 +217,11 @@ class StyleBuilder {
 
   void initAlignment(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addRepository(provider);
+    ctxLoader.addRepository(provider, isEntity: false);
 
-    AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Alignment', provider, true, mode: ModeForm.expand);
+    AttrFormLoader loader = AttrFormLoader(
+        'rootBody0', ctxLoader, 'Alignment', provider, true,
+        mode: ModeForm.expand);
 
     List listAxis = [
       {'icon': Icons.align_vertical_top, 'value': -1},
@@ -245,7 +249,7 @@ class StyleBuilder {
 
   void initBackground(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addRepository(provider);
+    ctxLoader.addRepository(provider, isEntity: false);
 
     AttrFormLoader loader = AttrFormLoader(
         'root', ctxLoader, 'Background', provider, true,
@@ -278,10 +282,11 @@ class StyleBuilder {
 
   void initText(CWWidgetCtx ctx, CWRepository provider) {
     CWAppLoaderCtx ctxLoader = CWAppLoaderCtx().from(ctx.loader);
-    ctxLoader.addRepository(provider);
+    ctxLoader.addRepository(provider, isEntity: false);
 
-    AttrFormLoader loader =
-        AttrFormLoader('rootBody0', ctxLoader, 'Text', provider, true, mode: ModeForm.expand);
+    AttrFormLoader loader = AttrFormLoader(
+        'rootBody0', ctxLoader, 'Text', provider, true,
+        mode: ModeForm.expand);
 
     List listCross = [
       {'icon': Icons.align_horizontal_left, 'value': 'start'},

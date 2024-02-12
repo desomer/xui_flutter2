@@ -1,5 +1,6 @@
 import 'package:xui_flutter/core/data/core_repository.dart';
 
+import '../../designer/designer_model_data.dart';
 import '../data/core_data.dart';
 import 'cw_factory.dart';
 import 'cw_core_widget.dart';
@@ -174,7 +175,15 @@ class CWAppLoaderCtx {
     return constraint;
   }
 
-  void addRepository(CWRepository provider) {
+  void addRepository(CWRepository provider, {required bool isEntity}) {
+    if (isEntity && factory.mapRepository[provider.id] != provider) {
+      provider.addAction(CWRepositoryAction.onStateNone, OnInsertData());
+      provider.addAction(
+          CWRepositoryAction.onStateNone2Create, SetDate('_createAt_'));
+      provider.addAction(
+          CWRepositoryAction.onValueChanged, SetDate('_updateAt_'));
+    }
+
     factory.mapRepository[provider.id] = provider;
   }
 }

@@ -293,7 +293,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
   //---------------------------------------------------------------------------------------
   List<Widget> getIconContent(Map<String, dynamic>? oneValue) {
     if (oneValue != null) {
-      IconData? ic = deserializeIcon(oneValue);
+      IconData? ic = deserializeIcon(oneValue,  iconPack: IconPack.allMaterial,);
       _icon = Icon(ic);
     }
     return [
@@ -309,7 +309,7 @@ class _CWSelectorState extends StateCW<CWSelector> {
   }
 
   void _pickIcon() async {
-    IconData? icon = await FlutterIconPicker.showIconPicker(context,
+    IconData? icon = await showIconPicker(context,
         iconPackModes: [IconPack.material]);
 
     _icon = Icon(icon);

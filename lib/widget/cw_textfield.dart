@@ -70,7 +70,7 @@ extension TextEditingControllerExt on TextEditingController {
 class _CWTextfieldState extends StateCW<CWTextfield> {
   late FocusNode _focus;
   bool isRowFocus = false;
-  InheritedStateContainer? row;
+  InheritedRow? row;
 
   final TextEditingController _controller = TextEditingController();
   String? mapValue;
@@ -105,7 +105,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
     super.initState();
     row = widget.getRowState(context);
     _focus = findFocusNode();
-    if (row != null) widget.setDisplayRow(row);
+    if (row != null) widget.setRepositoryDisplayRow(row);
 
     // // map la valeur
     // var bind = widget.ctx.designEntity?.getOne('@bind');
@@ -118,7 +118,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
 
   void _onTextChange() {
     if (_controller.text != mapValue) {
-      if (row != null) widget.setDisplayRow(row);
+      if (row != null) widget.setRepositoryDisplayRow(row);
       bool valid = true;
 
       if (mask?.validator != null) {
@@ -139,7 +139,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
       if (valid && mode == ModeRendering.view) {
         // map la valeur
         var bind = widget.ctx.designEntity?.getOne('@bind');
-        widget.setValue(_controller.text, provInfo: bind);
+        widget.setValue(_controller.text, provInfo: bind, row: row);
         mapValue = _controller.text;
       }
     }
@@ -159,7 +159,11 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
         if (mask?.error != null) {
           _controller.text = lastOnFocus!;
         }
-        row?.repaintRow(widget.ctx);
+
+        var bind = widget.ctx.designEntity?.getOne('@bind');
+        widget.doValidateEntity(row: row, provInfo: bind);
+
+        //row?.repaintRow(widget.ctx);
       }
     }
   }
@@ -182,7 +186,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
 
   @override
   Widget build(BuildContext context) {
-    if (row != null) widget.setDisplayRow(row);
+    if (row != null) widget.setRepositoryDisplayRow(row);
 
     String? label = widget.getLabelNull();
     String type = widget.getBindType();
@@ -216,9 +220,11 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
 
   void initMask(
       String visualType, String bindType, String? label, bool inArray) {
+    var maskChanged = mask == null ||
+        mask?.bindType != bindType ||
+        mask?.label != label ||
+        mask?.visualType != visualType;
 
-    var maskChanged = mask == null || mask?.bindType != bindType || mask?.label != label || mask?.visualType !=visualType;
-    
     if (maskChanged) {
       if (bindType == 'INTEGER' || bindType == 'INT') {
         mask = MaskConfig(
@@ -359,7 +365,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
 
       setState(() {
         _controller.text = formattedDate;
-        row?.repaintRow(widget.ctx);
+        var bind = widget.ctx.designEntity?.getOne('@bind');
+        widget.doValidateEntity(row: row, provInfo: bind);        
+        //row?.repaintRow(widget.ctx);
       });
     } else {
       debugPrint('Date is not selected');
@@ -428,10 +436,9 @@ class MaskConfig {
         filled: true,
         // prefixIcon: Icon(Icons.search),
         // suffixIcon: Icon(Icons.clear),
-       // border: const OutlineInputBorder(),
+        // border: const OutlineInputBorder(),
       );
-    }
-     else {
+    } else {
       inputDecoration = const InputDecoration();
     }
     return TextField(

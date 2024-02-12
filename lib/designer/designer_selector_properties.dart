@@ -54,14 +54,14 @@ class OnWidgetSelect extends CoreDataAction {
   void execute(CWWidgetCtx? ctx, CWWidgetEvent? event) {
     SelectorActionWidget.pathLock = aCtx.widget!.ctx.pathWidget;
     CoreDesigner.emit(CDDesignEvent.select, aCtx.widget!.ctx.getSlot()!.ctx);
-    if (selectStyle??false) {
+    if (selectStyle ?? false) {
       CoreDesigner.of().editor.controllerTabRight.index = 1;
     }
   }
 }
 
-class OnLinkSelect extends CoreDataAction {
-  OnLinkSelect(this.aCtx, this.path);
+class OnBindAction extends CoreDataAction {
+  OnBindAction(this.aCtx, this.path);
   DesignCtx aCtx;
   String path;
 

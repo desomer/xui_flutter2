@@ -32,7 +32,7 @@ class CWText extends CWWidgetMapLabel {
 }
 
 class _CWTextState extends StateCW<CWText> {
-  InheritedStateContainer? row;
+  InheritedRow? row;
 
   @override
   void initState() {
@@ -61,6 +61,8 @@ class _CWTextState extends StateCW<CWText> {
     properties.add(DiagnosticsProperty<TextStyle>('labelMedium', labelMedium, defaultValue: defaultTheme.labelMedium));
     properties.add(DiagnosticsProperty<TextStyle>('labelSmall', labelSmall, defaultValue: defaultTheme.labelSmall));
     */
+
+    if (row != null) widget.setRepositoryDisplayRow(row);
 
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
@@ -109,7 +111,6 @@ class _CWTextState extends StateCW<CWText> {
       text = icon;
     }
 
-    if (row != null) widget.setDisplayRow(row);
 
     return getMinDesignBox(text!);
   }

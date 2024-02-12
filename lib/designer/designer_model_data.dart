@@ -19,7 +19,7 @@ class DesignerData extends StatefulWidget {
       var app = CWApplication.of();
       CoreDataFilter filterConfig = CoreDataFilter()..setFilterData(item);
       var modelID = filterConfig.getModelID();
-      tableEntity = app.getTableModelByID(modelID);
+      tableEntity = app.getTableEntityByID(modelID);
 
       if (bindWidget.id == 'bindFilter2Data') {
         CWRepository providerData = app.dataProvider;

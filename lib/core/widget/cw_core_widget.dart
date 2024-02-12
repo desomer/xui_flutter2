@@ -123,10 +123,7 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
       //  CWApplication.of().loaderDesigner.mode;
       CWRepository? provider =
           CWRepository.of(ctx, id: provInfo[iDProviderName]);
-      var val = (provider?.displayRenderingMode == DisplayRenderingMode.selected
-              ? provider?.getSelectedEntity()
-              : provider?.getDisplayedEntity())
-          ?.value[provInfo[iDBind]];
+      var val = provider?.getEntity()?.value[provInfo[iDBind]];
       if (val == null && provider != null) {
         if (mode == ModeRendering.design) {
           var nameAttr = provider.getAttrName(provInfo[iDBind]);
@@ -135,7 +132,7 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
           return '';
         }
       } else {
-        return val!.toString();
+        return val?.toString() ?? 'no map';
       }
     } else {
       CWRepository? provider = CWRepository.of(ctx);
@@ -239,7 +236,26 @@ abstract class CWWidgetMapLabel extends CWWidgetMapValue {
   const CWWidgetMapLabel({super.key, required super.ctx});
 }
 
-abstract class CWWidgetMapValue extends CWWidget with CWWidgetProvider {
+mixin CWWidgetInheritRow {
+  InheritedRow? getRowState(BuildContext context) {
+    InheritedRow? row = context.getInheritedWidgetOfExactType<InheritedRow>();
+    return row;
+  }
+
+  void setRepositoryDisplayRow(InheritedRow? row) {
+    var provider = row?.getCWRepository();
+    if (provider != null) {
+      if (row != null) {
+        //print("row.index = ${row.index}");
+        provider.displayRenderingMode = DisplayRenderingMode.displayed;
+        provider.getData().idxDisplayed = row.index!;
+      }
+    }
+  }
+}
+
+abstract class CWWidgetMapValue extends CWWidget
+    with CWWidgetProvider, CWWidgetInheritRow {
   const CWWidgetMapValue({super.key, required super.ctx});
 
   @override
@@ -252,45 +268,45 @@ abstract class CWWidgetMapValue extends CWWidget with CWWidgetProvider {
     return CWRepository.of(ctx);
   }
 
-  InheritedStateContainer? getRowState(BuildContext context) {
-    InheritedStateContainer? row =
-        context.getInheritedWidgetOfExactType<InheritedStateContainer>();
-    return row;
-  }
-
-  void setDisplayRow(InheritedStateContainer? row) {
-    CWRepository? provider = getRepository();
-    if (provider != null) {
-      if (row != null) {
-        //print("row.index = ${row.index}");
-        provider.displayRenderingMode = DisplayRenderingMode.displayed;
-        provider.getData().idxDisplayed = row.index!;
-      }
+  CWRepository? getProvider({Map<String, dynamic>? provInfo}) {
+    if (provInfo != null) {
+      return CWRepository.of(ctx, id: provInfo[iDProviderName]);
+    } else {
+      return CWRepository.of(ctx);
     }
   }
 
-  void setValue(dynamic val, {Map<String, dynamic>? provInfo}) {
-    if (provInfo != null) {
-      CWRepository? provider =
-          CWRepository.of(ctx, id: provInfo[iDProviderName]);
-      if (provider != null) {
-        CWWidgetEvent ctxWE = CWWidgetEvent();
-        ctxWE.action = CWRepositoryAction.onValueChanged.toString();
-        ctxWE.provider = provider;
-        ctxWE.payload = null;
-        ctxWE.loader = ctx.loader;
-        provider.setValueOf(ctx, ctxWE, provInfo[iDBind], val);
+  void setValue(dynamic val,
+      {InheritedRow? row, Map<String, dynamic>? provInfo}) {
+    String attr = provInfo?[iDBind] ?? ctx.designEntity!.getString(iDBind);
+    CWRepository? provider = getProvider(provInfo: provInfo);
+
+    if (provider != null) {
+      if (row != null) {
+        provider.displayRenderingMode = DisplayRenderingMode.displayed;
+      } else {
+        provider.displayRenderingMode = DisplayRenderingMode.selected;
       }
-    } else {
-      CWRepository? provider = CWRepository.of(ctx);
-      if (provider != null) {
-        CWWidgetEvent ctxWE = CWWidgetEvent();
-        ctxWE.action = CWRepositoryAction.onValueChanged.toString();
-        ctxWE.provider = provider;
-        ctxWE.payload = null;
-        ctxWE.loader = ctx.loader;
-        provider.setValuePropOf(ctx, ctxWE, iDBind, val);
-      }
+        
+      CWWidgetEvent ctxWE = CWWidgetEvent();
+      ctxWE.action = CWRepositoryAction.onValueChanged.toString();
+      ctxWE.provider = provider;
+      ctxWE.payload = null;
+      ctxWE.loader = ctx.loader;
+      provider.setValueOf(ctx, ctxWE, attr, val);
+    }
+  }
+
+  void doValidateEntity({InheritedRow? row, Map<String, dynamic>? provInfo}) {
+    CWRepository? provider = getProvider(provInfo: provInfo);
+
+    if (provider != null) {
+      CWWidgetEvent ctxWE = CWWidgetEvent();
+      ctxWE.action = CWRepositoryAction.onValidateEntity.toString();
+      ctxWE.provider = provider;
+      ctxWE.payload = row;
+      ctxWE.loader = ctx.loader;
+      provider.doAction(ctx, ctxWE, CWRepositoryAction.onValidateEntity);
     }
   }
 }
@@ -298,7 +314,7 @@ abstract class CWWidgetMapValue extends CWWidget with CWWidgetProvider {
 abstract class CWWidgetMapRepository extends CWWidget with CWWidgetProvider {
   const CWWidgetMapRepository({super.key, required super.ctx});
 
-  void setIdx(int idx) {
+  void setDisplayedIdx(int idx) {
     CWRepository? provider = CWRepository.of(ctx);
     if (provider != null) {
       provider.getData().idxDisplayed = idx;

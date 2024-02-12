@@ -14,8 +14,9 @@ class ArrayBuilder {
   CWWidget? widget;
   CWRepository? provider;
 
-  void initDesignArrayFromLoader(String name, String type) {
-    ColRowLoader? loader = _createDesign(provider!, type, name, name, true);
+  void initDesignArrayFromLoader(String name, String typeArray) {
+    ColRowLoader? loader =
+        _createDesign(provider!, typeArray, name, name, true);
     widget = loader.getWidget(name, name);
   }
 
@@ -68,7 +69,7 @@ class ArrayBuilder {
         break;
     }
 
-    loader.ctxLoader.addRepository(provider);
+    loader.ctxLoader.addRepository(provider, isEntity: true);
     loader.addWidget(
         'root', 'provider_${provider.id}', 'CWProvider', <String, dynamic>{
       'type': provider.type,
@@ -273,6 +274,11 @@ class AttrListLoader extends ColRowLoader {
           '@label': {iDBind: attribut.name, iDProviderName: provider.id}
         });
       }
+      var constraint =
+          collection.createEntityByJson('CWRowConstraint', <String, dynamic>{
+        'tight/loose': true,
+      });
+      setConstraint('${xid}RowCont$nbAttr', constraint);
       nbAttr++;
     }
   }

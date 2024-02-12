@@ -5,12 +5,12 @@ import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 
 import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
+import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_slot.dart';
 import '../designer/builder/array_builder.dart';
 import '../core/widget/cw_factory.dart';
 import '../designer/designer.dart';
-import '../designer/designer_selector_query.dart';
 import 'cw_array_row.dart';
 import 'cw_toolkit.dart';
 
@@ -44,7 +44,7 @@ class CWList extends CWWidgetMapRepository {
 //---------------------------------------------------------------
 class _CwListState extends StateCW<CWList> {
   OverlayEntry? sticky;
-  final controller = ScrollController();
+  final controllerScroll = ScrollController();
 
   @override
   void initState() {
@@ -82,14 +82,14 @@ class _CwListState extends StateCW<CWList> {
   Widget posCalculatorBuilder(BuildContext context) {
     return AnimatedBuilder(
       key: keyPosCalculator,
-      animation: controller, // on scroll
+      animation: controllerScroll, // on scroll
       builder: (_, child) {
         final keyContext = keyObserve?.currentContext;
         widget.selectorPos = null;
         if (keyContext != null) {
-          widget.selectorPos =
-              CwToolkit.getPositionRect(keyObserve!, keyListOrigin);
           Future.delayed(const Duration(milliseconds: 1), () {
+            widget.selectorPos =
+                CwToolkit.getPositionRect(keyObserve!, keyListOrigin);
             keySelector.currentState?.setState(() {});
           });
         }
@@ -150,10 +150,10 @@ class _CwListState extends StateCW<CWList> {
 
     //////////////////////////////////////////////////////
     InkWell itemBuilder(context, index) {
-      widget.setIdx(index);
+      widget.setDisplayedIdx(index);
 
-      var rowState = InheritedStateContainer(
-          key: GlobalKey(),  // nouvelle row key
+      var rowState = InheritedRow(
+          key: GlobalKey(), // nouvelle row key
           index: index,
           arrayState: this,
           child: CWSlot(
@@ -192,7 +192,7 @@ class _CwListState extends StateCW<CWList> {
       );
     } else {
       return ListView.builder(
-        controller: controller,
+        controller: controllerScroll,
         scrollDirection: Axis.vertical,
         shrinkWrap: true,
         itemCount: nbRow,
@@ -255,7 +255,7 @@ class _CWListSelectorState extends State<CWListSelector> {
 }
 
 //---------------------------------------------------------------
-class InheritedStateContainer extends InheritedWidget {
+class InheritedRow extends InheritedWidget {
   // Data is your entire state.
   final StateCW<CWWidgetMapRepository> arrayState;
   final CWArrayRowState? rowState;
@@ -264,7 +264,7 @@ class InheritedStateContainer extends InheritedWidget {
   final GlobalKey rowKey = GlobalKey();
 
   // You must pass through a child and your state.
-  InheritedStateContainer(
+  InheritedRow(
       {super.key,
       this.index,
       required this.arrayState,
@@ -276,10 +276,14 @@ class InheritedStateContainer extends InheritedWidget {
     return true;
   }
 
+  CWRepository? getCWRepository() {
+    return CWRepository.of(arrayState.widget.ctx);
+  }
+
   void selected(CWWidgetCtx ctx) {
     CWWidgetEvent ctxWE = CWWidgetEvent();
     ctxWE.action = CWRepositoryAction.onRowSelected.toString();
-    CWRepository? provider = CWRepository.of(arrayState.widget.ctx);
+    CWRepository? provider = getCWRepository();
     //print('selected row $index');
     if (provider != null) {
       ctxWE.provider = provider;
@@ -287,6 +291,7 @@ class InheritedStateContainer extends InheritedWidget {
       ctxWE.loader = arrayState.widget.ctx.loader;
       if (provider.getData().idxSelected != index) {
         provider.getData().idxSelected = index!;
+        provider.displayRenderingMode = DisplayRenderingMode.selected;
         provider.doAction(ctx, ctxWE, CWRepositoryAction.onRowSelected);
         if (arrayState is _CwListState) {
           // affiche la ligne selectionné
