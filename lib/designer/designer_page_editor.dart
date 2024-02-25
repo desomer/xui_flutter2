@@ -96,7 +96,18 @@ class DesignerEditor extends StatelessWidget {
                       message: 'Data', child: Icon(size: 18, DBIcon.database)))
             ],
             listTabCont: [
-              getComponetPanel(),
+              Column(
+                children: [
+                  Flexible(flex: 2, child: getComponentPanel()),
+                  Flexible(
+                      flex: 1,
+                      child: Container(
+                        color: Theme.of(context).disabledColor,
+                        width: double.infinity,
+                        child: const Text('Components Sand box'),
+                      ))
+                ],
+              ),
               DesignerPages(ctx: ctxPages, key: CoreDesigner.of().pagesKey),
               Column(
                 children: [
@@ -116,7 +127,7 @@ class DesignerEditor extends StatelessWidget {
     ]);
   }
 
-  SingleChildScrollView getComponetPanel() {
+  SingleChildScrollView getComponentPanel() {
     return SingleChildScrollView(
         //key: const PageStorageKey<String>('pageWidget'),
         controller: scrollComponentController,
@@ -239,18 +250,21 @@ class DesignerView extends StatefulWidget {
 
   void clearAll() {
     var app = CWApplication.of();
-    prepareReBuild();
-    loader = null;
-    isLoad = false;
     var loaderDesigner = app.loaderDesigner;
     loaderDesigner.entityCWFactory =
         loaderDesigner.collectionWidget.createEntity('CWFactory');
+    // nouvelle factory
     loaderDesigner.factory = WidgetFactoryEventHandler(loaderDesigner);
-    loaderDesigner.setModeRendering(ModeRendering.design);
 
+    loaderDesigner.setModeRendering(ModeRendering.design);
+    prepareReBuild();
     app.clearAllPage();
     app.initRoutePage();
     app.router = null;
+    app.ctxApp = null;
+    loader = null;
+    isTemplateLoad = false; // charge le template de page
+
     // ignore: invalid_use_of_protected_member
     CoreDesigner.of().pagesKey.currentState?.setState(() {});
     // ignore: invalid_use_of_protected_member
@@ -265,7 +279,7 @@ class DesignerView extends StatefulWidget {
     }
   }
 
-  bool isLoad = false;
+  bool isTemplateLoad = false;
   bool isEventInit = false;
 
   Future<Widget> getPageRoot({ModeRendering? mode}) async {
@@ -297,8 +311,8 @@ class DesignerView extends StatefulWidget {
       });
     }
 
-    if (!isLoad) {
-      isLoad = true;
+    if (!isTemplateLoad) {
+      isTemplateLoad = true;
       await (loader as CWLoaderTest).loadCWFactory();
       // await Future.delayed(const Duration(
       //     milliseconds: 500)); // pour faire apparaitre le tournicotton
@@ -307,7 +321,7 @@ class DesignerView extends StatefulWidget {
 
     if (rootWidget == null) {
       log.fine('create root widget by browsing Json');
-      rootWidget = loader!.getWidget('root', 'root'); 
+      rootWidget = loader!.getWidget('root', 'root');
       var app = CWApplication.of();
       // init les data models
       log.fine('init dataModels Provider for design');

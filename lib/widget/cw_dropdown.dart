@@ -12,7 +12,7 @@ class CWDropdown extends CWWidgetMapValue {
   State<CWDropdown> createState() => _CWDropdownState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     c

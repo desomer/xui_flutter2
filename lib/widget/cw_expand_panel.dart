@@ -41,14 +41,14 @@ class CWExpandPanel extends CWWidget {
   }
 
   @override
-  void initSlot(String path) {
+  void initSlot(String path, ModeParseSlot mode) {
     final nb = getNb();
     for (int i = 0; i < nb; i++) {
       addSlotPath(
           '$path.Title$i',
           SlotConfig('${ctx.xid}Title$i',
-              constraintEntity: 'CWExpandConstraint'));
-      addSlotPath('$path.Body$i', SlotConfig('${ctx.xid}Body$i'));
+              constraintEntity: 'CWExpandConstraint'), mode);
+      addSlotPath('$path.Body$i', SlotConfig('${ctx.xid}Body$i'), mode);
     }
   }
 }

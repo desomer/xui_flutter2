@@ -25,7 +25,7 @@ class CWToogle extends CWWidgetMapLabel {
   }
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 }
 
 class _CWToogleState extends StateCW<CWToogle> {

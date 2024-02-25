@@ -10,6 +10,7 @@ import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../core/widget/cw_factory.dart';
 import 'application_manager.dart';
 import 'widget_filter_builder.dart';
 
@@ -24,7 +25,7 @@ class DesignerQuery extends CWWidgetMapRepository {
   State<DesignerQuery> createState() => _DesignerQueryState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 }
 
 final log = Logger('DesignerQuery');

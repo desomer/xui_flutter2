@@ -22,7 +22,7 @@ class CWTextfield extends CWWidgetMapValue {
   State<CWTextfield> createState() => _CWTextfieldState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     List visualStyle = [
@@ -36,6 +36,7 @@ class CWTextfield extends CWWidgetMapValue {
         .addWidget('CWTextfield',
             (CWWidgetCtx ctx) => CWTextfield(key: ctx.getKey(), ctx: ctx))
         .addAttr('bind', CDAttributType.one, tname: 'info')
+        .addCustomValue('bindEnable', true)
         .addAttr('withLabel', CDAttributType.bool)
         .withAction(AttrActionDefault(true))
         .addAttr('label', CDAttributType.text)
@@ -349,9 +350,9 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
   Future<void> openCalendar() async {
     String l = await findSystemLocale();
     List lsp = l.split('_');
-    // ignore: use_build_context_synchronously
     DateTime? pickedDate = await showDatePicker(
         helpText: '',
+        // ignore: use_build_context_synchronously
         context: context,
         locale: Locale(lsp[0], lsp[1]),
         initialDate: _controller.text == ''
@@ -366,7 +367,7 @@ class _CWTextfieldState extends StateCW<CWTextfield> {
       setState(() {
         _controller.text = formattedDate;
         var bind = widget.ctx.designEntity?.getOne('@bind');
-        widget.doValidateEntity(row: row, provInfo: bind);        
+        widget.doValidateEntity(row: row, provInfo: bind);
         //row?.repaintRow(widget.ctx);
       });
     } else {

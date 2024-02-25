@@ -81,7 +81,7 @@ abstract class CWWidgetLoader {
 
     final rootWidget = ctxLoader.factory.mapWidgetByXid[xid]!;
     ctxLoader.factory.mapXidByPath[path] = xid;
-    rootWidget.initSlot(path);
+    rootWidget.initSlot(path, ModeParseSlot.build);
 
     return rootWidget;
   }

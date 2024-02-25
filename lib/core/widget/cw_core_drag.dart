@@ -1,6 +1,7 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
+import '../../designer/designer_selector_component.dart';
 import '../data/core_data.dart';
 import 'cw_core_widget.dart';
 
@@ -16,10 +17,10 @@ mixin CWDroppableEvent {
           scale: candidateItems.isEmpty ? 1 : 0.95,
           duration: const Duration(milliseconds: 100),
           child: child);
-    }, onWillAccept: (item) {
+    }, onWillAcceptWithDetails: (item) {
       return true;
-    }, onAccept: (item) async {
-      onDragEvent(item);
+    }, onAcceptWithDetails: (item) async {
+      onDragEvent(item.data);
     });
   }
 
@@ -34,10 +35,10 @@ mixin CWDroppableQuery {
           scale: candidateItems.isEmpty ? 1 : 0.95,
           duration: const Duration(milliseconds: 100),
           child: child);
-    }, onWillAccept: (item) {
+    }, onWillAcceptWithDetails: (item) {
       return true;
-    }, onAccept: (item) async {
-      onDragQuery(item);
+    }, onAcceptWithDetails: (item) async {
+      onDragQuery(item.data);
     });
   }
 
@@ -85,7 +86,15 @@ mixin DraggableWidget {
 
 /////////////////////////////////////////////////////////////////
 
+
 class DragCtx {}
+
+class DragComponentCtx extends DragCtx  {
+  DragComponentCtx(this.component, this.srcWidgetCtx);
+
+  ComponentDesc? component;
+  CWWidgetCtx? srcWidgetCtx;
+}
 
 class DragEventCtx extends DragCtx
 {}

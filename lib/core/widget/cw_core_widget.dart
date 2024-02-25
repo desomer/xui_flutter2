@@ -47,16 +47,28 @@ mixin CWSlotManager {
 
 abstract class CWWidget extends StatefulWidget with CWSlotManager {
   const CWWidget({super.key, required this.ctx});
-
   final CWWidgetCtx ctx;
 
   /// affecte les Path des widget de facon recurcive
   /// affecte également les XID by path
-  void initSlot(String path);
+  void initSlot(String path, ModeParseSlot mode);
 
-  void addSlotPath(String pathWid, SlotConfig config) {
+  void addSlotPath(String pathWid, SlotConfig config, ModeParseSlot mode) {
     final String childXid = ctx.factory.mapChildXidByXid[config.xid] ?? '';
-    //debugPrint('add slot >>>> $pathWid  ${config.xid} childXid=$childXid');
+
+    if (mode == ModeParseSlot.save) {
+      // gestion du link entre composant Provider
+      debugPrint(
+          'add slot >>>> $pathWid  xid=${config.xid} child Xid=$childXid');
+      var app = CWApplication.of();
+      var listUseXid = app.linkInfo.listUseXid;
+      listUseXid[config.xid] = 1 + (listUseXid[config.xid] ?? 0);
+      if (childXid != '') {
+        listUseXid[childXid] = (listUseXid[childXid] ?? 0);
+      }
+
+    }
+
     Widget? widgetChild = ctx.factory.mapWidgetByXid[childXid];
 
     SlotConfig? old = ctx.factory.mapSlotConstraintByPath[pathWid];
@@ -65,7 +77,7 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
     if (widgetChild is CWWidget) {
       ctx.factory.mapXidByPath[pathWid] = childXid;
       widgetChild.ctx.pathWidget = pathWid;
-      widgetChild.initSlot(pathWid); // appel les enfant
+      widgetChild.initSlot(pathWid, mode); // appel les enfant
     }
   }
 
@@ -223,12 +235,22 @@ mixin class CWWidgetProvider {
   }
 }
 
-abstract class CWWidgetChild extends CWWidget {
-  const CWWidgetChild({super.key, required super.ctx});
+abstract class CWWidgetWithChild extends CWWidget {
+  const CWWidgetWithChild({super.key, required super.ctx});
   int getDefChild(String id);
 
   int getNbChild(String id, int def) {
     return ctx.designEntity?.getInt(id, def) ?? def;
+  }
+
+  List<CWWidget> getChildren() {
+    List<CWWidget> children = [];
+    for (var p in ctx.factory.mapXidByPath.entries) {
+      if (p.key.startsWith(ctx.pathWidget) && p.key != ctx.pathWidget) {
+        children.add(ctx.factory.mapWidgetByXid[p.value]!);
+      }
+    }
+    return children;
   }
 }
 
@@ -287,7 +309,7 @@ abstract class CWWidgetMapValue extends CWWidget
       } else {
         provider.displayRenderingMode = DisplayRenderingMode.selected;
       }
-        
+
       CWWidgetEvent ctxWE = CWWidgetEvent();
       ctxWE.action = CWRepositoryAction.onValueChanged.toString();
       ctxWE.provider = provider;

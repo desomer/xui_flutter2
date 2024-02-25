@@ -145,7 +145,7 @@ class AttrFormLoader extends CWWidgetLoader {
   void addAttr(CoreDataAttribut attribut) {
     String name = attribut.label ?? attribut.name;
 
-    if (/*!isRoot && */ name.startsWith('_')) {
+    if (/*!isRoot && */ name.startsWith('_') && name!='_type_' ) {
       return;
     }
 

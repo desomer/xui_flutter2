@@ -535,9 +535,10 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
           scale: candidateItems.isEmpty ? 1 : 0.95,
           duration: const Duration(milliseconds: 100),
           child: child);
-    }, onWillAccept: (item) {
+    }, onWillAcceptWithDetails: (item) {
       return true;
-    }, onAccept: (item) {
+    }, onAcceptWithDetails: (detail) {
+      var item = detail.data;
       setState(() {
         var c = CWApplication.of().collection;
         var tableEntity =
@@ -608,10 +609,8 @@ class _WidgetQuerybuilderColumnState extends State<WidgetQuerybuilderColumn> {
         child: getDropZone(getBorder(
             isEmpty,
             Text(
-                style: TextStyle(
-                    color: (isEmpty
-                        ? Colors.white30
-                        : Colors.white)),
+                style:
+                    TextStyle(color: (isEmpty ? Colors.white30 : Colors.white)),
                 name))));
   }
 }

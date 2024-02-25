@@ -6,6 +6,7 @@ import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
 import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../core/widget/cw_factory.dart';
 
 class DesignerRepository extends CWWidgetMapRepository {
   const DesignerRepository({super.key, required super.ctx, this.bindWidget});
@@ -15,7 +16,7 @@ class DesignerRepository extends CWWidgetMapRepository {
   State<DesignerRepository> createState() => _DesignerProviderState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 }
 
 class _DesignerProviderState extends State<DesignerRepository>
@@ -97,8 +98,9 @@ class _DesignerProviderState extends State<DesignerRepository>
 
     if (node.level != 0) {
       children2.add(getCrudBtn('Create@${node.data!.id}', 'C'));
-      children2.add(getCrudBtn('<Read@${node.data!.id}', '<R'));
-      children2.add(getCrudBtn('Read>@${node.data!.id}', 'R>'));
+      children2.add(getCrudBtn('<Read@${node.data!.id}', '<'));
+      children2.add(getCrudBtn('Refresh@${node.data!.id}', 'R'));
+      children2.add(getCrudBtn('Read>@${node.data!.id}', '>'));
       children2.add(getCrudBtn('Update@${node.data!.id}', 'U'));
       children2.add(getCrudBtn('Delete@${node.data!.id}', 'D'));
     }
@@ -116,7 +118,7 @@ class _DesignerProviderState extends State<DesignerRepository>
             onTap: () {},
             child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 1),
-                padding: const EdgeInsets.symmetric(horizontal: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 2),
                 decoration: BoxDecoration(
                     border: Border.all(color: Theme.of(context).disabledColor)),
                 child: Text(text))));

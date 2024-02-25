@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:xui_flutter/designer/designer.dart';
 
 import '../../designer/action_manager.dart';
+import '../../designer/designer_selector_component.dart';
+import 'cw_core_drag.dart';
 import 'cw_core_selector.dart';
 import 'cw_core_widget.dart';
+import 'cw_factory.dart';
 
 class CWSlot extends CWWidget {
   const CWSlot(
@@ -22,7 +25,7 @@ class CWSlot extends CWWidget {
   State<CWSlot> createState() => _CWSlotState();
 
   @override
-  void initSlot(String path) {
+  void initSlot(String path, ModeParseSlot mode) {
     throw UnimplementedError();
   }
 }
@@ -36,12 +39,11 @@ class _SlotDesign {
 class _CWSlotState extends StateCW<CWSlot> {
   @override
   Widget build(BuildContext context) {
-    initSlot();
+    initSlot(ModeParseSlot.build);
 
     Widget? contentWidget = widget.childForced ?? widget.ctx.getWidgetInSlot();
 
     return LayoutBuilder(builder: (context, constraints) {
-
       return widget.ctx.modeRendering == ModeRendering.design
           ? getSelector(contentWidget, _SlotDesign(contentWidget, constraints))
           : contentWidget ?? Container();
@@ -50,14 +52,14 @@ class _CWSlotState extends StateCW<CWSlot> {
     });
   }
 
-  void initSlot() {
+  void initSlot(ModeParseSlot mode) {
     widget.ctx.inSlot = widget;
     SlotConfig? slotConfig =
         widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
 
     if (slotConfig == null) {
       // init tout les slot lié si ajout par drag
-      CoreDesigner.ofFactory().initSlot();
+      CoreDesigner.ofFactory().initSlot(mode);
       slotConfig =
           widget.ctx.factory.mapSlotConstraintByPath[widget.ctx.pathWidget];
     }
@@ -70,8 +72,6 @@ class _CWSlotState extends StateCW<CWSlot> {
     }
   }
 
-
-
   /////////////////////////////////////////////////////////////////
   Widget getDropZone(Widget child) {
     return DragTarget<DragCtx>(
@@ -80,21 +80,46 @@ class _CWSlotState extends StateCW<CWSlot> {
           scale: candidateItems.isEmpty ? 1 : 0.95,
           duration: const Duration(milliseconds: 100),
           child: child);
-    }, onWillAccept: (item) {
-      bool isParent = item?.srcWidgetCtx != null &&
-          widget.ctx.pathWidget.startsWith(item!.srcWidgetCtx!.pathWidget);
-      return !isParent;
-    }, onAccept: (item) {
-      if (item.srcWidgetCtx == null) {
-        debugPrint(
-            'drop ${item.component?.impl} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
-        DesignActionManager().doCreate(widget.ctx, item.component!);
-      } else {
-        debugPrint(
-            'move ${item.srcWidgetCtx!.xid} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
-        DesignActionManager().doMove(item.srcWidgetCtx!, widget.ctx);
+    }, onWillAcceptWithDetails: (details) {
+      if (details.data is DragComponentCtx) {
+        DragComponentCtx item = details.data as DragComponentCtx;
+        bool isParent = item.srcWidgetCtx != null &&
+            widget.ctx.pathWidget.startsWith(item.srcWidgetCtx!.pathWidget);
+        return !isParent;
       }
-
+      if (details.data is DragPageCtx) {
+        return true;
+      }
+      if (details.data is DragRepositoryEventCtx) {
+        return true;
+      }
+      return false;
+    }, onAcceptWithDetails: (details) {
+      if (details.data is DragComponentCtx) {
+        DragComponentCtx item = details.data as DragComponentCtx;
+        if (item.srcWidgetCtx == null) {
+          debugPrint(
+              'drop ${item.component?.impl} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
+          DesignActionManager().doCreate(widget.ctx, item.component!);
+        } else {
+          debugPrint(
+              'move ${item.srcWidgetCtx!.xid} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
+          DesignActionManager().doMove(item.srcWidgetCtx!, widget.ctx);
+        }
+      } else if (details.data is DragPageCtx) {
+        CWWidget w = DesignActionManager().doCreate(
+          widget.ctx,
+          ComponentDesc('Button', Icons.smart_button_sharp, 'CWActionLink'),
+        );
+        DesignActionManager().doPageAction(w.ctx, details.data as DragPageCtx);
+      } else if (details.data is DragRepositoryEventCtx) {
+        CWWidget w = DesignActionManager().doCreate(
+          widget.ctx,
+          ComponentDesc('Button', Icons.smart_button_sharp, 'CWActionLink'),
+        );
+        DesignActionManager()
+            .doReposAction(w.ctx, details.data as DragRepositoryEventCtx);
+      }
       setState(() {});
     });
   }

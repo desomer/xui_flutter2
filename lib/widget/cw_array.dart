@@ -22,14 +22,14 @@ class CWArray extends CWWidgetMapRepository {
   State<CWArray> createState() => _CwArrayState();
 
   @override
-  void initSlot(String path) {
+  void initSlot(String path, ModeParseSlot mode) {
     final nb = getCountChildren();
     for (var i = 0; i < nb; i++) {
       addSlotPath(
           '$path[].Header$i',
           SlotConfig('${ctx.xid}Header$i',
-              constraintEntity: 'CWColArrayConstraint'));
-      addSlotPath('$path[].RowCont$i', SlotConfig('${ctx.xid}RowCont$i'));
+              constraintEntity: 'CWColArrayConstraint'), mode);
+      addSlotPath('$path[].RowCont$i', SlotConfig('${ctx.xid}RowCont$i'), mode);
     }
   }
 
@@ -53,14 +53,12 @@ class _CwArrayState extends StateCW<CWArray> {
   final ScrollController horizontal = ScrollController();
   final ScrollController vertical = ScrollController();
   //final GlobalKey listKey = GlobalKey();
-  CoreDataAction? actionRepaint;
+  final CWSynchonizedManager synchonizedManager = CWSynchonizedManager();
 
   @override
   void initState() {
     super.initState();
-
-    actionRepaint = widget.getRepository()?.addAction(
-        CWRepositoryAction.onValidateEntity, ActionRepaintRow(widget.ctx));
+    synchonizedManager.initAction(widget, widget.getRepository());
   }
 
   @override
@@ -68,9 +66,12 @@ class _CwArrayState extends StateCW<CWArray> {
     super.dispose();
     horizontal.dispose();
     vertical.dispose();
-    widget
-        .getRepository()
-        ?.removeAction(CWRepositoryAction.onValidateEntity, actionRepaint);
+    // widget
+    //     .getRepository()
+    //     ?.removeAction(CWRepositoryAction.onValidateEntity, actionRepaint);
+    // widget
+    //     .getRepository()
+    //     ?.removeAction(CWRepositoryAction.onRefreshEntities, actionRefresh);
   }
 
   final double minWidth = 100.0;
@@ -130,11 +131,11 @@ class _CwArrayState extends StateCW<CWArray> {
           scale: candidateItems.isEmpty ? 1 : 0.95,
           duration: const Duration(milliseconds: 100),
           child: child);
-    }, onWillAccept: (item) {
+    }, onWillAcceptWithDetails: (item) {
       return true;
-    }, onAccept: (item) async {
+    }, onAcceptWithDetails: (item) async {
       await ArrayBuilder(loaderCtx: widget.ctx.loader)
-          .initDesignArrayFromQuery(widget, item.query, 'Array');
+          .initDesignArrayFromQuery(widget, item.data.query, 'Array');
       CoreDesigner.of().providerKey.currentState!.setState(() {});
     });
   }

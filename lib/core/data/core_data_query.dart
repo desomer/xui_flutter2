@@ -1,5 +1,6 @@
 import 'package:logging/logging.dart';
 
+import '../widget/cw_core_loader.dart';
 import 'core_data.dart';
 import 'core_repository.dart';
 
@@ -73,6 +74,13 @@ class CoreGlobalCache {
     String idCache = provider.getRepositoryCacheID();
     int v = cacheNbData[idCache]!;
     cacheNbData[idCache] = v + 1;
+  }
+
+  static void clearCache(CWAppLoaderCtx loader, CWRepository provider) {
+    provider.initFilter();
+    String idCache = provider.getRepositoryCacheID();
+    cacheNbData.remove(idCache);
+    provider.loader!.reload();
   }
 }
 

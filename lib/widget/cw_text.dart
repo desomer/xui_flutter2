@@ -28,7 +28,7 @@ class CWText extends CWWidgetMapLabel {
   State<CWText> createState() => _CWTextState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 }
 
 class _CWTextState extends StateCW<CWText> {
@@ -73,7 +73,7 @@ class _CWTextState extends StateCW<CWText> {
 
     Widget? icon;
     if (v != null) {
-      IconData? ic = deserializeIcon(v);
+      IconData? ic = deserializeIcon(v, iconPack: IconPack.allMaterial,);
       icon = Icon(ic);
     }
 

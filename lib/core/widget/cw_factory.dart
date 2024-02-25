@@ -105,6 +105,14 @@ class WidgetDesign {
   CoreDataEntity? prop;
 }
 
+enum ModeParseSlot 
+{
+  build,
+  create,
+  move,
+  save
+}
+
 class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
   WidgetFactoryEventHandler(this.loader);
   CWAppLoaderCtx loader;
@@ -123,9 +131,9 @@ class WidgetFactoryEventHandler extends CoreBrowseEventHandler {
 
   Map<String, CWRepository> mapRepository = <String, CWRepository>{};
 
-  void initSlot() {
+  void initSlot(ModeParseSlot mode) {
     final rootWidget = mapWidgetByXid['root']!;
-    rootWidget.initSlot('root');
+    rootWidget.initSlot('root', mode);
   }
 
   void disposePath(String path) {

@@ -32,7 +32,7 @@ class CWSelector extends CWWidgetMapValue with CWActionManager {
   State<CWSelector> createState() => _CWSelectorState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     c
@@ -293,7 +293,10 @@ class _CWSelectorState extends StateCW<CWSelector> {
   //---------------------------------------------------------------------------------------
   List<Widget> getIconContent(Map<String, dynamic>? oneValue) {
     if (oneValue != null) {
-      IconData? ic = deserializeIcon(oneValue,  iconPack: IconPack.allMaterial,);
+      IconData? ic = deserializeIcon(
+        oneValue,
+        iconPack: IconPack.allMaterial,
+      );
       _icon = Icon(ic);
     }
     return [
@@ -309,15 +312,22 @@ class _CWSelectorState extends StateCW<CWSelector> {
   }
 
   void _pickIcon() async {
-    IconData? icon = await showIconPicker(context,
-        iconPackModes: [IconPack.material]);
+    IconData? icon = await showIconPicker(
+      context,
+      iconPackModes: [IconPack.material],
+      searchComparator: (String search, IconPickerIcon icon) =>
+          search
+              .toLowerCase()
+              .contains(icon.name.replaceAll('_', ' ').toLowerCase()) ||
+          icon.name.toLowerCase().contains(search.toLowerCase()),
+    );
 
     _icon = Icon(icon);
     setState(() {});
 
     if (icon != null) {
       Map<String, dynamic>? map =
-          serializeIcon(icon, iconPack: IconPack.material);
+          serializeIcon(icon, iconPack: IconPack.allMaterial);
       debugPrint('Picked Icon:  ${map!['key']}');
       widget.setValue(map);
       //var ic = deserializeIcon(map!);
@@ -344,8 +354,13 @@ class _CWSelectorState extends StateCW<CWSelector> {
                   border: InputBorder.none,
                   isDense: true,
                   labelText: 'Provider',
-                  contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 0))))
-    , const Spacer(), const Icon(DBIcon.database, size: 20,)];
+                  contentPadding: EdgeInsets.fromLTRB(5, 0, 5, 0)))),
+      const Spacer(),
+      const Icon(
+        DBIcon.database,
+        size: 20,
+      )
+    ];
   }
 
   List<Widget> getSliderContent() {

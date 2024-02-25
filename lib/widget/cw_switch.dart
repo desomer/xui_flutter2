@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/widget/cw_core_widget.dart';
+import '../core/widget/cw_factory.dart';
 
 class CWSwitch extends CWWidgetMapValue {
   const CWSwitch({
@@ -12,7 +13,7 @@ class CWSwitch extends CWWidgetMapValue {
   State<CWSwitch> createState() => _CWSwitchState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 }
 
 class _CWSwitchState extends StateCW<CWSwitch> {

@@ -9,6 +9,7 @@ import '../core/data/core_data_loader.dart';
 import '../core/data/core_data_query.dart';
 import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_bind.dart';
+import '../core/widget/cw_core_link.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../widget/cw_app_router.dart';
@@ -65,6 +66,8 @@ class CWApplication {
   final listPages = <ActionLink>[];
   ActionLink? currentPage;
   GoRouter? router;
+
+  final linkInfo = LinkInfo();
 
   void goRoute(String route) {
     if (CoreDesigner.of().designView.loader?.ctxLoader.mode ==
@@ -502,11 +505,7 @@ class CWApplication {
 
   void refreshData() {
     CWRepository provider = CWApplication.of().dataProvider;
-
-    provider.initFilter();
-    String idCache = provider.getRepositoryCacheID();
-    CoreGlobalCache.cacheNbData.remove(idCache);
-    provider.loader!.reload();
+    CoreGlobalCache.clearCache(CWApplication.of().loaderData, provider);
 
     CWApplication.of().loaderData.findWidgetByXid('rootData')?.repaint();
   }

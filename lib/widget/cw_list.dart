@@ -22,8 +22,8 @@ class CWList extends CWWidgetMapRepository {
   State<CWList> createState() => _CwListState();
 
   @override
-  void initSlot(String path) {
-    addSlotPath('$path[].Cont', SlotConfig('${ctx.xid}Cont'));
+  void initSlot(String path, ModeParseSlot mode) {
+    addSlotPath('$path[].Cont', SlotConfig('${ctx.xid}Cont'), mode);
   }
 
   static void initFactory(CWWidgetCollectionBuilder c) {
@@ -110,14 +110,14 @@ class _CwListState extends StateCW<CWList> {
           scale: candidateItems.isEmpty ? 1 : 0.95,
           duration: const Duration(milliseconds: 100),
           child: child);
-    }, onWillAccept: (item) {
+    }, onWillAcceptWithDetails: (item) {
       return true;
-    }, onAccept: (item) async {
+    }, onAcceptWithDetails: (item) async {
       debugPrint('accept list');
       // FormBuilder().createForm(widget, item.query);
       /// ArrayBuilder().createArray(widget, item.query);
       await ArrayBuilder(loaderCtx: widget.ctx.loader)
-          .initDesignArrayFromQuery(widget, item.query, 'None');
+          .initDesignArrayFromQuery(widget, item.data.query, 'None');
       CoreDesigner.of().providerKey.currentState!.setState(() {});
     });
   }

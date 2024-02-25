@@ -17,8 +17,9 @@ enum CWRepositoryAction {
   onStateNone2Create,
   onStateDelete,
   onValueChanged,
-  onValidateEntity,
+  onValidateEntity, // l'entity a changer => repaint dependant
   onRowSelected,
+  onRefreshEntities, // rafraichit les data (de la base)
   onTapHeader,
 }
 
@@ -64,7 +65,7 @@ class CWRepository {
       return '$id#id=$type;fl=${aFilter.getQueryKey()}';
     }
     if (lockId != null) {
-      print("return lock $lockId");
+      print('return lock $lockId');
       return lockId!;
     }
     return '$id#id=$type;fl=${getFilter()?.getQueryKey() ?? ''}';
@@ -220,16 +221,42 @@ class CWRepository {
   Future<CWRepository> doUserAction(
       CWWidgetCtx? ctx, CWWidgetEvent? event, String idAction) async {
     event?.widgetCtx = ctx;
+    var isNotDesign = ctx!.loader.mode == ModeRendering.view;
+
+    void doOnView(Function f) {
+      if (isNotDesign) {
+        f();
+      }
+    }
 
     switch (idAction) {
       case '<Read':
-        doPrev(event, ctx);
+        doOnView(() => doPrev(event, ctx));
         return this;
       case 'Read>':
-        doNext(event, ctx);
+        doOnView(() => doNext(event, ctx));
         return this;
       case 'Update':
-        await CoreGlobalCache.saveCache(this);
+        doOnView(() async => (await CoreGlobalCache.saveCache(this)));
+        return this;
+      case 'Refresh':
+        doOnView(() {
+          CoreGlobalCache.clearCache(ctx.loader, this);
+          doEvent(CWRepositoryAction.onRefreshEntities, ctx.loader);
+        });
+        return this;
+      case 'Delete':
+        doOnView(() async {
+          doDelete(ctx.loader, getData().idxSelected, null);
+          await CoreGlobalCache.saveCache(this);
+          CoreGlobalCache.clearCache(ctx.loader, this);
+          doEvent(CWRepositoryAction.onRefreshEntities, ctx.loader);
+        });
+        return this;
+      case 'Create':
+        doOnView(() {
+          doCreate(event, ctx);
+        });
         return this;
       default:
     }
@@ -242,6 +269,25 @@ class CWRepository {
       print('doUserAction $idAction inconnu');
     }
     return this;
+  }
+
+  void doCreate(CWWidgetEvent? event, CWWidgetCtx ctx) {
+    CoreDataEntity newRow =
+        ctx.loader.collectionDataModel.createEntityByJson(type, {});
+
+    addNew(newRow);
+    doEvent(CWRepositoryAction.onStateNone, ctx.loader);
+    var data = getData();
+    data.idxSelected = data.getCount() - 1;
+    event!.payload = data.idxSelected;
+    displayRenderingMode = DisplayRenderingMode.selected;
+    doAction(ctx, event, CWRepositoryAction.onRowSelected);
+  }
+
+  void doDelete(CWAppLoaderCtx loader, int idx, InheritedRow? row) {
+    content[idx].operation = CDAction.delete;
+    doEvent(CWRepositoryAction.onStateDelete, loader, row: row);
+    doEvent(CWRepositoryAction.onValidateEntity, loader, row: row);
   }
 
   void doNext(CWWidgetEvent? event, CWWidgetCtx? ctx) {

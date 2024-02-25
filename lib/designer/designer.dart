@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:logging/logging.dart';
+import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/core/widget/cw_core_loader.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
 import 'package:xui_flutter/designer/application_manager.dart';
@@ -60,7 +61,36 @@ class CoreDesigner extends StatefulWidget {
     });
 
     CoreDesigner.on(CDDesignEvent.savePage, (arg) async {
-      log.fine('save action');
+      log.fine('save page action');
+      var app = CWApplication.of();
+      app.linkInfo.dispose();
+      CoreDesigner.ofFactory().initSlot(ModeParseSlot.save);
+
+      for (var element in app.linkInfo.listUseXid.entries) {
+        CWWidget? w = app.loaderDesigner.factory.mapWidgetByXid[element.key];
+        if (w != null) {
+          print('xid=${element.key}');
+          if (w.ctx.designEntity != null) {
+            var v = w.ctx.designEntity!.value;
+            var t = v[r'$type']!;
+            CoreDataObjectBuilder builder =
+                app.loaderDesigner.collectionWidget.getClass(t)!;
+            for (var attr in builder.getAllAttribut()) {
+              var isBind = attr.customValue?['bindEnable'];
+              if (isBind == true) {
+                //
+                var bind = w.ctx.designEntity?.getOne('@${attr.name}');
+                if (bind != null) {
+                  print('bind ${attr.name} => $bind');
+                  app.linkInfo.add(w, bind[iDProviderName], bind[iDBind]);
+                }
+              }
+            }
+          }
+        }
+      }
+      print(app.linkInfo);
+
       StoreDriver? storage = await StoreDriver.getDefautDriver('main');
       storage?.setData('#pages', CoreDesigner.ofLoader().cwFactory.value);
     });
@@ -204,21 +234,21 @@ class _CoreDesignerState extends State<CoreDesigner>
         home: CallbackShortcuts(
             bindings: <ShortcutActivator, VoidCallback>{
               LogicalKeySet(LogicalKeyboardKey.control): () {
-                print("ctrl");
+                print('ctrl');
                 int n = DateTime.now().millisecondsSinceEpoch;
                 if (n - widget.ctrlTime > 200) {
-                  print("start ctl");
+                  print('start ctl');
                 }
                 widget.ctrlTime = n;
                 alt.doAfter(() {
-                  print("end ctl");
+                  print('end ctl');
                 });
               },
               LogicalKeySet(LogicalKeyboardKey.alt): () {
-                print("alt");
+                print('alt');
                 int n = DateTime.now().millisecondsSinceEpoch;
                 if (n - widget.altTime > 200) {
-                  print("start alt");
+                  print('start alt');
                   CoreDesignerSelector.of()
                       .getSelectedWidgetContext()
                       ?.getCWWidget()
@@ -226,7 +256,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                 }
                 widget.altTime = n;
                 alt.doAfter(() {
-                  print("end alt");
+                  print('end alt');
                   widget.altTime = DateTime.now().millisecondsSinceEpoch - 800;
                   CoreDesignerSelector.of()
                       .getSelectedWidgetContext()
@@ -248,7 +278,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                     },
                   ),
                   const SizedBox(width: 20),
-                  const Text('ElisView v0.4.4'),
+                  const Text('ElisView v0.5.0'),
                   const SizedBox(width: 5),
                   IconButton(
                     iconSize: 30,
@@ -297,7 +327,7 @@ class _CoreDesignerState extends State<CoreDesigner>
                             )),
                       ]),
                       const Spacer(),
-                      const Text('Desomer G.  24/12/23'),
+                      const Text('Desomer G.  19/02/24'),
                       IconButton(
                         icon: const Icon(Icons.help),
                         onPressed: () {},

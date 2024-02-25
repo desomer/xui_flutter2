@@ -7,6 +7,7 @@ import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_future.dart';
 import '../core/widget/cw_core_widget.dart';
+import '../core/widget/cw_factory.dart';
 import 'application_manager.dart';
 import 'designer.dart';
 
@@ -17,7 +18,7 @@ class DesignerPages extends CWWidgetMapRepository {
   State<DesignerPages> createState() => _DesignerPagesState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 }
 
 class _DesignerPagesState extends State<DesignerPages> {

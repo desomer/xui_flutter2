@@ -1,7 +1,6 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 
-import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
@@ -24,13 +23,13 @@ class _WidgetDragState extends State<WidgetDrag> {
           scale: candidateItems.isEmpty ? 1 : 0.95,
           duration: const Duration(milliseconds: 100),
           child: child);
-    }, onWillAccept: (item) {
+    }, onWillAcceptWithDetails: (item) {
       return true;
-    }, onAccept: (item) {
+    }, onAcceptWithDetails: (item) {
       CWWidgetEvent ctxWE = CWWidgetEvent();
       ctxWE.action = CWRepositoryAction.onStateNone.toString();
       ctxWE.provider = widget.provider;
-      ctxWE.payload = item;
+      ctxWE.payload = item.data;
       widget.provider.doAction(null, ctxWE, CWRepositoryAction.onStateNone);
     });
   }
@@ -109,11 +108,15 @@ class _WidgetDeleteBtnState extends State<WidgetDeleteBtn> {
         var r = context.getInheritedWidgetOfExactType<InheritedRow>();
 
         var provider = CWRepository.of(r!.arrayState.widget.ctx);
-        provider!.content[r.index!].operation = CDAction.delete;
-        provider.doEvent(
-            CWRepositoryAction.onStateDelete, r.arrayState.widget.ctx.loader, row: r);
-        provider.doEvent(
-            CWRepositoryAction.onValidateEntity, r.arrayState.widget.ctx.loader, row: r);            
+        provider?.doDelete(r.arrayState.widget.ctx.loader, r.index!, r);
+
+        // provider!.content[r.index!].operation = CDAction.delete;
+        // provider.doEvent(
+        //     CWRepositoryAction.onStateDelete, r.arrayState.widget.ctx.loader,
+        //     row: r);
+        // provider.doEvent(
+        //     CWRepositoryAction.onValidateEntity, r.arrayState.widget.ctx.loader,
+        //     row: r);
         //r.repaintRow(r.arrayState.widget.ctx);
       },
     );

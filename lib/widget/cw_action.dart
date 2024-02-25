@@ -4,11 +4,10 @@ import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import '../core/data/core_data.dart';
 import '../core/data/core_repository.dart';
 import '../core/widget/cw_core_drag.dart';
-import '../core/widget/cw_core_loader.dart';
 import '../core/widget/cw_core_widget.dart';
 import '../core/widget/cw_factory.dart';
+import '../designer/action_manager.dart';
 import '../designer/application_manager.dart';
-import '../designer/builder/prop_builder.dart';
 import '../designer/designer.dart';
 import 'cw_list.dart';
 
@@ -45,7 +44,7 @@ mixin CWActionManager {
         ctxWE.buildContext = context;
         provider.doUserAction(widget.ctx, ctxWE, ctxWE.action!);
       } else {
-        print("provider $dest inconnu");
+        print('provider $dest inconnu');
       }
     }
   }
@@ -58,7 +57,7 @@ class CWActionLink extends CWWidget with CWActionManager, CWWidgetInheritRow {
   State<CWActionLink> createState() => _CWActionLinkState();
 
   @override
-  void initSlot(String path) {}
+  void initSlot(String path, ModeParseSlot mode) {}
 
   static void initFactory(CWWidgetCollectionBuilder c) {
     c
@@ -97,7 +96,7 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
       return child;
     }
 
-    return Stack(fit: StackFit.loose, children: [
+    return Stack(fit: StackFit.passthrough, children: [
       child,
       const Positioned(
           top: 0,
@@ -242,15 +241,11 @@ class _CWActionLinkState extends StateCW<CWActionLink> with CWDroppableEvent {
   @override
   void onDragEvent(DragEventCtx query) {
     if (query is DragPageCtx && query.page.type == 'PageModel') {
-      CoreDataEntity prop = PropBuilder.preparePropChange(
-          widget.ctx.loader, DesignCtx().forDesign(widget.ctx));
-      prop.value['_idAction_'] = '${query.page.value['route']}@router';
+      DesignActionManager().doPageAction(widget.ctx, query);
       setState(() {});
     }
     if (query is DragRepositoryEventCtx) {
-      CoreDataEntity prop = PropBuilder.preparePropChange(
-          widget.ctx.loader, DesignCtx().forDesign(widget.ctx));
-      prop.value['_idAction_'] = query.id;
+      DesignActionManager().doReposAction(widget.ctx, query);
       setState(() {});
     }
 

@@ -3,19 +3,14 @@ import 'package:nanoid/nanoid.dart';
 import 'package:xui_flutter/core/data/core_data.dart';
 import 'package:xui_flutter/core/widget/cw_core_slot.dart';
 import 'package:xui_flutter/core/widget/cw_core_widget.dart';
+import 'package:xui_flutter/core/widget/cw_factory.dart';
 import 'package:xui_flutter/designer/designer.dart';
 import 'package:xui_flutter/designer/selector_manager.dart';
 import 'package:xui_flutter/designer/designer_selector_component.dart';
 
+import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_loader.dart';
 import 'builder/prop_builder.dart';
-
-class DragCtx {
-  DragCtx(this.component, this.srcWidgetCtx);
-
-  ComponentDesc? component;
-  CWWidgetCtx? srcWidgetCtx;
-}
 
 class DesignActionManager {
   void doDelete() {
@@ -227,7 +222,7 @@ class DesignActionManager {
     var cmp = _doCreate(toCtxSlot, desc);
 
     final rootWidget = toCtxSlot.factory.mapWidgetByXid['root']!;
-    rootWidget.initSlot('root');
+    rootWidget.initSlot('root', ModeParseSlot.create);
 
     // repaint le parent du slot
     CWWidget? w = CoreDesigner.ofView()
@@ -239,6 +234,18 @@ class DesignActionManager {
     });
 
     return cmp;
+  }
+
+  void doPageAction(CWWidgetCtx toWidget, DragPageCtx query) {
+    CoreDataEntity prop = PropBuilder.preparePropChange(
+        toWidget.loader, DesignCtx().forDesign(toWidget));
+    prop.value['_idAction_'] = '${query.page.value['route']}@router';
+  }
+
+  void doReposAction(CWWidgetCtx toWidget, DragRepositoryEventCtx event) {
+    CoreDataEntity prop = PropBuilder.preparePropChange(
+        toWidget.loader, DesignCtx().forDesign(toWidget));
+    prop.value['_idAction_'] = event.id;
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +310,7 @@ class DesignActionManager {
     }
     // réaffecte les pathWidget
     final rootWidget = ctxSlot.factory.mapWidgetByXid['root']!;
-    rootWidget.initSlot('root');
+    rootWidget.initSlot('root', ModeParseSlot.move);
   }
 
   CoreDataEntity _delete(CWWidget child, CWWidgetCtx ctxSlot, bool withDesign) {
@@ -342,7 +349,7 @@ class DesignActionManager {
     int i = ctx.pathWidget.lastIndexOf('.${config.tag}');
     int idxChild =
         int.parse(ctx.pathWidget.substring(i + config.tag.length + 1));
-    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+    CWWidgetWithChild parent = ctx.getParentCWWidget() as CWWidgetWithChild;
 
     int nbChild = 0;
     if (config.ctxConstraint == null) {
@@ -387,7 +394,7 @@ class DesignActionManager {
         int.parse(ctx.pathWidget.substring(ic + config.tag.length + 1));
 
     int nbChild = 0;
-    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+    CWWidgetWithChild parent = ctx.getParentCWWidget() as CWWidgetWithChild;
 
     if (config.ctxConstraint == null) {
       nbChild = parent.getNbChild(
@@ -420,8 +427,8 @@ class DesignActionManager {
           String pathTo = '${parent.ctx.pathWidget}.${config.tag}${i + 1}';
           var v = ctx.findWidgetByPath(path);
           var v2 = ctx.findSlotByPath(pathTo);
-          if (v != null) {
-            DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2!.ctx);
+          if (v != null && v2 != null) {
+            DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2.ctx);
           }
         }
       }
@@ -434,7 +441,7 @@ class DesignActionManager {
 
     int idxChild =
         int.parse(ctx.pathWidget.substring(ic + config.tag.length + 1));
-    CWWidgetChild parent = ctx.getParentCWWidget() as CWWidgetChild;
+    CWWidgetWithChild parent = ctx.getParentCWWidget() as CWWidgetWithChild;
 
     int nbChild = 0;
     if (config.ctxConstraint == null) {
@@ -461,6 +468,7 @@ class DesignActionManager {
 
     return true;
   }
+
   //////////////////////////////////////////////
   bool canMoveBottom() {
     CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
@@ -500,7 +508,7 @@ class DesignActionManager {
     } else {
       return false;
     }
-  }  
+  }
 
   //////////////////////////////////////////////
 
@@ -542,7 +550,7 @@ class DesignActionManager {
     } else {
       return false;
     }
-  }  
+  }
 }
 
 class DesignActionConfig {

@@ -1,7 +1,8 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:xui_flutter/designer/action_manager.dart';
 import 'dart:math' as math;
+
+import '../core/widget/cw_core_drag.dart';
 
 class ComponentDesc {
   static List<Widget> get getListComponent {
@@ -61,12 +62,12 @@ class CardComponents extends StatelessWidget {
     Widget buildComp(ComponentDesc cmp) {
       return Padding(
           padding: const EdgeInsets.all(5.0),
-          child: Draggable<DragCtx>(
+          child: Draggable<DragComponentCtx>(
             onDragStarted: () {
               // GlobalSnackBar.show(context, 'Drag started');
             },
             dragAnchorStrategy: dragAnchorStrategy,
-            data: DragCtx(cmp, null),
+            data: DragComponentCtx(cmp, null),
             feedback: Container(
               color: Theme.of(context).primaryColor,
               height: 30.0,
@@ -147,34 +148,34 @@ class CardComponents extends StatelessWidget {
   }
 }
 
-class GlobalSnackBar {
-  final String message;
+// class GlobalSnackBar {
+//   final String message;
 
-  const GlobalSnackBar({
-    required this.message,
-  });
+//   const GlobalSnackBar({
+//     required this.message,
+//   });
 
-  static void show(
-    BuildContext context,
-    String message,
-  ) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 1.0,
-        behavior: SnackBarBehavior.fixed,
-        content: Text(message),
-        duration: const Duration(seconds: 1),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(16.0), topRight: Radius.circular(16.0)),
-        ),
-        //backgroundColor: Colors.redAccent,
-        action: SnackBarAction(
-          textColor: Colors.blue,
-          label: 'OK',
-          onPressed: () {},
-        ),
-      ),
-    );
-  }
-}
+//   static void show(
+//     BuildContext context,
+//     String message,
+//   ) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         elevation: 1.0,
+//         behavior: SnackBarBehavior.fixed,
+//         content: Text(message),
+//         duration: const Duration(seconds: 1),
+//         shape: const RoundedRectangleBorder(
+//           borderRadius: BorderRadius.only(
+//               topLeft: Radius.circular(16.0), topRight: Radius.circular(16.0)),
+//         ),
+//         //backgroundColor: Colors.redAccent,
+//         action: SnackBarAction(
+//           textColor: Colors.blue,
+//           label: 'OK',
+//           onPressed: () {},
+//         ),
+//       ),
+//     );
+//   }
+// }

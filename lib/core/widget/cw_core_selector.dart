@@ -4,10 +4,9 @@ import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:xui_flutter/core/widget/cw_core_drag.dart';
 import 'package:xui_flutter/core/widget/cw_core_selector_overlay_action.dart';
 import 'package:xui_flutter/designer/designer.dart';
-
-import '../../designer/action_manager.dart';
 import '../../widget/cw_image.dart';
 import '../../widget/cw_toolkit.dart';
 import 'cw_core_widget.dart';
@@ -108,9 +107,9 @@ class SelectorWidgetState extends State<SelectorWidget> {
       }
     }
 
-    return Draggable<DragCtx>(
+    return Draggable<DragComponentCtx>(
       dragAnchorStrategy: dragAnchorStrategy,
-      data: DragCtx(null, widget.ctx),
+      data: DragComponentCtx(null, widget.ctx),
       feedback: Container(
         color: Colors.white,
         child: const Material(elevation: 10, child: CwImage()),

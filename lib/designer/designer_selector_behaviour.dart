@@ -13,7 +13,7 @@ class _DesignerSelectorBehaviourState extends State<DesignerSelectorBehaviour> {
 
   @override
   Widget build(BuildContext context) {
-    var ColumnOn = <Widget>[
+    var columnOn = <Widget>[
       const Text("On"),
       ConstrainedBox(
           constraints: BoxConstraints(maxHeight: 35),
@@ -47,7 +47,7 @@ class _DesignerSelectorBehaviourState extends State<DesignerSelectorBehaviour> {
     ];
 
     var column1 = Column(
-      children: ColumnOn,
+      children: columnOn,
     );
     var column2 = Column(
       children: [Text("Do")],

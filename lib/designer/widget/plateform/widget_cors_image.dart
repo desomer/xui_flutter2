@@ -10,7 +10,7 @@ class ImgImpl extends GetWidget {
 }
 
 class _MyImage extends StatelessWidget {
-  const _MyImage(this.imageUrl, {super.key});
+  const _MyImage(this.imageUrl);
 
   final String imageUrl;
 

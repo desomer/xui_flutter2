@@ -53,7 +53,7 @@ class CWAppInfo {
 }
 
 // ignore: must_be_immutable
-class CWApp extends CWWidgetChild {
+class CWApp extends CWWidgetWithChild {
   CWApp({super.key, required super.ctx});
 
   static final CWAppInfo appInfo = CWAppInfo();
@@ -83,46 +83,51 @@ class CWApp extends CWWidgetChild {
   }
 
   @override
-  void initSlot(String path) {
+  void initSlot(String path, ModeParseSlot mode) {
     var app = CWApplication.of();
     app.ctxApp = ctx;
 
-    addSlotPath('root', SlotConfig('root'));
+    addSlotPath('root', SlotConfig('root'), mode);
 
     var listPages = app.listPages;
 
     var nb = nbBtnBottomNavBar();
     for (var i = 0; i < nb; i++) {
-      addSlotPath('$path.Nav$i', SlotConfig('${ctx.xid}Nav$i'));
+      addSlotPath('$path.Nav$i', SlotConfig('${ctx.xid}Nav$i'), mode);
     }
 
     for (var i = 0; i < listPages.length; i++) {
       var id = 'Page${listPages[i].id}';
       addSlotPath('$path.Body$id',
-          SlotConfig('${ctx.xid}Body$id', pathNested: '$path.Page$id'));
+          SlotConfig('${ctx.xid}Body$id', pathNested: '$path.Page$id'), mode);
 
       addSlotPath('$path.AppBar$id',
-          SlotConfig('${ctx.xid}AppBar$id', pathNested: '$path.Page$id'));
+          SlotConfig('${ctx.xid}AppBar$id', pathNested: '$path.Page$id'), mode);
 
-      var virtualCtx = createChildCtx(ctx, 'Page$id', null);
+      var pageConstraint = createChildCtx(ctx, 'Page$id', null);
       addSlotPath(
-          virtualCtx.pathWidget,
-          SlotConfig(virtualCtx.xid,
-              constraintEntity: 'CWPageConstraint',
-              ctxVirtualSlot: virtualCtx));
+          pageConstraint.pathWidget,
+          SlotConfig(pageConstraint.xid,
+              constraintEntity: 'CWPageConstraint', ctxVirtualSlot: pageConstraint),
+          mode);
 
       CWWidgetCtx? constraint =
           ctx.factory.mapConstraintByXid['${ctx.xid}Page$id'];
+      if (constraint != null) {
+        constraint.pathWidget = pageConstraint.pathWidget;
+      }
+
       int nb = constraint?.designEntity?.value[iDnbBtnHeader] ?? 1;
       if (nb == 0) nb = 1;
-
+      // les slot d'action
       for (var j = 0; j < nb; j++) {
         addSlotPath(
             '$path.Page$id#$j',
             SlotConfig(
               '${ctx.xid}Page$id#$j',
               pathNested: '$path.Page$id',
-            ));
+            ),
+            mode);
       }
     }
   }
@@ -240,9 +245,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
     //FocusScope.of(context).requestFocus(FocusNode());
     //*******************************************************************/
 
-    if (routerWidgetCache == null ||
-        app.router == null ||
-        mustRepaint) {
+    if (routerWidgetCache == null || app.router == null || mustRepaint) {
       String r = '/';
       if (app.router != null) {
         var l = app.router!.routerDelegate.currentConfiguration.uri;
@@ -333,7 +336,7 @@ class _CWAppState extends StateCW<CWApp> with WidgetsBindingObserver {
 
   @override
   void didChangeMetrics() {
-    debugPrint('physical Size ${View.of(context).physicalSize}');
+    //debugPrint('physical Size ${View.of(context).physicalSize}');
 
     // changemnt de la taille physical
     CWApp.appInfo.onChangePhysicalSize(widget);

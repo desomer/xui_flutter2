@@ -12,7 +12,7 @@ import '../designer/action_manager.dart';
 import '../designer/builder/form_builder.dart';
 import '../designer/designer.dart';
 
-abstract class CWContainer extends CWWidgetChild {
+abstract class CWContainer extends CWWidgetWithChild {
   const CWContainer({super.key, required super.ctx});
 
   bool isFill(bool def) {
@@ -115,11 +115,13 @@ class CWColumn extends CWContainer {
   State<CWColumn> createState() => CWColumnState();
 
   @override
-  void initSlot(String path) {
+  void initSlot(String path, ModeParseSlot mode) {
     final nb = getNbChild(iDCount, getDefChild(iDCount));
     for (int i = 0; i < nb; i++) {
-      addSlotPath('$path.Cont$i',
-          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWColConstraint'));
+      addSlotPath(
+          '$path.Cont$i',
+          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWColConstraint'),
+          mode);
     }
   }
 
@@ -224,15 +226,27 @@ class CWColumnState extends StateCW<CWColumn>
     CoreDesigner.of().providerKey.currentState!.setState(() {});
   }
 
+  @override
+  void initState() {
+    widget.synchonizedManager.initAction(widget, widget.getRepository());
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.synchonizedManager.dispose();
+  }
+
   Widget buildProvider(BuildContext context) {
-    var futureData =
-        initFutureDataOrNot(CWRepository.of(widget.ctx), widget.ctx);
+    var repo = widget.getRepository();
+    var futureData = initFutureDataOrNot(repo, widget.ctx);
 
     dynamic getContent(int ok) {
-      CWRepository? provider = CWRepository.of(widget.ctx);
+      CWRepository? provider = repo;
       setProviderDataOK(provider, ok);
 
-      widget.synchonizedManager.initRepaintOnSelected(widget, provider);
+      //widget.synchonizedManager.initAction(widget, provider);
 
       return getWidget();
     }
@@ -299,11 +313,13 @@ class CWRow extends CWContainer {
   State<CWRow> createState() => CWRowState();
 
   @override
-  void initSlot(String path) {
+  void initSlot(String path, ModeParseSlot mode) {
     final nb = getNbChild(iDCount, getDefChild(iDCount));
     for (int i = 0; i < nb; i++) {
-      addSlotPath('$path.Cont$i',
-          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWRowConstraint'));
+      addSlotPath(
+          '$path.Cont$i',
+          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWRowConstraint'),
+          mode);
     }
   }
 
@@ -337,7 +353,6 @@ class CWRowState extends StateCW<CWRow> {
     ));
   }
 }
-
 
 //////////////////////////////////////////////////////////////////////////////
 class SlotContainerAction extends SlotAction {
