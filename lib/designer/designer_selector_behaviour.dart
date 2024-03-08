@@ -14,11 +14,11 @@ class _DesignerSelectorBehaviourState extends State<DesignerSelectorBehaviour> {
   @override
   Widget build(BuildContext context) {
     var columnOn = <Widget>[
-      const Text("On"),
+      const Text('On'),
       ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 35),
+          constraints: const BoxConstraints(maxHeight: 35),
           child: RadioListTile<String>(
-            contentPadding: EdgeInsets.all(0),
+            contentPadding: const EdgeInsets.all(0),
             dense: true,
             title: const Text('Tap'),
             value: 'tap',
@@ -30,9 +30,9 @@ class _DesignerSelectorBehaviourState extends State<DesignerSelectorBehaviour> {
             },
           )),
       ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: 35),
+        constraints: const BoxConstraints(maxHeight: 35),
         child: RadioListTile<String>(
-          contentPadding: EdgeInsets.all(0),
+          contentPadding: const EdgeInsets.all(0),
           dense: true,
           title: const Text('Double Tap'),
           value: 'dbtap',
@@ -49,14 +49,14 @@ class _DesignerSelectorBehaviourState extends State<DesignerSelectorBehaviour> {
     var column1 = Column(
       children: columnOn,
     );
-    var column2 = Column(
-      children: [Text("Do")],
+    var column2 = const Column(
+      children: [Text('Do')],
     );
-    var column3 = Column(
-      children: [Text("If")],
+    var column3 = const Column(
+      children: [Text('If')],
     );
 
-    return Container(
+    return SizedBox(
       width: 700,
       height: 300,
       child: Row(mainAxisSize: MainAxisSize.max, children: [

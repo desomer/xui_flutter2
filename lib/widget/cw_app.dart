@@ -87,27 +87,27 @@ class CWApp extends CWWidgetWithChild {
     var app = CWApplication.of();
     app.ctxApp = ctx;
 
-    addSlotPath('root', SlotConfig('root'), mode);
+    addSlotPath('root', SlotConfig(XidBuilder(),'root'), mode);
 
     var listPages = app.listPages;
 
     var nb = nbBtnBottomNavBar();
     for (var i = 0; i < nb; i++) {
-      addSlotPath('$path.Nav$i', SlotConfig('${ctx.xid}Nav$i'), mode);
+      addSlotPath('$path.Nav$i', SlotConfig(XidBuilder(tag: 'Nav', idx: i),  ctx.xid), mode);
     }
 
     for (var i = 0; i < listPages.length; i++) {
       var id = 'Page${listPages[i].id}';
       addSlotPath('$path.Body$id',
-          SlotConfig('${ctx.xid}Body$id', pathNested: '$path.Page$id'), mode);
+          SlotConfig(XidBuilder(tag: 'Body', post: id),  ctx.xid, pathNested: '$path.Page$id'), mode);
 
       addSlotPath('$path.AppBar$id',
-          SlotConfig('${ctx.xid}AppBar$id', pathNested: '$path.Page$id'), mode);
+          SlotConfig(XidBuilder(tag: 'AppBar', post: id),  ctx.xid, pathNested: '$path.Page$id'), mode);
 
       var pageConstraint = createChildCtx(ctx, 'Page$id', null);
       addSlotPath(
           pageConstraint.pathWidget,
-          SlotConfig(pageConstraint.xid,
+          SlotConfig(XidBuilder(tag: 'Page', post: id),  ctx.xid,
               constraintEntity: 'CWPageConstraint', ctxVirtualSlot: pageConstraint),
           mode);
 
@@ -124,7 +124,7 @@ class CWApp extends CWWidgetWithChild {
         addSlotPath(
             '$path.Page$id#$j',
             SlotConfig(
-              '${ctx.xid}Page$id#$j',
+              XidBuilder(tag: 'Page', post: '$id#$j'),  ctx.xid,
               pathNested: '$path.Page$id',
             ),
             mode);

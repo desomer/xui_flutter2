@@ -40,8 +40,8 @@ class CWTab extends CWWidget {
   void initSlot(String path, ModeParseSlot mode) {
     final nb = getNb();
     for (int i = 0; i < nb; i++) {
-      addSlotPath('$path.Tab$i', SlotConfig('${ctx.xid}Tab$i'), mode);
-      addSlotPath('$path.Cont$i', SlotConfig('${ctx.xid}Cont$i'), mode);
+      addSlotPath('$path.Tab$i', SlotConfig(XidBuilder(tag:'Tab', idx: i), ctx.xid, ), mode);
+      addSlotPath('$path.Cont$i', SlotConfig(XidBuilder(tag:'Cont', idx: i), ctx.xid ), mode);
     }
   }
 }

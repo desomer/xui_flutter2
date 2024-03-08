@@ -22,7 +22,7 @@ mixin CWActionManager {
     if (mode == ModeRendering.design && !widget.ctx.isSelectedSince(200)) {
       return;
     }
-    if (CoreDesigner.of().isAltPress()) {
+    if (CoreDesigner.of().isShiftPress()) {
       return;
     }
 

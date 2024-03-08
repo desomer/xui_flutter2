@@ -12,7 +12,7 @@ class CWCard extends CWWidget {
 
   @override
   void initSlot(String path, ModeParseSlot mode) {
-    addSlotPath('$path.Cont', SlotConfig('${ctx.xid}Cont'), mode);
+    addSlotPath('$path.Cont', SlotConfig(XidBuilder(tag:'Cont'), ctx.xid), mode);
   }
 
   static void initFactory(CWWidgetCollectionBuilder c) {

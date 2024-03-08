@@ -26,7 +26,6 @@ remove row or col on child = 1
 gestion des onglets (move, add)
 gestion des tableaux (move, add)
 Left NavBar
-decorator
 design array
     hauteur
     action btn

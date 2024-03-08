@@ -46,9 +46,9 @@ class CWExpandPanel extends CWWidget {
     for (int i = 0; i < nb; i++) {
       addSlotPath(
           '$path.Title$i',
-          SlotConfig('${ctx.xid}Title$i',
+          SlotConfig(XidBuilder(tag:'Title', idx: i), ctx.xid,
               constraintEntity: 'CWExpandConstraint'), mode);
-      addSlotPath('$path.Body$i', SlotConfig('${ctx.xid}Body$i'), mode);
+      addSlotPath('$path.Body$i', SlotConfig(XidBuilder(tag:'Body', idx: i), ctx.xid), mode);
     }
   }
 }

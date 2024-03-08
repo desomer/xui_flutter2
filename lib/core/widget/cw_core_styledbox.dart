@@ -81,7 +81,7 @@ class CWStyledBox {
 
   Widget getDragMargin(Widget w) {
     var mode = widget.ctx.modeRendering;
-    if (mode == ModeRendering.view || !CoreDesigner.of().isAltPress()) {
+    if (mode == ModeRendering.view || !CoreDesigner.of().isShiftPress()) {
       return w;
     }
 

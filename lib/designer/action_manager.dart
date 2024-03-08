@@ -11,12 +11,13 @@ import 'package:xui_flutter/designer/designer_selector_component.dart';
 import '../core/widget/cw_core_drag.dart';
 import '../core/widget/cw_core_loader.dart';
 import 'builder/prop_builder.dart';
+import 'dart:convert';
 
 class DesignActionManager {
   void doDelete() {
     CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedWidgetContext();
     if (ctx != null) {
-      DesignActionManager()._doDeleteWidget(ctx);
+      _doDeleteWidget(ctx);
     } else {
       CWWidgetCtx? ctx = CoreDesignerSelector.of().getSelectedSlotContext();
       SlotAction? slotAction = ctx?.inSlot?.slotAction;
@@ -106,24 +107,40 @@ class DesignActionManager {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  void _doDeleteWidget(CWWidgetCtx ctx) {
-    CWWidget? child = ctx.getCWWidget();
-    if (child != null) {
-      CWSlot? slot = ctx.getSlot();
-      _delete(child, ctx, true);
+  //////////////////////////////////////////////////////////////////////////////
 
-      ctx.factory.disposePath(ctx.pathWidget);
+  void doCloneInSlot(CWWidgetCtx fromCtx, CWWidgetCtx toCtxSlot) {
+    var aLoader = CoreDesigner.ofLoader().ctxLoader;
+    CoreDataPath path = aLoader.entityCWFactory
+        .getPath(aLoader.collectionWidget, fromCtx.pathDataCreate!);
 
-      // repaint le parent
-      CWWidget? w = CoreDesigner.ofView()
-          .getWidgetByPath(CWWidgetCtx.getParentPathFrom(ctx.pathWidget));
-      w?.repaint();
+    //print(path);
+    String impl = path.entities.last.value['implement'];
 
-      Future.delayed(const Duration(milliseconds: 100), () {
-        CoreDesigner.emit(CDDesignEvent.select, slot!.ctx);
-      });
+    String newXid = impl + customAlphabet('1234567890abcdef', 10);
+
+    String pathCreate =
+        CoreDesigner.ofLoader().addChild(toCtxSlot.xid, newXid, impl);
+
+    final CWWidgetCtx ctxW = CWWidgetCtx(
+        newXid, toCtxSlot.loader, '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
+
+    var newWidget = _createWidget(ctxW, impl);
+
+    newWidget.ctx.pathDataCreate = pathCreate;
+    toCtxSlot.factory.mapChildXidByXid[toCtxSlot.xid] = newXid;
+
+    final rootWidget = toCtxSlot.factory.mapWidgetByXid['root']!;
+    rootWidget.initSlot('root', ModeParseSlot.create);
+
+    if (fromCtx.designEntity != null) {
+      CoreDataEntity prop = PropBuilder.preparePropChange(
+          ctxW.loader, DesignCtx().forDesign(ctxW));
+      prop.value.addAll(jsonDecode( jsonEncode(fromCtx.designEntity!.value)));
     }
+
+    // repaint le parent du slot
+    _repaintPath(toCtxSlot, select: true);
   }
 
   void doMoveWidget(CWWidget wid, CWWidgetCtx toCtxSlot) {
@@ -134,7 +151,7 @@ class DesignActionManager {
     _move(toCtxSlot, wid, cwchild, toCtxSlot);
   }
 
-  void doMove(CWWidgetCtx ctxSlot, CWWidgetCtx toCtxSlot,
+  void doMoveInSlot(CWWidgetCtx ctxSlot, CWWidgetCtx toCtxSlot,
       {bool repaint = true}) {
     CWWidget? child = ctxSlot.getWidgetInSlot();
     if (child != null) {
@@ -143,18 +160,8 @@ class DesignActionManager {
       _move(toCtxSlot, child, cwchild, ctxSlot);
 
       // repaint le parent
-      CWWidget? w = CoreDesigner.ofView()
-          .getWidgetByPath(CWWidgetCtx.getParentPathFrom(ctxSlot.pathWidget));
-      w?.repaint();
-
-      // repaint le parent
-      w = CoreDesigner.ofView()
-          .getWidgetByPath(CWWidgetCtx.getParentPathFrom(toCtxSlot.pathWidget));
-      w?.repaint();
-
-      Future.delayed(const Duration(milliseconds: 100), () {
-        CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
-      });
+      _repaintPath(ctxSlot);
+      _repaintPath(toCtxSlot, select: true);
     }
   }
 
@@ -174,9 +181,9 @@ class DesignActionManager {
         var v2 = ctx.findSlotByPath(pathTo);
         DesignActionManager().doMoveWidget(last, v2!.ctx);
         root.repaint();
-        Future.delayed(const Duration(milliseconds: 100), () {
-          // CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
-        });
+        // Future.delayed(const Duration(milliseconds: 100), () {
+        //   // CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
+        // });
       });
     }
   }
@@ -203,19 +210,8 @@ class DesignActionManager {
       _move(ctxSlot, child2!, cwchild2, toCtxSlot);
     }
 
-    // repaint le parent
-    CWWidget? w = CoreDesigner.ofView()
-        .getWidgetByPath(CWWidgetCtx.getParentPathFrom(ctxSlot.pathWidget));
-    w?.repaint();
-
-    // repaint le parent
-    w = CoreDesigner.ofView()
-        .getWidgetByPath(CWWidgetCtx.getParentPathFrom(toCtxSlot.pathWidget));
-    w?.repaint();
-
-    Future.delayed(const Duration(milliseconds: 100), () {
-      CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
-    });
+    _repaintPath(ctxSlot);
+    _repaintPath(toCtxSlot, select: true);
   }
 
   CWWidget doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
@@ -225,13 +221,7 @@ class DesignActionManager {
     rootWidget.initSlot('root', ModeParseSlot.create);
 
     // repaint le parent du slot
-    CWWidget? w = CoreDesigner.ofView()
-        .getWidgetByPath(CWWidgetCtx.getParentPathFrom(toCtxSlot.pathWidget));
-    w?.repaint();
-
-    Future.delayed(const Duration(milliseconds: 100), () {
-      CoreDesigner.emit(CDDesignEvent.select, toCtxSlot);
-    });
+    _repaintPath(toCtxSlot, select: true);
 
     return cmp;
   }
@@ -249,68 +239,96 @@ class DesignActionManager {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////
+  
+  void _repaintPath(CWWidgetCtx ctx, {bool? select}) {
+    CWWidget? w = CoreDesigner.ofView()
+        .getWidgetByPath(CWWidgetCtx.getParentPathFrom(ctx.pathWidget));
+    w?.repaint();
+
+    if (select ?? false) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        CoreDesigner.emit(CDDesignEvent.select, ctx);
+      });
+    }
+  }
+
+  void _doDeleteWidget(CWWidgetCtx ctx) {
+    CWWidget? child = ctx.getCWWidget();
+    if (child != null) {
+      CWSlot? slot = ctx.getSlot();
+      _delete(child, ctx, true);
+
+      ctx.factory.disposePath(ctx.pathWidget);
+
+      // repaint le parent
+      _repaintPath(slot!.ctx, select: true);
+    }
+  }
+
   CWWidget _doCreate(CWWidgetCtx toCtxSlot, ComponentDesc desc) {
     String newXid = desc.impl + customAlphabet('1234567890abcdef', 10);
 
     String pathCreate =
         CoreDesigner.ofLoader().addChild(toCtxSlot.xid, newXid, desc.impl);
 
-    final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, toCtxSlot.loader,
-        '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
+    final CWWidgetCtx ctxW = CWWidgetCtx(
+        newXid, toCtxSlot.loader, '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
 
-    CoreDataCtx ctx = CoreDataCtx();
-    ctx.payload = ctxW;
-    final CoreDataObjectBuilder wid =
-        toCtxSlot.loader.collectionWidget.getClass(desc.impl)!;
-    final CWWidget newWidget =
-        wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
+    var newWidget = _createWidget(ctxW, desc.impl);
 
-    toCtxSlot.factory.mapWidgetByXid[newXid] = newWidget;
     newWidget.ctx.pathDataCreate = pathCreate;
     toCtxSlot.factory.mapChildXidByXid[toCtxSlot.xid] = newXid;
-    newWidget.ctx.xid = newXid;
+
     return newWidget;
   }
 
   void _move(CWWidgetCtx toCtxSlot, CWWidget child, CoreDataEntity cwchild,
-      CWWidgetCtx ctxSlot) {
+      CWWidgetCtx ctxBuild) {
     String pathCreate = CoreDesigner.ofLoader()
         .addChild(toCtxSlot.xid, child.ctx.xid, cwchild.value['implement']);
 
-    final CWWidgetCtx ctxW = CWWidgetCtx(toCtxSlot.xid, ctxSlot.loader,
+    final CWWidgetCtx ctxW = CWWidgetCtx(child.ctx.xid, ctxBuild.loader,
         '${toCtxSlot.pathWidget}.${toCtxSlot.xid}');
 
     //recrer un composant
-    CoreDataCtx ctx = CoreDataCtx();
-    ctx.payload = ctxW;
-    final CoreDataObjectBuilder wid =
-        ctxSlot.loader.collectionWidget.getClass(cwchild.value['implement'])!;
-    final CWWidget newWidget =
-        wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
+    var newWidget = _createWidget(ctxW, cwchild.value['implement'],
+        designEntity: child.ctx.designEntity);
 
-    newWidget.ctx.designEntity = child.ctx.designEntity;
-    newWidget.ctx.pathDataDesign = child.ctx.pathDataDesign;
-
-    ctxSlot.factory.mapWidgetByXid[child.ctx.xid] = newWidget;
     newWidget.ctx.pathDataCreate = pathCreate;
-    ctxSlot.factory.mapChildXidByXid[toCtxSlot.xid] = child.ctx.xid;
-    newWidget.ctx.xid = child.ctx.xid;
+    newWidget.ctx.pathDataDesign = child.ctx.pathDataDesign;
+    ctxBuild.factory.mapChildXidByXid[toCtxSlot.xid] = child.ctx.xid;
 
     // suppression des path
     List<String> pathToDelete = [];
-    for (var p in ctxSlot.factory.mapXidByPath.entries) {
+    for (var p in ctxBuild.factory.mapXidByPath.entries) {
       if (p.key.startsWith(child.ctx.pathWidget)) {
         pathToDelete.add(p.key);
-        ctxSlot.factory.mapSlotConstraintByPath.remove(p.key);
+        ctxBuild.factory.mapSlotConstraintByPath.remove(p.key);
       }
     }
 
     for (var element in pathToDelete) {
-      ctxSlot.factory.mapXidByPath.remove(element);
+      ctxBuild.factory.mapXidByPath.remove(element);
     }
     // réaffecte les pathWidget
-    final rootWidget = ctxSlot.factory.mapWidgetByXid['root']!;
+    final rootWidget = ctxBuild.factory.mapWidgetByXid['root']!;
     rootWidget.initSlot('root', ModeParseSlot.move);
+  }
+
+  CWWidget _createWidget(CWWidgetCtx ctxW, String impl,
+      {CoreDataEntity? designEntity}) {
+    CoreDataCtx ctx = CoreDataCtx();
+    ctx.payload = ctxW;
+    final CoreDataObjectBuilder wid =
+        ctxW.loader.collectionWidget.getClass(impl)!;
+    final CWWidget newWidget =
+        wid.actions['BuildWidget']!.execute(ctx) as CWWidget;
+
+    newWidget.ctx.designEntity = designEntity;
+
+    ctxW.factory.mapWidgetByXid[newWidget.ctx.xid] = newWidget;
+
+    return newWidget;
   }
 
   CoreDataEntity _delete(CWWidget child, CWWidgetCtx ctxSlot, bool withDesign) {
@@ -378,7 +396,7 @@ class DesignActionManager {
         var v = ctx.findWidgetByPath(path);
         var v2 = ctx.findSlotByPath(pathTo);
         if (v != null) {
-          DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2!.ctx);
+          DesignActionManager().doMoveInSlot(v.ctx.getSlot()!.ctx, v2!.ctx);
         }
       }
     }
@@ -428,7 +446,7 @@ class DesignActionManager {
           var v = ctx.findWidgetByPath(path);
           var v2 = ctx.findSlotByPath(pathTo);
           if (v != null && v2 != null) {
-            DesignActionManager().doMove(v.ctx.getSlot()!.ctx, v2.ctx);
+            DesignActionManager().doMoveInSlot(v.ctx.getSlot()!.ctx, v2.ctx);
           }
         }
       }

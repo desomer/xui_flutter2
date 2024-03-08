@@ -158,10 +158,14 @@ class CoreDesigner extends StatefulWidget {
   late DesignerView designView = DesignerView(key: designerKey);
 
   int ctrlTime = 0;
-  int altTime = 0;
+  int shiftTime = 0;
 
-  bool isAltPress() {
-    return DateTime.now().millisecondsSinceEpoch - altTime < 200;
+  bool isShiftPress() {
+    return DateTime.now().millisecondsSinceEpoch - shiftTime < 200;
+  }
+
+  bool isCtrlPress() {
+    return DateTime.now().millisecondsSinceEpoch - ctrlTime < 200;
   }
 
   @override
@@ -200,7 +204,8 @@ class _CoreDesignerState extends State<CoreDesigner>
     clipboardtriggertime?.cancel();
   }
 
-  DebouncerAction alt = DebouncerAction(milliseconds: 400);
+  DebouncerAction shift = DebouncerAction(milliseconds: 600);
+  DebouncerAction ctrl = DebouncerAction(milliseconds: 600);
 
   @override
   Widget build(BuildContext context) {
@@ -234,35 +239,10 @@ class _CoreDesignerState extends State<CoreDesigner>
         home: CallbackShortcuts(
             bindings: <ShortcutActivator, VoidCallback>{
               LogicalKeySet(LogicalKeyboardKey.control): () {
-                print('ctrl');
-                int n = DateTime.now().millisecondsSinceEpoch;
-                if (n - widget.ctrlTime > 200) {
-                  print('start ctl');
-                }
-                widget.ctrlTime = n;
-                alt.doAfter(() {
-                  print('end ctl');
-                });
+                doBtnPress('ctrl');
               },
-              LogicalKeySet(LogicalKeyboardKey.alt): () {
-                print('alt');
-                int n = DateTime.now().millisecondsSinceEpoch;
-                if (n - widget.altTime > 200) {
-                  print('start alt');
-                  CoreDesignerSelector.of()
-                      .getSelectedWidgetContext()
-                      ?.getCWWidget()
-                      ?.repaint();
-                }
-                widget.altTime = n;
-                alt.doAfter(() {
-                  print('end alt');
-                  widget.altTime = DateTime.now().millisecondsSinceEpoch - 800;
-                  CoreDesignerSelector.of()
-                      .getSelectedWidgetContext()
-                      ?.getCWWidget()
-                      ?.repaint();
-                });
+              LogicalKeySet(LogicalKeyboardKey.shiftLeft): () {
+                doBtnPress('shift');
               },
             },
             child: Scaffold(
@@ -360,6 +340,63 @@ class _CoreDesignerState extends State<CoreDesigner>
                 ),
               ),
             )));
+  }
+
+  void doBtnPress(String id) {
+    int n = DateTime.now().millisecondsSinceEpoch;
+    int v = 0;
+
+    switch (id) {
+      case 'shift':
+        v = widget.shiftTime;
+        break;
+      case 'ctrl':
+        v = widget.ctrlTime;
+        break;
+      default:
+    }
+
+    if (n - v > 800) {
+      print('start $id');
+      // mode drag
+      CoreDesignerSelector.of()
+          .getSelectedWidgetContext()
+          ?.getCWWidget()
+          ?.repaint();
+    }
+
+    switch (id) {
+      case 'shift':
+        widget.shiftTime = n;
+        shift.doAfter(() {
+          //int n = DateTime.now().millisecondsSinceEpoch;
+          //if (n - widget.shiftTime < 500) return;
+          widget.shiftTime = 0;
+
+          print('end $id');
+          // stop mode drag
+          CoreDesignerSelector.of()
+              .getSelectedWidgetContext()
+              ?.getCWWidget()
+              ?.repaint();
+        });
+        break;
+      case 'ctrl':
+        widget.ctrlTime = n;
+        ctrl.doAfter(() {
+          //int n = DateTime.now().millisecondsSinceEpoch;
+          //if (n - widget.ctrlTime < 500) return;
+          widget.ctrlTime = 0;
+
+          print('end $id');
+          // CoreDesignerSelector.of()
+          //     .getSelectedWidgetContext()
+          //     ?.getCWWidget()
+          //     ?.repaint();
+        });
+        break;
+      default:
+    }
   }
 
   Widget getDataPan() {

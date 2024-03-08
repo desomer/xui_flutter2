@@ -27,9 +27,10 @@ class CWArray extends CWWidgetMapRepository {
     for (var i = 0; i < nb; i++) {
       addSlotPath(
           '$path[].Header$i',
-          SlotConfig('${ctx.xid}Header$i',
-              constraintEntity: 'CWColArrayConstraint'), mode);
-      addSlotPath('$path[].RowCont$i', SlotConfig('${ctx.xid}RowCont$i'), mode);
+          SlotConfig(XidBuilder(tag: 'Header', idx: i), ctx.xid,
+              constraintEntity: 'CWColArrayConstraint'),
+          mode);
+      addSlotPath('$path[].RowCont$i', SlotConfig(XidBuilder(tag: 'RowCont', idx: i), ctx.xid), mode);
     }
   }
 

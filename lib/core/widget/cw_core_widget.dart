@@ -17,14 +17,35 @@ enum ModeRendering { design, view }
 
 const String iDCount = '_count_';
 
+class XidBuilder {
+  XidBuilder({this.tag, this.idx, this.post});
+
+  String? tag;
+  String? post;
+  int? idx;
+
+  String getSlotXid(String xid) {
+    String ret = xid;
+    if (tag != null) ret = ret + tag!;
+    if (idx != null) ret = ret + idx.toString();
+    if (post != null) ret = ret + post!;
+    return ret;
+  }
+}
+
 class SlotConfig {
-  SlotConfig(this.xid,
+  SlotConfig(this.xidbuilder, this.xidParent,
       {this.constraintEntity, this.ctxVirtualSlot, this.pathNested});
-  String xid;
+  XidBuilder xidbuilder;
+  String xidParent;
   String? constraintEntity;
   CWSlot? slot;
   CWWidgetCtx? ctxVirtualSlot;
   String? pathNested;
+
+  String get xid {
+    return xidbuilder.getSlotXid(xidParent);
+  }
 }
 
 abstract class CWWidgetVirtual {
@@ -54,19 +75,19 @@ abstract class CWWidget extends StatefulWidget with CWSlotManager {
   void initSlot(String path, ModeParseSlot mode);
 
   void addSlotPath(String pathWid, SlotConfig config, ModeParseSlot mode) {
-    final String childXid = ctx.factory.mapChildXidByXid[config.xid] ?? '';
+    var xid = config.xid;
+    final String childXid = ctx.factory.mapChildXidByXid[xid] ?? '';
 
     if (mode == ModeParseSlot.save) {
       // gestion du link entre composant Provider
       debugPrint(
-          'add slot >>>> $pathWid  xid=${config.xid} child Xid=$childXid');
+          'add slot >>>> $pathWid  xid=$xid child Xid=$childXid');
       var app = CWApplication.of();
       var listUseXid = app.linkInfo.listUseXid;
-      listUseXid[config.xid] = 1 + (listUseXid[config.xid] ?? 0);
+      listUseXid[xid] = 1 + (listUseXid[xid] ?? 0);
       if (childXid != '') {
         listUseXid[childXid] = (listUseXid[childXid] ?? 0);
       }
-
     }
 
     Widget? widgetChild = ctx.factory.mapWidgetByXid[childXid];

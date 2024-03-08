@@ -120,7 +120,7 @@ class CWColumn extends CWContainer {
     for (int i = 0; i < nb; i++) {
       addSlotPath(
           '$path.Cont$i',
-          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWColConstraint'),
+          SlotConfig(XidBuilder(tag:'Cont', idx: i), ctx.xid, constraintEntity: 'CWColConstraint'),
           mode);
     }
   }
@@ -318,7 +318,7 @@ class CWRow extends CWContainer {
     for (int i = 0; i < nb; i++) {
       addSlotPath(
           '$path.Cont$i',
-          SlotConfig('${ctx.xid}Cont$i', constraintEntity: 'CWRowConstraint'),
+          SlotConfig(XidBuilder(tag:'Cont', idx: i), ctx.xid, constraintEntity: 'CWRowConstraint'),
           mode);
     }
   }

@@ -102,9 +102,15 @@ class _CWSlotState extends StateCW<CWSlot> {
               'drop ${item.component?.impl} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
           DesignActionManager().doCreate(widget.ctx, item.component!);
         } else {
-          debugPrint(
-              'move ${item.srcWidgetCtx!.xid} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
-          DesignActionManager().doMove(item.srcWidgetCtx!, widget.ctx);
+          if (CoreDesigner.of().isCtrlPress()) {
+            debugPrint(
+                'clone ${item.srcWidgetCtx!.xid} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
+            DesignActionManager().doCloneInSlot(item.srcWidgetCtx!.getWidgetInSlot()!.ctx, widget.ctx);
+          } else {
+            debugPrint(
+                'move ${item.srcWidgetCtx!.xid} on ${widget.ctx.xid} ${widget.ctx.pathDataDesign ?? 'no design'}');
+            DesignActionManager().doMoveInSlot(item.srcWidgetCtx!, widget.ctx);
+          }
         }
       } else if (details.data is DragPageCtx) {
         CWWidget w = DesignActionManager().doCreate(
